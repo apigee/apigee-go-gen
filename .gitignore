@@ -1,0 +1,8 @@
+/*.json
+/*.yaml
+/*.iml
+.idea
+.DS_Store
+out
+dist
+./test

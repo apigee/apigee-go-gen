@@ -1,0 +1,30 @@
+- OASValidation:
+    .continueOnError: false
+    .enabled: true
+    .name: OAS-Validate
+    .@:
+      DisplayName: OAS-Validate
+      Properties: {}
+      Source: request
+      OASResource: oas://spec.yaml
+- RaiseFault:
+    .continueOnError: false
+    .enabled: true
+    .name: RF-CatchAll
+    .@:
+      DisplayName: RF-CatchAll
+      Properties: {}
+      FaultResponse:
+        Set:
+          Headers: {}
+          Payload:
+            .contentType: application/json
+            .@: |-
+              {
+                 "status": 404
+                 "error": "NotFound"
+                 "message": "resource not found"
+              }
+          StatusCode: 404
+          ReasonPhrase: Not found
+      IgnoreUnresolvedVariables: true

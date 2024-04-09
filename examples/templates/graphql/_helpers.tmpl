@@ -1,0 +1,12 @@
+{{- define "get_api_name" -}}
+  {{- $service_name := (index $.Service 0).Name -}}
+  {{- $api_name := printf "%s-%s" (deref $.Package) (deref $service_name) -}}
+  {{- slug_make $api_name -}}
+{{- end -}}
+
+{{- define "get_basepath" -}}
+  {{- $service_name := (index $.Service 0).Name -}}
+  {{- printf "/%s.%s" (deref $.Package) (deref $service_name) -}}
+{{- end -}}
+
+

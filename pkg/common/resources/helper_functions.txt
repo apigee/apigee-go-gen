@@ -1,0 +1,67 @@
+    include(template string, data any)
+        Invoke an existing template e.g {{ include "sayHello" $data }}
+
+    os_writefile(dest string, content string)
+        Write a file to the output directory
+        e.g. {{ os_writefile "./dst/filename.txt" "contents" }}
+
+        The destination path is relative to the output directory.
+        ( ".." or absolute paths are not allowed)
+
+        This function outputs the destination file path.
+
+    os_copyfile(dest string, src string) string
+        Copies files to the output directory
+        e.g. {{ os_copyfile "./dest/lib.jar" "./src/lib.jar" }}
+
+        The destination path is relative to the output directory
+        ( ".." or absolute paths are not allowed)
+
+        The source path is relative to the main template file directory
+        ( ".." or absolute paths are not allowed)
+
+        This function outputs the destination file path
+
+    os_getenvs() map[string]string
+        Gets all environment variables as a dictionary
+        e.g. {{ $envs := os_getenvs }}
+
+    os_getenv(env string) string
+        Gets the value of the specified env var
+        e.g.  {{ os_getenv "USER" }}
+
+    slug_make(in string) string
+        Converts string to a slug
+        e.g. {{ slug_maek "My API Proxy" }} outputs "my-api-proxy"
+
+    url_parse(url string) net.URL
+        Parse a URL into its parts
+        e.g. {{ $url := url_parse "https://example.com/foo/bar" }}
+
+        This function outputs a net.URL object (see https://pkg.go.dev/net/url#URL)
+
+    blank() string
+        Outputs empty string.
+        e.g. {{ os_writefile "./dest/file" "foo" | blank }}
+
+        This is useful to consume the output of another function.
+
+    deref(*any) any
+        Dereferences the input pointer.
+
+    fmt_printf(pattern string, args ... string)
+        Write to stdout during the rendering process
+        e.g. {{ fmt_printf "Hello World\n" }}
+
+        This function is useful for so called "printf" debugging.
+
+        For example, you can use it to trace the template rendering as it runs.
+        You can also use it to dump values to stdout in order to see the contents.
+        e.g. {{ fmt_printf "url: %%v\n" $url }}
+
+    Sprig
+      Template functions from Sprig library
+      e.g. {{ "Hello World" | upper }}
+
+      The sprig library contains a lot of useful functions.
+      See the full docs at: https://masterminds.github.io/sprig

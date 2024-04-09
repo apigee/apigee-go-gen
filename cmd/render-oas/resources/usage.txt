@@ -1,0 +1,50 @@
+Description:
+
+  This tool renders a template using an OpenAPI as input.
+
+  The rendering context includes the following data:
+
+  struct {
+    OAS3 map[string]any
+    OAS3Str string
+    OAS2 map[string]any
+    OAS2Str string
+    Values map[string]any
+  }
+
+  * The OAS2 and OAS3 contain the spec as a generic map
+  * The OAS2Str and OAS3Str contain the spec as a string
+  * The Values field contains any value set with --set or --set-string
+
+  From your template, you can access data in the context with "$."
+
+  e.g. {{ $.OAS3.info.title }}
+
+  Helper functions:
+%[2]s
+
+Example 1 (simple):
+ %[1]s -template apiproxy.tmpl \
+       -spec ./oas.yaml \
+       -output ./out/petstore/apiproxy.yaml
+
+Example 2 (with one include):
+ %[1]s -template apiproxy.tmpl \
+       -spec ./oas.yaml \
+       -include ./helpers.tpl \
+       -output ./out/petstore/apiproxy.yaml
+
+Example 3 (with multiple includes):
+ %[1]s -template apiproxy.tmpl \
+       -spec ./oas.yaml \
+       -include ./helper1.tpl \
+       -include ./helper2.tpl \
+       -output ./out/petstore/apiproxy.yaml
+
+Example 4 (with glob include):
+ %[1]s -template apiproxy.tmpl \
+       -spec ./oas.yaml \
+       -include './helpers/*.tpl' \
+       -output ./out/petstore/apiproxy.yaml
+
+Flags:

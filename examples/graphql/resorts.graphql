@@ -1,0 +1,205 @@
+# Copyright 2024 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""
+A simple GraphQL for a Ski resort
+"""
+schema {
+    query: Query
+    mutation: Mutation
+}
+
+directive @visibility(
+    extent: String!
+) on FIELD_DEFINITION
+
+directive @pattern(
+    regexp: String!
+) on INPUT_FIELD_DEFINITION
+
+
+scalar Inches
+scalar Feet @specifiedBy(url: "https://exampe.com")
+scalar Date
+scalar RegEx
+
+input ResortsFilter {
+    id: RegEx,
+    name : RegEx,
+    status : RegEx,
+    last_snow_date : RegEx,
+    summit_depth : RegEx,
+    base_depth: RegEx,
+    last_snow_amount : RegEx
+    summit_elevation: RegEx
+    base_elevation: RegEx,
+    snow_condition: RegEx
+}
+
+type Query {
+    resorts(input: ResortsFilter) : [Resort]
+}
+
+
+input TrailsFilter {
+    id: RegEx
+    name: RegEx
+    status : RegEx
+    rating: RegEx
+    last_groomed : RegEx
+}
+
+type Resort {
+    id: String
+    name : String
+    trails(input: TrailsFilter) : [Trail]
+    lifts(input: LiftsFilter) : [Lift]
+    status : ResortStatus
+    last_snow_date : Date
+    summit_depth : Inches
+    base_depth: Inches
+    last_snow_amount : Inches
+    summit_elevation: Feet
+    base_elevation: Feet,
+    snow_condition: SnowCondition @visibility(extent: "INTERNAL")
+}
+
+enum TrailRating {
+    GREEN,
+    BLUE,
+    BLACK,
+    BLACK2,
+    PARK
+}
+
+type Trail {
+    id: String
+    name: String
+    status : TrailStatus
+    rating: TrailRating
+    last_groomed : Date
+}
+
+enum TrailStatus {
+    OPEN,
+    CLOSED
+}
+
+enum SnowCondition {
+    POWDER,
+    VARIABLE,
+    HARDPACK,
+    PACKED_POWDER,
+    WET,
+    MACHINE_MADE,
+    MACHINE_GROOMED
+}
+
+input LiftsFilter {
+    id: RegEx
+    name: RegEx
+    status : RegEx
+}
+
+type Lift {
+    id: String
+    name: String
+    status : LiftStatus
+}
+
+enum LiftStatus {
+    OPEN,
+    CLOSED,
+    WIND_HOLD,
+    MAINTENANCE_HOLD,
+    HOLD
+}
+
+enum ResortStatus {
+    OPEN,
+    CLOSED
+}
+
+type Mutation{
+    resorts: ResortsMutation,
+}
+
+type ResortsMutation {
+    create(input : CreateResortInput) : Resort,
+    delete(input: ResortsFilter!): [Resort],
+    update(input: ResortsFilter): [ResortMutation],
+
+}
+
+
+input CreateResortInput {
+    name : String!,   @pattern(regexp: "^[A-Z].*$")
+    summit_elevation: Feet!,
+    base_elevation: Feet!
+}
+
+input UpdateResortInput {
+    status : ResortStatus
+    last_snow_date : Date
+    last_snow_amount : Inches
+    summit_depth : Inches,
+    summit_elevation: Feet,
+    base_depth: Inches,
+    base_elevation: Feet,
+    snow_condition: SnowCondition
+}
+
+type ResortMutation {
+    resort(input: UpdateResortInput): Resort,
+    trails: TrailsMutation,
+    lifts: LiftsMutation,
+}
+
+input CreateTrailInput {
+    name: String @pattern(regexp: "^[A-Z].*$")
+    rating: TrailRating
+}
+
+type TrailsMutation {
+    create(input: CreateTrailInput): Trail,
+    delete(id: TrailsFilter!): [Trail],
+    update(input: TrailsFilter): [TrailMutation]
+}
+
+input UpdateTrailInput {
+    status : TrailStatus
+    last_groomed : Date
+}
+
+type TrailMutation {
+    trail(input: UpdateTrailInput): Trail
+}
+
+input CreateLiftInput {
+    name: String!
+}
+
+type LiftsMutation {
+    create(input: CreateLiftInput): Lift,
+    delete(input: LiftsFilter!): [Lift],
+    update(input: LiftsFilter): [LiftMutation]
+}
+
+input UpdateLiftInput {
+    status : LiftStatus
+}
+
+type LiftMutation {
+    lift(input: UpdateLiftInput): Lift
+}

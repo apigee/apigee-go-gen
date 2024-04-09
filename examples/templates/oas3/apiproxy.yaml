@@ -1,0 +1,62 @@
+APIProxy:
+  .revision: 1
+  .name: {{ .OAS3 | dig "info" "x-serviceName" .OAS3.info.title }}
+  .@:
+    DisplayName: {{ .OAS3.info.title }}
+    Description: {{ .OAS3.info.description }}
+Policies:
+  #{{- os_copyfile "./policies.yaml" "./policies.yaml" | blank }}
+  $ref: ./policies.yaml#/
+ProxyEndpoints:
+  - ProxyEndpoint:
+      .name: default
+      .@:
+        PreFlow:
+          .name: PreFlow
+          Request:
+            - Step:
+                Name: OAS-Validate
+        Flows:
+        #{{- range $path, $pathItem := .OAS3.paths }}
+          #{{- range $verb, $opItem := $pathItem }}
+            #{{- if eq (include "get_visibility" $opItem) "INTERNAL" }}
+                #{{- fmt_printf "Skipping internal operation '%s' (%s %s)\n" $opItem.operationId $verb $path }}
+                #{{-  continue }}
+            #{{-  end  }}
+          - Flow:
+              .name: {{ $opItem.operationId }}
+              .@:
+                Condition: (proxy.pathsuffix MatchesPath "{{  regexReplaceAll "{[^}]*}" $path "*" }}") and (request.verb = "{{ $verb | upper }}")
+          #{{- end }}
+        #{{- end }}
+          - Flow:
+              .name: CatchAll
+              Request:
+                - Step:
+                    Name: RF-CatchAll
+        HTTPProxyConnection:
+          BasePath: {{ include "get_basepath" (index .OAS3.servers 0 "url") }}
+        RouteRule:
+          .name: default
+          .@:
+            TargetEndpoint: default
+TargetEndpoints:
+  - TargetEndpoint:
+      .name: default
+      .@:
+        HTTPTargetConnection:
+          #{{- $scheme := include "get_scheme" (index .OAS3.servers 0 "url") }}
+          #{{- if eq $scheme "https" }}
+          SSLInfo:
+            Enabled: true
+            Enforce: true
+            IgnoreValidationErrors: true
+          #{{- end }}
+          URL: {{ include "get_target_url" .OAS3.servers }}
+Resources:
+  - Resource:
+      Type: oas
+      Path: {{ os_writefile "./spec.yaml" .OAS3Str }}
+  - Resource:
+      Type: properties
+      Path: {{ os_copyfile "./test.properties" "./resources/test.properties" }}

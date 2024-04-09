@@ -1,0 +1,14 @@
+Description:
+
+ This tool creates an API Proxy bundle from a YAML document
+
+Example 1 (output zip):
+
+ %[1]s  -input ./example/apiproxy.yaml -output ./path/to/bundle.zip
+
+Example 2 (output dir):
+
+ %[1]s  -input ./example/apiproxy.yaml -output ./path/to/bundle/
+
+
+Flags:

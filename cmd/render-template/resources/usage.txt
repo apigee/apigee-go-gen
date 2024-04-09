@@ -1,0 +1,50 @@
+Description:
+
+  This tool renders a Go-style template
+
+  The rendering context includes the following data:
+
+  struct {
+    Values map[string]any
+  }
+
+  * The Values field contains any value set with --set or --set-string
+
+  From your template, you can access data in the context with "$."
+
+  e.g.
+     Package Name: {{ $.Values.target_url }}
+
+
+  Helper functions:
+%[2]s
+
+Example 1 (simple):
+ %[1]s -template apiproxy.tmpl \
+       -set-string "base_path=/json" \
+       -set-string "target_url=https://httpbin.org/json" \
+       -output ./out/example/apiproxy.yaml
+
+Example 2 (with one include):
+ %[1]s -template apiproxy.tmpl \
+       -set-string "base_path=/json" \
+       -set-string "target_url=https://httpbin.org/json" \
+       -include ./helpers.tpl \
+       -output ./out/example/apiproxy.yaml
+
+Example 3 (with multiple includes):
+ %[1]s -template apiproxy.tmpl \
+       -set-string "base_path=/json" \
+       -set-string "target_url=https://httpbin.org/json" \
+       -include ./helper1.tpl \
+       -include ./helper2.tpl \
+       -output ./out/example/apiproxy.yaml
+
+Example 4 (with glob include):
+ %[1]s -template apiproxy.tmpl \
+       -set-string "base_path=/json" \
+       -set-string "target_url=https://httpbin.org/json" \
+       -include './helpers/*.tpl' \
+       -output ./out/example/apiproxy.yaml
+
+Flags:

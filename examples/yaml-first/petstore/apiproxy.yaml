@@ -1,0 +1,50 @@
+APIProxy:
+  .revision: 1
+  .name: Swagger Petstore
+  .@:
+    DisplayName: Swagger Petstore
+    Description: <no value>
+Policies:
+  $ref: ./policies.yaml#/
+ProxyEndpoints:
+  - ProxyEndpoint:
+      .name: default
+      .@:
+        PreFlow:
+          .name: PreFlow
+          Request:
+            - Step:
+                Name: OAS-Validate
+        Flows:
+          - Flow:
+              .name: listPets
+              .@:
+                Condition: (proxy.pathsuffix MatchesPath "/pets") and (request.verb = "GET")
+          - Flow:
+              .name: showPetById
+              .@:
+                Condition: (proxy.pathsuffix MatchesPath "/pets/*") and (request.verb = "GET")
+          - Flow:
+              .name: CatchAll
+              Request:
+                - Step:
+                    Name: RF-CatchAll
+        HTTPProxyConnection:
+          BasePath: /v1
+        RouteRule:
+          .name: default
+          .@:
+            TargetEndpoint: default
+TargetEndpoints:
+  - TargetEndpoint:
+      .name: default
+      .@:
+        HTTPTargetConnection:
+          URL: http://petstore.swagger.io/v1
+Resources:
+  - Resource:
+      Type: oas
+      Path: ./spec.yaml
+  - Resource:
+      Type: properties
+      Path: ./test.properties

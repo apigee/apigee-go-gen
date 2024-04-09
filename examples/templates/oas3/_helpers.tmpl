@@ -1,0 +1,20 @@
+{{- define "get_visibility" -}}
+  {{- dig "x-visibility" "extent" "UNKNOWN" . }}
+{{- end -}}
+
+{{- define "get_basepath" -}}
+  {{- $url := url_parse . -}}
+  {{- $url.Path | default "/" -}}
+{{- end -}}
+
+{{- define "get_scheme" -}}
+  {{- $url := url_parse . -}}
+  {{- $url.Scheme -}}
+{{- end -}}
+
+{{- define "get_target_url" -}}
+  {{- $servers := . -}}
+  {{- index $servers 0 | dig "url" "https://mocktarget.apigee.net" -}}
+{{- end -}}
+
+{{- define "blank" -}}{{- end -}}
