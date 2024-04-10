@@ -18,6 +18,7 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
+	"github.com/micovery/apigee-yaml-toolkit/cmd/yaml2xml/resources"
 	"github.com/micovery/apigee-yaml-toolkit/pkg/utils"
 	"gopkg.in/yaml.v3"
 	"os"
@@ -34,12 +35,12 @@ func main() {
 	flag.Parse()
 
 	if version {
-		PrintVersion()
+		utils.PrintVersion()
 		return
 	}
 
 	if help {
-		PrintUsage()
+		resources.PrintUsage()
 		return
 	}
 
