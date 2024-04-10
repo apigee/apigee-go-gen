@@ -1,0 +1,38 @@
+RaiseFault:
+  .async: false
+  .continueOnError: true
+  .enabled: true
+  .name: RF-Example
+  DisplayName: RF-Example
+  FaultResponse:
+    - AssignVariable:
+        Name: flow.var
+        Value: 123
+    - Add:
+        Headers:
+          Header:
+            .name: user-agent
+            .@: example
+    - Copy:
+        .source: request
+        Headers:
+          Header:
+            .name: header-name
+        StatusCode: 304
+    - Remove:
+        Headers:
+          Header:
+            .name: sample-header
+    - Set:
+        Headers:
+          Header:
+            .name: user-agent
+            .@: '{request.header.user-agent}'
+        Payload:
+          .contentType: application/json
+          .@: '{"name":"foo", "type":"bar"}'
+    - Set:
+        ReasonPhrase: Server Error
+        StatusCode: 500
+  IgnoreUnresolvedVariables: true
+  ShortFaultReason: false

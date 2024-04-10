@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<RaiseFault async="false" continueOnError="true" enabled="true" name="RF-Example" >
+    <DisplayName>RF-Example</DisplayName>
+    <FaultResponse>
+        <AssignVariable >
+            <Name>flow.var</Name>
+            <Value>123</Value>
+        </AssignVariable>
+        <Add >
+            <Headers>
+                <Header name="user-agent" >example</Header>
+            </Headers>
+        </Add>
+        <Copy source="request" >
+            <Headers>
+                <Header name="header-name" ></Header>
+            </Headers>
+            <StatusCode>304</StatusCode>
+        </Copy>
+        <Remove >
+            <Headers>
+                <Header name="sample-header" ></Header>
+            </Headers>
+        </Remove>
+        <Set >
+            <Headers>
+                <Header name="user-agent" >{request.header.user-agent}</Header>
+            </Headers>
+            <Payload contentType="application/json" >{"name":"foo", "type":"bar"}</Payload>
+        </Set>
+        <Set >
+            <ReasonPhrase>Server Error</ReasonPhrase>
+            <StatusCode>500</StatusCode>
+        </Set>
+    </FaultResponse>
+    <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
+    <ShortFaultReason>false</ShortFaultReason>
+</RaiseFault>

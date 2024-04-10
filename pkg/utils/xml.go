@@ -21,6 +21,7 @@ import (
 	"github.com/go-errors/errors"
 	"gopkg.in/yaml.v3"
 	"io"
+	"slices"
 	"strings"
 )
 
@@ -209,7 +210,7 @@ func XML2YAMLRecursive(ele *etree.Element) (key *yaml.Node, value *yaml.Node, er
 	}
 
 	if !allUnique {
-		//it's a sequence, parent has no attributes
+		//it's a sequence
 		sequence := &yaml.Node{Kind: yaml.SequenceNode}
 		sequence.Content = []*yaml.Node{}
 
@@ -222,12 +223,30 @@ func XML2YAMLRecursive(ele *etree.Element) (key *yaml.Node, value *yaml.Node, er
 		}
 
 		if nodeVal == children {
+			// parent has no attributes
 			nodeVal = sequence
 		} else {
+			// parent has
 			children.Kind = sequence.Kind
 			children.Content = sequence.Content
 		}
 
+		return nodeKey, nodeVal, nil
+	}
+
+	childrenIndex := slices.IndexFunc(nodeVal.Content, func(e *yaml.Node) bool {
+		return e.Value == ".@"
+	})
+
+	if childrenIndex > 0 && children != nodeVal &&
+		children.Kind == yaml.MappingNode &&
+		nodeVal.Kind == yaml.MappingNode &&
+		allUnique {
+		//remove unnecessary nesting
+		newContent := append([]*yaml.Node{}, nodeVal.Content[0:childrenIndex]...)
+		newContent = append(newContent, nodeVal.Content[childrenIndex+2:]...)
+		newContent = append(newContent, children.Content...)
+		nodeVal.Content = newContent
 		return nodeKey, nodeVal, nil
 	}
 
