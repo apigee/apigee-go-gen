@@ -121,7 +121,7 @@ Below is the general structure of a bunle
 ```
 
 I've only showed some of the resources that could exist in a `bundle`. There are other a few others, that are not used as frequently.
-(i.e for xsds, wsdls and others)
+(i.e. for xsds, wsdls and others)
 
 ## Transformation Tools
 
@@ -172,7 +172,7 @@ The tool reads XML form `stdin`, and writes YAML to `stdout`. Below are a couple
       <Child>Buzz</Child>
     </Parent>' | xml2yaml
     ```
-    > **NOTE:** Using echo with as show above will not work properly if your input already contains single quotes
+    > **NOTE:** Using echo as shown above will not work properly if your input already contains single quotes
 
 
 ### Tool: yaml2xml
@@ -207,7 +207,7 @@ The tool reads YAML form `stdin`, and writes XML to `stdout`. Below are a few ex
       - Child: Fizz
       - Child: Buzz' | yaml2xml
     ```
-    > **NOTE:** Using echo with as show above will not work properly if your input already contains single quotes
+    > **NOTE:** Using echo as shown above will not work properly if your input already contains single quotes
 
 ### Tool: bundle2yaml
 
@@ -452,7 +452,7 @@ While GraphQL schemas might not contain all the necessary details for a complete
 * **Access the Schema:** The GraphQL schema text and [AST](https://pkg.go.dev/github.com/vektah/gqlparser/v2/ast#Schema) are available during template rendering.
 
 
-**See an Example:** Check out the [examples/templates/graphql](examples/templates/graphql/) directory for an example of building the intermediate YAML  for a GraphQL API Proxy.
+**See an Example:** Check out the [examples/templates/graphql](examples/templates/graphql) directory for an example of building the intermediate YAML for a GraphQL API Proxy.
 
 Here is how you would call it
 
@@ -486,7 +486,7 @@ Any additional information (such as target server name) that is not available wi
 can be supplied as values tom the rendering process using the `-set` and `-set-string` params.
 
 
-**See an Example:** Check out the [examples/templates/grpc](examples/templates/grpc/) directory for an example of building the intermediate YAML for a gRPC API Proxy.
+**See an Example:** Check out the [examples/templates/grpc](examples/templates/grpc) directory for an example of building the intermediate YAML for a gRPC API Proxy.
 
 Here is how you would use the tool with this example:
 
