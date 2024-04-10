@@ -25,6 +25,7 @@ By using these tools alongside the Apigee CLI, you'll unlock a highly customizab
   * [render-graphql](#tool-render-graphql)
   * [render-grpc](#tool-render-grpc)
   * [render-template ](#tool-render-template)
+* [Installation](#installation)
 
     
 ## Why use YAML-First
@@ -490,8 +491,21 @@ generating Apigee API Proxies. Here's how it works:
 For a full list of all available helper functions, see [helper_functions.txt](pkg/common/resources/helper_functions.txt)
 
 
+## Installation
 
+If you already have [Go](https://go.dev/doc/install) installed in your machine, run the following command:
 
+```shell
+go install github.com/micovery/apigee-yaml-toolkit/cmd/...@latest
+```
+
+This will download, build and install all the tools into your `$GOPATH/bin` directory
+
+You can change the `@latest` tag for any other version that has been tagged. (e.g. `@v0.1.1`)
+
+**Note**: Having Go installed on your system is not a requirement to use the tools. Once the
+tools have been compiled, they are standalone executable binaries that you can use in any other machine
+with the same operating system and architecture.
 
 ## Support
 This is not an officially supported Google product
