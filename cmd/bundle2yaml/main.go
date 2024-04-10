@@ -16,6 +16,7 @@ package main
 
 import (
 	"flag"
+	"github.com/micovery/apigee-yaml-toolkit/cmd/bundle2yaml/resources"
 	"github.com/micovery/apigee-yaml-toolkit/pkg/bundle"
 	"github.com/micovery/apigee-yaml-toolkit/pkg/utils"
 )
@@ -35,12 +36,12 @@ func main() {
 	flag.Parse()
 
 	if version {
-		PrintVersion()
+		utils.PrintVersion()
 		return
 	}
 
 	if help {
-		PrintUsage()
+		resources.PrintUsage()
 		return
 	}
 

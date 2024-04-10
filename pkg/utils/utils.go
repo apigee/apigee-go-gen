@@ -19,6 +19,8 @@ import (
 	"fmt"
 	"github.com/go-errors/errors"
 	"os"
+	"path/filepath"
+	"runtime/debug"
 )
 
 func RequireParamAndExit(param string) {
@@ -31,4 +33,11 @@ func PrintErrorWithStackAndExit(err error) {
 	fmt.Printf("error: %s\n", err.Error())
 	fmt.Printf("%s\n", errors.Wrap(err, 0).Stack())
 	os.Exit(1)
+}
+
+func PrintVersion() {
+	program := filepath.Base(os.Args[0])
+	info, _ := debug.ReadBuildInfo()
+
+	fmt.Printf("%s %s\n", program, info.Main.Version)
 }

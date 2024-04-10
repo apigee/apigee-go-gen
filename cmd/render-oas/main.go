@@ -16,6 +16,7 @@ package main
 
 import (
 	"flag"
+	"github.com/micovery/apigee-yaml-toolkit/cmd/render-oas/resources"
 	"github.com/micovery/apigee-yaml-toolkit/pkg/render"
 	"github.com/micovery/apigee-yaml-toolkit/pkg/utils"
 	"strings"
@@ -27,7 +28,7 @@ func main() {
 
 	flag.StringVar(&specFile, "spec", "", `(required) path to OAS file e.g "./oas.yaml"`)
 
-	flags, err := render.GetRenderFlags(PrintVersion, PrintUsage)
+	flags, err := render.GetRenderFlags(utils.PrintVersion, resources.PrintUsage)
 	if err != nil {
 		utils.PrintErrorWithStackAndExit(err)
 		return

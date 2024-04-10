@@ -14,7 +14,23 @@
 
 package resources
 
-import "embed"
+import (
+	"embed"
+	"flag"
+	"fmt"
+	"os"
+)
 
 //go:embed *
 var FS embed.FS
+
+func PrintUsage() {
+	usageText, err := FS.ReadFile("usage.txt")
+
+	if err != nil {
+		panic(err)
+	}
+	fmt.Fprintf(os.Stderr, string(usageText))
+
+	flag.PrintDefaults()
+}
