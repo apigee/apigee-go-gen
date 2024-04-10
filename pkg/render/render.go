@@ -372,11 +372,13 @@ func GetRenderFlags(printVersion func(), printUsage func()) (*Flags, error) {
 
 	if flags.Version {
 		printVersion()
+		os.Exit(0)
 		return nil, nil
 	}
 
 	if flags.Help {
 		printUsage()
+		os.Exit(0)
 		return nil, nil
 	}
 
