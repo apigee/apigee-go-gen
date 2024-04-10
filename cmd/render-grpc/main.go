@@ -16,6 +16,7 @@ package main
 
 import (
 	"flag"
+	"github.com/micovery/apigee-yaml-toolkit/cmd/render-grpc/resources"
 	"github.com/micovery/apigee-yaml-toolkit/pkg/render"
 	"github.com/micovery/apigee-yaml-toolkit/pkg/utils"
 	"strings"
@@ -26,7 +27,7 @@ func main() {
 	var protoFile string
 	flag.StringVar(&protoFile, "proto", "", `(required) path to proto file e.g "./greeter.proto"`)
 
-	flags, err := render.GetRenderFlags(PrintVersion, PrintUsage)
+	flags, err := render.GetRenderFlags(utils.PrintVersion, resources.PrintUsage)
 	if err != nil {
 		utils.PrintErrorWithStackAndExit(err)
 		return

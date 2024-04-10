@@ -19,6 +19,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/beevik/etree"
+	"github.com/micovery/apigee-yaml-toolkit/cmd/xml2yaml/resources"
 	"github.com/micovery/apigee-yaml-toolkit/pkg/utils"
 	"os"
 )
@@ -34,12 +35,12 @@ func main() {
 	flag.Parse()
 
 	if version {
-		PrintVersion()
+		utils.PrintVersion()
 		return
 	}
 
 	if help {
-		PrintUsage()
+		resources.PrintUsage()
 		return
 	}
 

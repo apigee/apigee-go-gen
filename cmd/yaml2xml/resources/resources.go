@@ -14,7 +14,26 @@
 
 package resources
 
-import "embed"
+import (
+	"embed"
+	"flag"
+	"fmt"
+	"github.com/micovery/apigee-yaml-toolkit/cmd/yaml2bundle/resources"
+	"os"
+	"path/filepath"
+)
 
 //go:embed *
 var FS embed.FS
+
+func PrintUsage() {
+	program := filepath.Base(os.Args[0])
+	usageText, err := resources.FS.ReadFile("usage.txt")
+
+	if err != nil {
+		panic(err)
+	}
+	fmt.Fprintf(os.Stderr, string(usageText), program)
+
+	flag.PrintDefaults()
+}

@@ -15,13 +15,15 @@
 package main
 
 import (
+	"github.com/micovery/apigee-yaml-toolkit/cmd/render-template/resources"
 	"github.com/micovery/apigee-yaml-toolkit/pkg/render"
 	"github.com/micovery/apigee-yaml-toolkit/pkg/utils"
 )
 
 func main() {
 
-	flags, err := render.GetRenderFlags(PrintVersion, PrintUsage)
+	flags, err := render.GetRenderFlags(utils.PrintVersion, resources.PrintUsage)
+
 	if err != nil {
 		utils.PrintErrorWithStackAndExit(err)
 		return
