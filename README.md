@@ -155,6 +155,15 @@ The tool reads XML form `stdin`, and writes YAML to `stdout`. Below are a couple
     ```shell
     xml2yaml < ./examples/snippets/check-quota.xml
     ```
+  * Reading input directly from stdin
+    ```shell
+    xml2yaml << EOF 
+    <Parent>
+      <Child>Fizz</Child>
+      <Child>Buzz</Child>
+    </Parent>
+    EOF
+    ```
   * Reading input piped from another process
     ```shell
     echo '
@@ -163,6 +172,8 @@ The tool reads XML form `stdin`, and writes YAML to `stdout`. Below are a couple
       <Child>Buzz</Child>
     </Parent>' | xml2yaml
     ```
+    > **NOTE:** Using echo with as show above will not work properly if your input already contains single quotes
+
 
 ### Tool: yaml2xml
 
@@ -175,11 +186,19 @@ Here's how it helps:
 
 **Usage**
 
-The tool reads YAML form `stdin`, and writes XML to `stdout`. Below are a couple of examples.
+The tool reads YAML form `stdin`, and writes XML to `stdout`. Below are a few examples.
 
   * Reading input redirected from a file
     ```shell
     yaml2xml < ./examples/snippets/ducks.yaml
+    ```
+  * Reading input from `stdin` directly
+    ```shell
+    yaml2xml << EOF
+    Parent:
+      - Child: Fizz
+      - Child: Buzz' | yaml2xml
+    EOF
     ```
   * Reading input piped from another process
     ```shell
@@ -188,6 +207,7 @@ The tool reads YAML form `stdin`, and writes XML to `stdout`. Below are a couple
       - Child: Fizz
       - Child: Buzz' | yaml2xml
     ```
+    > **NOTE:** Using echo with as show above will not work properly if your input already contains single quotes
 
 ### Tool: bundle2yaml
 
@@ -402,7 +422,9 @@ render-oas -template ./examples/templates/oas3/apiproxy.yaml \
            -output ./out/yaml-first/petstore/apiproxy.yaml
 ```
 
-**Note**: You may pass the `-include` flag multiple time to load template helpers from multiple sources.
+> [!NOTE]
+> You may pass the `-include` flag multiple time to load template helpers from multiple sources.
+
 
 
 **Quick Template Previews with Dry Run**
@@ -486,7 +508,8 @@ generating Apigee API Proxies. Here's how it works:
 * **Start with Your Template:** Use the familiar Go templating syntax, enhanced with helpful functions specifically for building API Proxies.
 * **Inject Your Values:** Use `-set` and `-set-string` to provide essential details that your template will use during the rendering process.
 
-**Note**: All rendering tools in this toolkit use the same underlying Go templating logic (including helper functions)
+> [!NOTE]
+> All rendering tools in this toolkit use the same underlying Go templating logic (including helper functions)
 
 For a full list of all available helper functions, see [helper_functions.txt](pkg/common/resources/helper_functions.txt)
 
@@ -503,9 +526,10 @@ This will download, build and install all the tools into your `$GOPATH/bin` dire
 
 You can change the `@latest` tag for any other version that has been tagged. (e.g. `@v0.1.1`)
 
-**Note**: Having Go installed on your system is not a requirement to use the tools. Once the
-tools have been compiled, they are standalone executable binaries that you can use in any other machine
-with the same operating system and architecture.
+> [!NOTE]
+> The Go tool (and compiler) is only necessary to build the tools in this repo. 
+> Once built, you can copy the tool binaries and use them in any other
+> machine of the same architecture and operating system (without needing Go).
 
 ## Support
 This is not an officially supported Google product
