@@ -1,0 +1,3 @@
+Parent:
+  .foo: bar
+  .@: Content

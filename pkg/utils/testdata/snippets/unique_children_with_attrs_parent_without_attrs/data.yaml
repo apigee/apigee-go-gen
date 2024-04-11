@@ -1,0 +1,7 @@
+Root:
+  Child1:
+    .name: foo
+    .@: foo
+  Child2:
+    .name: bar
+    .@: bar

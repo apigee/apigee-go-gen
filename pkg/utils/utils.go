@@ -41,3 +41,12 @@ func PrintVersion() {
 
 	fmt.Printf("%s %s\n", program, info.Main.Version)
 }
+
+func MustReadFileBytes(path string) []byte {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		panic(err)
+	}
+
+	return data
+}

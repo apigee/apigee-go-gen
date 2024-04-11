@@ -22,10 +22,30 @@ import (
 	"github.com/vmware-labs/yaml-jsonpath/pkg/yamlpath"
 	"gopkg.in/yaml.v3"
 	"io"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
 )
+
+func YAMLText2XMLText(reader io.Reader) ([]byte, error) {
+	var err error
+	var yamlNode *yaml.Node
+	if yamlNode, err = Text2YAML(reader); err != nil {
+		PrintErrorWithStackAndExit(err)
+		return nil, err
+	}
+
+	docNode := &yaml.Node{Kind: yaml.DocumentNode}
+	docNode.Content = append(docNode.Content, yamlNode)
+
+	var xmlText []byte
+	if xmlText, err = YAML2XMLText(docNode); err != nil {
+		PrintErrorWithStackAndExit(err)
+		return nil, err
+	}
+	return xmlText, nil
+}
 
 func YAML2XML(node *yaml.Node) (*etree.Document, error) {
 	var err error
@@ -182,31 +202,54 @@ func ParseYAMLFile(filePath string) (*yaml.Node, error) {
 	return resolvedNode, nil
 }
 
-func JSONRef2YAMLPath(jsonRef string) string {
+func JSONPointer2JSONPath(jsonPointer string) (jsonPath string, err error) {
 
-	yamlPath := strings.ReplaceAll(jsonRef, "/", ".")
-	yamlPath = strings.Trim(yamlPath, ".")
-	return "$" + yamlPath
+	pointer := strings.TrimSpace(jsonPointer)
+	if pointer == "" ||
+		pointer == "#" ||
+		pointer == "#/" {
+		return "$", nil
+	}
+
+	if strings.Index(pointer, "#/") != 0 {
+		return "", errors.Errorf("relative JSONPointer %s is not supported", jsonPointer)
+	}
+
+	pointer = "$" + strings.ReplaceAll(pointer[1:], "/", ".")
+	return pointer, nil
+}
+
+func SplitJSONRef(refStr string) (location string, jsonPath string, err error) {
+	parsedUrl, err := url.Parse(refStr)
+	if err != nil {
+		return "", "", errors.New(err)
+	}
+
+	if parsedUrl.Scheme != "" {
+		return "", "", errors.Errorf("JSONRef %s is not supported", refStr)
+	}
+
+	jsonPath, err = JSONPointer2JSONPath("#" + parsedUrl.Fragment)
+	if err != nil {
+		return "", "", err
+	}
+
+	return parsedUrl.Path, jsonPath, nil
 }
 
 func ResolveYAMLRef(node *yaml.Node, nodePath string) (*yaml.Node, error) {
 	var err error
-	refLocation := node.Content[1].Value
-	locationParts := strings.Split(refLocation, "#")
 
-	if len(locationParts) != 2 {
-		return nil, errors.Errorf("JSONRef '%s' is not valid", refLocation)
+	jsonRef := node.Content[1].Value
+	refFilePath, refJSONPath, err := SplitJSONRef(node.Content[1].Value)
+	if err != nil {
+		return nil, err
 	}
-
-	refFilePath := locationParts[0]
-	refDocPath := locationParts[1]
 
 	if refFilePath == "" {
-		return nil, errors.Errorf("self referncing JSONRef '%s' is not supported", refLocation)
+		return nil, errors.Errorf("self referncing JSONRef '%s' is not supported", jsonRef)
 	}
-
 	var fileRootNode *yaml.Node
-
 	if !filepath.IsAbs(refFilePath) {
 		refFilePath = filepath.Join(nodePath, refFilePath)
 	}
@@ -214,10 +257,12 @@ func ResolveYAMLRef(node *yaml.Node, nodePath string) (*yaml.Node, error) {
 	if fileRootNode, err = ParseYAMLFile(refFilePath); err != nil {
 		return nil, err
 	}
+	if err != nil {
+		return nil, err
+	}
 
-	convertedPath := JSONRef2YAMLPath(refDocPath)
 	var yamlPath *yamlpath.Path
-	if yamlPath, err = yamlpath.NewPath(convertedPath); err != nil {
+	if yamlPath, err = yamlpath.NewPath(refJSONPath); err != nil {
 		return nil, errors.New(err)
 	}
 
@@ -227,11 +272,11 @@ func ResolveYAMLRef(node *yaml.Node, nodePath string) (*yaml.Node, error) {
 	}
 
 	if len(yamlNodes) == 0 {
-		return nil, errors.Errorf("no node found at JSONRef '%s'", refLocation)
+		return nil, errors.Errorf("no node found at JSONRef '%s'", jsonRef)
 	}
 
 	if len(yamlNodes) > 1 {
-		return nil, errors.Errorf("more than one node found at JSONRef '%s'", refLocation)
+		return nil, errors.Errorf("more than one node found at JSONRef '%s'", jsonRef)
 	}
 
 	return yamlNodes[0], nil

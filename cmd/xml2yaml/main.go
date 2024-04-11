@@ -18,7 +18,6 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
-	"github.com/beevik/etree"
 	"github.com/micovery/apigee-yaml-toolkit/cmd/xml2yaml/resources"
 	"github.com/micovery/apigee-yaml-toolkit/pkg/utils"
 	"os"
@@ -45,15 +44,8 @@ func main() {
 	}
 
 	var err error
-	var doc *etree.Document
-
-	if doc, err = utils.Text2XML(bufio.NewReader(os.Stdin)); err != nil {
-		utils.PrintErrorWithStackAndExit(err)
-		return
-	}
-
-	var yamlText []byte
-	if yamlText, err = utils.XML2YAMLText(doc, 2); err != nil {
+	yamlText, err := utils.XMLText2YAMLText(bufio.NewReader(os.Stdin))
+	if err != nil {
 		utils.PrintErrorWithStackAndExit(err)
 		return
 	}

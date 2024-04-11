@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<FlowCallout async="false" continueOnError="true" enabled="true" name="FC-Callout">
+  <DisplayName>FC-Callout</DisplayName>
+  <Parameters>
+    <Parameter name="param1" value="Literal"/>
+    <Parameter name="param2" ref="request.content"/>
+  </Parameters>
+  <SharedFlowBundle>SharedFlowName</SharedFlowBundle>
+</FlowCallout>
