@@ -72,7 +72,7 @@ Think of an API Proxy bundle like a neatly organized package. It contains the es
 * **Policies for security and management:** These define how to protect your API, control access, and even things like tracking usage.
 * **And more...** depending on your setup!
 
-Below is the general structure of a bunle
+Below is the general structure of a bundle
 
 ```
 
