@@ -28,6 +28,25 @@ import (
 	"strings"
 )
 
+func YAMLText2XMLText(reader io.Reader) ([]byte, error) {
+	var err error
+	var yamlNode *yaml.Node
+	if yamlNode, err = Text2YAML(reader); err != nil {
+		PrintErrorWithStackAndExit(err)
+		return nil, err
+	}
+
+	docNode := &yaml.Node{Kind: yaml.DocumentNode}
+	docNode.Content = append(docNode.Content, yamlNode)
+
+	var xmlText []byte
+	if xmlText, err = YAML2XMLText(docNode); err != nil {
+		PrintErrorWithStackAndExit(err)
+		return nil, err
+	}
+	return xmlText, nil
+}
+
 func YAML2XML(node *yaml.Node) (*etree.Document, error) {
 	var err error
 	doc := etree.NewDocument()

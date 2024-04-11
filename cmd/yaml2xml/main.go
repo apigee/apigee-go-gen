@@ -20,7 +20,6 @@ import (
 	"fmt"
 	"github.com/micovery/apigee-yaml-toolkit/cmd/yaml2xml/resources"
 	"github.com/micovery/apigee-yaml-toolkit/pkg/utils"
-	"gopkg.in/yaml.v3"
 	"os"
 )
 
@@ -44,20 +43,8 @@ func main() {
 		return
 	}
 
-	var err error
-	var yamlNode *yaml.Node
-
-	if yamlNode, err = utils.Text2YAML(bufio.NewReader(os.Stdin)); err != nil {
-		utils.PrintErrorWithStackAndExit(err)
-		return
-	}
-
-	docNode := &yaml.Node{Kind: yaml.DocumentNode}
-	docNode.Content = append(docNode.Content, yamlNode)
-
-	var xmlText []byte
-	if xmlText, err = utils.YAML2XMLText(docNode); err != nil {
-		utils.PrintErrorWithStackAndExit(err)
+	xmlText, err := utils.YAMLText2XMLText(bufio.NewReader(os.Stdin))
+	if err != nil {
 		return
 	}
 
