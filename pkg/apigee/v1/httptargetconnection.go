@@ -18,6 +18,7 @@ import "fmt"
 
 type HTTPTargetConnection struct {
 	URL            string          `xml:"URL,omitempty"`
+	Path           string          `xml:"Path,omitempty"`
 	Authentication *Authentication `xml:"Authentication,omitempty"`
 	LoadBalancer   *LoadBalancer   `xml:"LoadBalancer,omitempty"`
 	SSLInfo        *SSLInfo        `xml:"SSLInfo,omitempty"`
