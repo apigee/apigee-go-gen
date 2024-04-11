@@ -1,8 +1,8 @@
 APIProxy:
   .revision: 1
-  .name: {{ $.Values.name }}
+  .name: {{ $.Values.api_name }}
   .@:
-    DisplayName: {{ $.Values.name }}
+    DisplayName: {{ $.Values.api_name }}
     Description: {{ $.Schema.Description }}
 Policies:
   #{{- os_copyfile "./policies.yaml" "./policies.yaml" | blank }}
@@ -10,42 +10,37 @@ Policies:
 ProxyEndpoints:
   - ProxyEndpoint:
       .name: default
-      .@:
-        PreFlow:
-          .name: PreFlow
-          Request:
-            - Step:
-                Name: GraphQL-Verify
-        Flows:
-          - Flow:
-              .name: graphQLPost
-              .@:
-                Condition: (proxy.pathsuffix MatchesPath "{{ $.Values.base_path }}") and (request.verb = "POST")
-          - Flow:
-              .name: graphQLGet
-              .@:
-                Condition: (proxy.pathsuffix MatchesPath "{{ $.Values.base_path }}") and (request.verb = "GET")
-          - Flow:
-              .name: CatchAll
-              Request:
-                - Step:
-                    - Name: RF-CatchAll
-        HTTPProxyConnection:
-          BasePath: {{ $.Values.base_path }}
-        RouteRule:
-          .name: default
-          .@:
-            TargetEndpoint: default
+      PreFlow:
+        .name: PreFlow
+        Request:
+          - Step:
+              Name: GraphQL-Verify
+      Flows:
+        - Flow:
+            .name: graphQLPost
+            Condition: (proxy.pathsuffix MatchesPath "{{ $.Values.base_path }}") and (request.verb = "POST")
+        - Flow:
+            .name: graphQLGet
+            Condition: (proxy.pathsuffix MatchesPath "{{ $.Values.base_path }}") and (request.verb = "GET")
+        - Flow:
+            .name: CatchAll
+            Request:
+              - Step:
+                  Name: RF-CatchAll
+      HTTPProxyConnection:
+        BasePath: {{ $.Values.base_path }}
+      RouteRule:
+        .name: default
+        TargetEndpoint: default
 TargetEndpoints:
   - TargetEndpoint:
       .name: default
-      .@:
-        HTTPTargetConnection:
-          SSLInfo:
-            Enabled: true
-            Enforce: true
-            IgnoreValidationErrors: true
-          URL: {{ $.Values.target_url }}
+      HTTPTargetConnection:
+        SSLInfo:
+          Enabled: true
+          Enforce: true
+          IgnoreValidationErrors: true
+        URL: {{ $.Values.target_url }}
 Resources:
   - Resource:
       Type: graphql

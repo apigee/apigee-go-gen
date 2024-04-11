@@ -1,42 +1,38 @@
 APIProxy:
   .revision: 1
   .name: {{ include "get_api_name" $.Proto }}
-  .@:
-    DisplayName:  {{ include "get_api_name" $.Proto }}
-    Description: API Proxy generated from proto file
+  DisplayName:  {{ include "get_api_name" $.Proto }}
+  Description: API Proxy generated from proto file
 Policies:
   #{{- os_copyfile "./policies.yaml" "./policies.yaml" | blank }}
   $ref: ./policies.yaml#/
 ProxyEndpoints:
   - ProxyEndpoint:
       .name: default
-      .@:
-        Flows:
-          #{{- range $i,$service := $.Proto.Service }}
-            #{{- range $j,$method := $service.Method }}
-          - Flow:
-              .name: {{ $method.Name }}
-              .@:
-                Condition: (proxy.pathsuffix MatchesPath "/{{ $method.Name }}") and (request.verb = "POST")
-            #{{- end }}
+      Flows:
+        #{{- range $i,$service := $.Proto.Service }}
+          #{{- range $j,$method := $service.Method }}
+        - Flow:
+            .name: {{ $method.Name }}
+            Condition: (proxy.pathsuffix MatchesPath "/{{ $method.Name }}") and (request.verb = "POST")
           #{{- end }}
-          - Flow:
-              .name: CatchAll
-              .@:
-                - Step:
-                    - Name: RF-CatchAll
-        HTTPProxyConnection:
-          BasePath: {{ include "get_basepath" $.Proto }}
-        RouteRule:
-          .name: default
-          .@:
-            TargetEndpoint: default
+        #{{- end }}
+        - Flow:
+            .name: CatchAll
+            Request:
+              - Step:
+                  Name: RF-CatchAll
+      HTTPProxyConnection:
+        BasePath: {{ include "get_basepath" $.Proto }}
+      RouteRule:
+        .name: default
+        TargetEndpoint: default
 TargetEndpoints:
   - TargetEndpoint:
       .name: default
-      .@:
-          Path: {{ include "get_basepath" $.Proto }}
-          LoadBalancer:
-            Servers:
-              - Server:
-                  .name: {{ $.Values.target_server }}
+      HTTPTargetConnection:
+        Path: {{ include "get_basepath" $.Proto }}
+        LoadBalancer:
+          Servers:
+            - Server:
+                .name: {{ $.Values.target_server }}
