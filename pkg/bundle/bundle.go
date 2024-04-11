@@ -72,9 +72,9 @@ func ProxyBundleDir2YAML(inputDir string, outputFile string) error {
 	apiProxyDir := filepath.Join(inputDir, "apiproxy")
 	stat, err := os.Stat(apiProxyDir)
 	if err != nil {
-		return errors.Errorf("%s not found. %s", err.Error())
+		return errors.Errorf("%s not found. %s", apiProxyDir, err.Error())
 	} else if !stat.IsDir() {
-		return errors.Errorf("%s is not a directory")
+		return errors.Errorf("%s is not a directory", apiProxyDir)
 	}
 
 	fSys := os.DirFS(apiProxyDir)

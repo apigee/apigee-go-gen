@@ -63,7 +63,7 @@ func RenderOAS(specFile string, flags *Flags) error {
 		context.OAS3 = OAS
 		context.OAS3Str = string(specFileText)
 	} else {
-		return errors.Errorf(`OAS version "%s" is not supported`, specVersion)
+		return errors.Errorf(`OAS version "%v" is not supported`, specVersion)
 	}
 
 	return RenderGeneric(context, flags)
