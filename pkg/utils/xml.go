@@ -174,10 +174,11 @@ func XML2YAMLRecursive(ele *etree.Element) (key *yaml.Node, value *yaml.Node, er
 
 	var children *yaml.Node
 	charEle, _ := getCharElement(ele)
+	const cData = "-Data"
 	if charEle != nil && len(ele.Attr) > 0 {
 		if len(charEle.Data) > 0 {
 			nodeVal.Content = append(nodeVal.Content,
-				&yaml.Node{Kind: yaml.ScalarNode, Value: ".@"},
+				&yaml.Node{Kind: yaml.ScalarNode, Value: cData},
 				&yaml.Node{Kind: yaml.ScalarNode, Value: charEle.Data})
 		}
 		return nodeKey, nodeVal, nil
@@ -193,7 +194,7 @@ func XML2YAMLRecursive(ele *etree.Element) (key *yaml.Node, value *yaml.Node, er
 		children = &yaml.Node{Kind: yaml.MappingNode}
 		children.Content = []*yaml.Node{}
 		nodeVal.Content = append(nodeVal.Content,
-			&yaml.Node{Kind: yaml.ScalarNode, Value: ".@"},
+			&yaml.Node{Kind: yaml.ScalarNode, Value: cData},
 			children)
 	} else {
 		children = nodeVal
@@ -251,7 +252,7 @@ func XML2YAMLRecursive(ele *etree.Element) (key *yaml.Node, value *yaml.Node, er
 	}
 
 	childrenIndex := slices.IndexFunc(nodeVal.Content, func(e *yaml.Node) bool {
-		return e.Value == ".@"
+		return e.Value == cData
 	})
 
 	if childrenIndex > 0 && children != nodeVal &&

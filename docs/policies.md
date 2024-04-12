@@ -66,7 +66,7 @@ RaiseFault:
         Headers:
           - Header:
               .name: user-agent
-              .@: example
+              -Data: example
     - Copy:
         .source: request
         Headers:
@@ -81,10 +81,10 @@ RaiseFault:
         Headers:
           - Header:
               .name: user-agent
-              .@: "{request.header.user-agent}"
+              -Data: "{request.header.user-agent}"
         Payload:
           .contentType: application/json
-          .@: '{"name":"foo", "type":"bar"}'
+          -Data: '{"name":"foo", "type":"bar"}'
     - Set:
         ReasonPhrase: Server Error
         StatusCode: 500

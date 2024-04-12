@@ -1,7 +1,7 @@
 Root:
   Child1:
     .name: foo
-    .@: foo
+    -Data: foo
   Child2:
     .name: bar
-    .@: bar
+    -Data: bar

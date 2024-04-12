@@ -1,9 +1,8 @@
 APIProxy:
   .revision: 1
   .name: {{ $.Values.api_name }}
-  .@:
-    DisplayName: {{ $.Values.api_name }}
-    Description: {{ $.Schema.Description }}
+  DisplayName: {{ $.Values.api_name }}
+  Description: {{ $.Schema.Description }}
 Policies:
   #{{- os_copyfile "./policies.yaml" "./policies.yaml" | blank }}
   $ref: ./policies.yaml#/
