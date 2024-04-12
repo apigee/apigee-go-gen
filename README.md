@@ -197,7 +197,7 @@ The tool reads YAML form `stdin`, and writes XML to `stdout`. Below are a few ex
     yaml2xml << EOF
     Parent:
       - Child: Fizz
-      - Child: Buzz' | yaml2xml
+      - Child: Buzz
     EOF
     ```
   * Reading input piped from another process
@@ -407,7 +407,6 @@ loop constructs, conditional elements, template blocks for re-use and much more.
 * **Control the Output:** Use control logic in your template to adjust your proxy configuration based on your OpenAPI spec.
 * **Access the Spec:** The OpenAPI text and [map](https://go.dev/blog/maps) are available during template rendering.
 
-Once you render the template, you then use the `yaml2bundle` tool to transform this YAML output into a deployable API Proxy bundle.
 
 **See an Example:** Check out the included OAS3 template at [examples/template/oas3](examples/templates/oas3/apiproxy.yaml). 
 
@@ -425,7 +424,12 @@ render-oas -template ./examples/templates/oas3/apiproxy.yaml \
 > [!NOTE]
 > You may pass the `-include` flag multiple time to load template helpers from multiple sources.
 
+Once you render the template, you then use the `yaml2bundle` tool to transform this YAML output into a deployable API Proxy bundle. e.g.
 
+```shell
+yaml2bundle -input ./out/yaml-first/petstore/apiproxy.yaml \
+            -output ./out/bundles/petstore-from-oas.zip
+```
 
 **Quick Template Previews with Dry Run**
 
@@ -465,6 +469,13 @@ render-graphql -template ./examples/templates/graphql/apiproxy.yaml \
                -include ./examples/templates/graphql/*.tmpl \
                -output ./out/yaml-first/resorts/apiproxy.yaml
 ``` 
+Once you render the template, you then use the `yaml2bundle` tool to transform this YAML output into a deployable API Proxy bundle. e.g.
+
+```shell
+yaml2bundle -input ./out/yaml-first/resorts/apiproxy.yaml \
+            -output ./out/bundles/resorts-from-graphql.zip
+``` 
+
 
 ### Tool: render-grpc
 
@@ -496,6 +507,13 @@ render-grpc -template ./examples/templates/grpc/apiproxy.yaml \
             -set-string "target_server=example-target-server" \
             -include ./examples/templates/grpc/*.tmpl \
             -output ./out/yaml-first/greeter/apiproxy.yaml
+```
+
+Once you render the template, you then use the `yaml2bundle` tool to transform this YAML output into a deployable API Proxy bundle. e.g.
+
+```shell
+yaml2bundle -input ./out/yaml-first/greeter/apiproxy.yaml \
+            -output ./out/bundles/greeter-from-grpc.zip
 ```
 
 ### Tool: render-template

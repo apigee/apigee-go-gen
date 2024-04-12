@@ -135,7 +135,7 @@ func YAML2XMLRecursive(node *yaml.Node, parent *etree.Element) (*etree.Element, 
 	} else if node.Kind == yaml.MappingNode {
 		if parent != nil {
 			for i := 0; i+1 < len(node.Content); i += 2 {
-				if len(node.Content[i].Value) > 1 && node.Content[i].Value[0] == '.' && node.Content[i].Value[1] != '@' &&
+				if len(node.Content[i].Value) > 1 && node.Content[i].Value[0] == '.' &&
 					node.Content[i+1].Kind == yaml.ScalarNode {
 					parent.CreateAttr(node.Content[i].Value[1:], node.Content[i+1].Value)
 				}
@@ -143,9 +143,9 @@ func YAML2XMLRecursive(node *yaml.Node, parent *etree.Element) (*etree.Element, 
 		}
 
 		for i := 0; i+1 < len(node.Content); i += 2 {
-			if len(node.Content[i].Value) > 1 && node.Content[i].Value[0] == '.' && node.Content[i].Value[1] != '@' {
+			if len(node.Content[i].Value) > 1 && node.Content[i].Value[0] == '.' {
 				continue
-			} else if strings.Index(node.Content[i].Value, ".@") == 0 {
+			} else if strings.Index(node.Content[i].Value, "-") == 0 {
 				_, _ = YAML2XMLRecursive(node.Content[i+1], parent)
 			} else {
 				child := parent.CreateElement(node.Content[i].Value)

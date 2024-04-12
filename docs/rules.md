@@ -3,12 +3,15 @@
 When generating YAML from XML (or XML from YAML) the following basic rules are used:
 
 * XML elements are represented as YAML fields
-* XML elements attributes are represented as YAML fields prepended with a dot `.`
-* XML elements content may be represented as a YAML field prepended with `.@` (when needed)
-* XML elements that are simple like this `<Simple>Value</Simple>` are represented as `Simple: "Value"`
-* XML element sequences are represented as arrays (to preserve order)
-* XML elements contents with multiple order-sensitive elements are represented as arrays
-* XML elements contents with multiple non-order-sensitive elements are represented as objects
+* XML attributes are represented as YAML fields prepended with a dot `.`
+* XML elements with simple char-data like this `<Simple>Value</Simple>` should be represented as `Simple: Value`
+* XML element sequences must be represented as arrays to preserve order
+* XML elements containing order-sensitive children must use an array to hold the children
+* XML elements containing non-order-sensitive (unique) children should use a map to hold the children
+* XML elements having attributes and char-data must put the char-data content within a field prepended with `-`
+* XML elements having attributes and order-sensitive children must put children within a field prepended with `-`
+
+
 
 This format is similar to Badgerfish style, but it's not as strict.
 It makes concessions so that simple XML translates into simple YAML when possible.
@@ -23,86 +26,130 @@ There is no name for this format, you can call it `apigeek-style`
 
 See the examples below
 
-* *Example 1*: XML element containing another XML element
+* *Example 1*: XML element with char data content
+    * ```xml
+      <Book>The Cat in the Hat</Book>
+      ```
+      is equivalent to
+      ```yaml
+      Book: The Cat in the Hat
+      ```
+* *Example 2*: XML element with an attribute
+    * ```xml
+      <Book author="Dr. Seuss" />
+      ```
+      is equivalent to
+      ```yaml
+      Book: 
+        .author: Dr. Seuss
+      ```      
+* *Example 3*: XML element with an attribute and char data content
+    * ```xml
+      <Book author="Dr. Seuss">The Cat in the Hat</Book>
+      ``` 
+      is equivalent to
+      ```yaml
+      Book:
+        .author: en
+        -Data: The Cat in the Hat
+      ```      
+* *Example 4*: XML element containing another XML element
     *  ```xml
-       <Parent>
-         <Child>foo</Child>
-       </Parent>
+       <Catalog>
+         <Book>The Cat in the Hat</Book>
+       </Catalog>
        ```
        is equivalent to
        ```yaml
-       Parent:
-         Child: foo
+       Catalog:
+         Book: The Cat in the Hat
        ```
-* *Example 2*: Simple XML element with no attributes, and scalar content
+
+* *Example 5*: XML sequence that has a container element
     * ```xml
-      <Field>Content</Field>
+      <Catalog>
+        <Books>
+          <Book>The Cat in the Hat</Book>
+          <Book>Green Eggs and Ham</Book>
+        </Books>
+      </Catalog>
       ```
       is equivalent to
       ```yaml
-      Field: Content
-      ```
-* *Example 3*: XML element with an attribute
+      Catalog:
+        Books:
+          - Book: The Cat in the Hat
+          - Book: Green Eggs and Ham
+      ```      
+* *Example 6*: XML sequence without container element
     * ```xml
-      <Parent foo="bar" />
+      <Catalog>
+        <Book>The Cat in the Hat</Book>
+        <Book>Green Eggs and Ham</Book>
+      </Catalog>
       ```
       is equivalent to
       ```yaml
-      Parent: 
-        .foo: bar
+      Catalog:
+        - Book: The Cat in the Hat
+        - Book: Green Eggs and Ham
       ```
-* *Example 4*: XML element with an attribute and  scalar content
+* *Example 7*: XML sequence without container, but parent has attributes
     * ```xml
-      <Parent foo="bar" >Content</Parent>
+      <Catalog name="Children's Books" language="English">
+        <Book>The Cat in the Hat</Book>
+        <Book>Green Eggs and Ham</Book>
+      </Catalog>
+      ``` 
+      is equivalent to
+      ```yaml
+      Catalog:
+        .name: Children's Books
+        .language: English
+        -Data:
+          - Book: The Cat in the Hat
+          - Book: Green Eggs and Ham
+      ```
+* *Example 8*: XML sequence without container, but parent has attributes, and children have attributes
+    * ```xml
+      <Catalog name="Children's Books" language="English">
+        <Book author="Dr. Seuss">The Cat in the Hat</Book>
+        <Book author="Dr. Seuss">Green Eggs and Ham</Book>
+      </Catalog>
+      ``` 
+      is equivalent to
+      ```yaml
+      Catalog:
+        .name: Children's Books
+        .language: English
+        -Data:
+          - Book: 
+              .author: Dr. Seuss
+              -Data: The Cat in the Hat
+          - Book:
+              .author: Dr. Seuss
+              -Data: Green Eggs and Ham
+      ```
+
+* *Example 9*: XML sequence with a container, parent has attributes, and children have attributes
+    * ```xml
+      <Catalog name="Children's Books" language="English">
+        <Books>
+          <Book author="Dr. Seuss">The Cat in the Hat</Book>
+          <Book author="Dr. Seuss">Green Eggs and Ham</Book>
+        </Books>
+      </Catalog>
       ``` 
       is equivalent to
       ```yaml
       Parent:
-        .foo: bar
-        .@: Content
-      ```
-* *Example 5*: XML sequence where parent has no attributes
-    * ```xml
-      <Parent>
-        <Child>foo</Child>
-        <Child>bar</Child>
-      </Parent>
-      ```
-      is equivalent to
-      ```yaml
-      Parent:
-        - Child: foo
-        - Child: bar
-      ```
-* *Example 6*: XML sequence where parent has attributes
-    * ```xml
-      <Parent attr1="value1" attr2="value2" >
-        <Child>foo</Child>
-        <Child>bar</Child>
-      </Parent>
-      ``` 
-      is equivalent to
-      ```yaml
-      Parent:
-        .attr1: value1
-        .attr2: value2
-        .@:
-          - Child: foo
-          - Child: bar
-      ```
-* *Example 7*: XML sequence without parent
-    * ```xml
-      <Root>
-        <Child name="foo" />
-        <Child name="bar" />
-      </Root>
-      ```
-      is equivalent to
-      ```yaml
-      Root:
-        .@:
-          - Child:
-            .name: foo
-          - Child:
-            .name: bar
-      ```
+        .name: Children's Books
+        .language: English
+        Books:
+          - Book: 
+              .author: Dr. Seuss
+              -Data: The Cat in the Hat
+          - Book:
+              .author: Dr. Seuss
+              -Data: Green Eggs and Ham
+      ```      
