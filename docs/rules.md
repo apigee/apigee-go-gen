@@ -50,7 +50,7 @@ See the examples below
       is equivalent to
       ```yaml
       Book:
-        .author: en
+        .author: Dr. Seuss
         -Data: The Cat in the Hat
       ```      
 * *Example 4*: XML element containing another XML element
