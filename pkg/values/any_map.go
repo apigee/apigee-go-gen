@@ -46,18 +46,19 @@ func (v *AnyMap) Set(entry string) error {
 }
 
 func ParseValue(value string) any {
+
 	intValue, err := strconv.ParseInt(value, 10, 64)
-	if err != nil {
+	if err == nil {
 		return intValue
 	}
 
 	floatValue, err := strconv.ParseFloat(value, 10)
-	if err != nil {
+	if err == nil {
 		return floatValue
 	}
 
 	boolValue, err := strconv.ParseBool(value)
-	if err != nil {
+	if err == nil {
 		return boolValue
 	}
 
