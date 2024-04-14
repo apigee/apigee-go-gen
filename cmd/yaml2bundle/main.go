@@ -19,7 +19,6 @@ import (
 	"fmt"
 	"github.com/micovery/apigee-yaml-toolkit/cmd/yaml2xml/resources"
 	v1 "github.com/micovery/apigee-yaml-toolkit/pkg/apigee/v1"
-	"github.com/micovery/apigee-yaml-toolkit/pkg/bundle"
 	"github.com/micovery/apigee-yaml-toolkit/pkg/utils"
 	"os"
 )
@@ -64,48 +63,17 @@ func main() {
 		return
 	}
 
-	proxyModel, err := v1.NewAPIProxyModel(input)
+	err, validationErrs := v1.APIProxyModelYAML2Bundle(input, output, bool(validate), dryRun)
 	if err != nil {
 		utils.PrintErrorWithStackAndExit(err)
 		return
 	}
 
-	if dryRun.IsXML() {
-		xml, err := proxyModel.XML()
-		if err != nil {
-			utils.PrintErrorWithStackAndExit(err)
-			return
+	if len(validationErrs) > 0 {
+		for i := 0; i < len(validationErrs) && i < 10; i++ {
+			fmt.Printf("error: %s\n", validationErrs[i].Error())
 		}
-		fmt.Println(string(xml))
-	} else if dryRun.IsYAML() {
-		yaml, err := proxyModel.YAML()
-		if err != nil {
-			utils.PrintErrorWithStackAndExit(err)
-			return
-		}
-		fmt.Println(string(yaml))
-	}
-
-	if validate {
-		errs := v1.ValidateAPIProxyModel(proxyModel)
-		for i := 0; i < len(errs) && i < 10; i++ {
-			fmt.Printf("error: %s\n", errs[i].Error())
-		}
-
-		if len(errs) > 0 {
-			os.Exit(1)
-			return
-		}
-	}
-
-	if dryRun != "" {
-		return
-	}
-
-	err = bundle.ProxyBundle2Disk(proxyModel, output)
-	if err != nil {
-		utils.PrintErrorWithStackAndExit(err)
-		return
+		os.Exit(1)
 	}
 
 }

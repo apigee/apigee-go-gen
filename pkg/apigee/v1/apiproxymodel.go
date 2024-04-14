@@ -16,8 +16,10 @@ package v1
 
 import (
 	"encoding/xml"
+	"fmt"
 	"github.com/go-errors/errors"
 	"github.com/micovery/apigee-yaml-toolkit/pkg/utils"
+	"github.com/micovery/apigee-yaml-toolkit/pkg/zip"
 	"gopkg.in/yaml.v3"
 	"net/url"
 	"os"
@@ -185,4 +187,115 @@ func LoadAPIProxyModelResources(proxyModel *APIProxyModel, fromDir string) error
 		resource.Content = content
 	}
 	return nil
+}
+
+func APIProxyModel2Bundle(proxyModel *APIProxyModel, output string) error {
+	extension := filepath.Ext(output)
+	if extension == ".zip" {
+		err := APIProxyModel2BundleZip(proxyModel, output)
+		if err != nil {
+			return err
+		}
+	} else if extension != "" {
+		return errors.Errorf("output extension %s is not supported", extension)
+	} else {
+		err := APIProxyModel2BundleDir(proxyModel, output)
+		if err != nil {
+			return err
+		}
+		//directory
+	}
+
+	return nil
+}
+
+func APIProxyModel2BundleDir(proxyModel *APIProxyModel, output string) error {
+
+	err := os.MkdirAll(output, os.ModePerm)
+	if err != nil {
+		return errors.New(err)
+	}
+
+	bundleFiles := proxyModel.GetBundleFiles()
+	for _, bundleFile := range bundleFiles {
+		filePath := bundleFile.FilePath()
+		fileDir := filepath.Dir(filePath)
+
+		dirDiskPath := filepath.Join(output, fileDir)
+		err := os.MkdirAll(dirDiskPath, os.ModePerm)
+		if err != nil {
+			return errors.New(err)
+		}
+
+		fileContent, err := bundleFile.FileContents()
+		if err != nil {
+			return err
+		}
+
+		fileDiskPath := filepath.Join(output, filePath)
+		err = os.WriteFile(fileDiskPath, fileContent, os.ModePerm)
+		if err != nil {
+			return errors.New(err)
+		}
+	}
+
+	return nil
+}
+
+func APIProxyModel2BundleZip(proxyModel *APIProxyModel, outputZip string) error {
+	tmpDir, err := os.MkdirTemp("", "unzipped-bundle-*")
+	if err != nil {
+		return errors.New(err)
+	}
+
+	err = APIProxyModel2Bundle(proxyModel, tmpDir)
+	if err != nil {
+		return err
+	}
+
+	err = zip.Zip(outputZip, tmpDir)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func APIProxyModelYAML2Bundle(input string, output string, validate bool, dryRun utils.DryRunFlag) (err error, validationErrs []error) {
+	proxyModel, err := NewAPIProxyModel(input)
+	if err != nil {
+		return err, nil
+	}
+
+	if dryRun.IsXML() {
+		xmlText, err := proxyModel.XML()
+		if err != nil {
+			return err, nil
+		}
+		fmt.Println(string(xmlText))
+	} else if dryRun.IsYAML() {
+		yamlText, err := proxyModel.YAML()
+		if err != nil {
+			return err, nil
+		}
+		fmt.Println(string(yamlText))
+	}
+
+	if validate {
+		validationErrs = ValidateAPIProxyModel(proxyModel)
+		if len(validationErrs) > 0 {
+			return nil, validationErrs
+		}
+	}
+
+	if dryRun != "" {
+		return nil, nil
+	}
+
+	err = APIProxyModel2Bundle(proxyModel, output)
+	if err != nil {
+		return err, nil
+	}
+
+	return nil, nil
 }

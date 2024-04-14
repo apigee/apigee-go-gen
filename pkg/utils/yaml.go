@@ -316,6 +316,26 @@ func ResolveYAMLRefs(node *yaml.Node, nodePath string) (*yaml.Node, error) {
 	return node, nil
 }
 
+func YAMLDoc2File(docNode *yaml.Node, outputFile string) error {
+	var err error
+	var docBytes []byte
+	if docBytes, err = YAML2Text(docNode, 2); err != nil {
+		return err
+	}
+
+	//generate output directory
+	outputDir := filepath.Dir(outputFile)
+	if err = os.MkdirAll(outputDir, os.ModePerm); err != nil {
+		return errors.New(err)
+	}
+
+	//generate the main YAML file
+	if err = os.WriteFile(outputFile, docBytes, os.ModePerm); err != nil {
+		return err
+	}
+	return nil
+}
+
 var ParsedYAMLFiles map[string]*yaml.Node
 
 func init() {
