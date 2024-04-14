@@ -123,7 +123,7 @@ func (a *APIProxyModel) HydrateModelFromYAMLDoc(filePath string) error {
 		return errors.New(err)
 	}
 
-	LoadAPIProxyModelResources(a, filepath.Dir(filePath))
+	err = LoadAPIProxyModelResources(a, filepath.Dir(filePath))
 	if err != nil {
 		return errors.New(err)
 	}
@@ -173,12 +173,12 @@ func LoadAPIProxyModelResources(proxyModel *APIProxyModel, fromDir string) error
 	}
 
 	for _, resource := range proxyModel.Resources.List {
-		url, err := url.Parse(resource.Path)
+		parsedUrl, err := url.Parse(resource.Path)
 		if err != nil {
 			return errors.New(err)
 		}
 
-		content, err := os.ReadFile(url.Path)
+		content, err := os.ReadFile(parsedUrl.Path)
 		if err != nil {
 			return errors.New(err)
 		}
