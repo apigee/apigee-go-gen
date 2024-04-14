@@ -1,0 +1,182 @@
+APIProxy:
+  .revision: 1
+  .name: oauth-validate-key-secret
+  ConfigurationVersion:
+    .majorVersion: 4
+    .minorVersion: 0
+  CreatedAt: 1461162492835
+  CreatedBy: wwitman@apigee.com
+  Description: OAuth proxy to generate access token for client_credentials and password grant_types. Uses BaaS to authenticate a demo user. Verify API Key and Secret first using OAuth policy.
+  DisplayName: OAuth Validate Key and Secret
+  LastModifiedAt: 1461163344899
+  LastModifiedBy: wwitman@apigee.com
+  Policies:
+    - Policy: AM-CreateAuthenticateRequest
+    - Policy: EV-UsernamePassword
+    - Policy: OA-GenerateAccessToken-Password
+    - Policy: OA-VerifyAPIKey-and-Secret
+    - Policy: RF-AutenticateFailed
+    - Policy: SC-AuthenticateUser
+  ProxyEndpoints:
+    ProxyEndpoint: default
+  Resources: {}
+  TargetServers: {}
+  TargetEndpoints: {}
+  validate: false
+Policies:
+  - AssignMessage:
+      .async: false
+      .continueOnError: false
+      .enabled: true
+      .name: AM-CreateAuthenticateRequest
+      DisplayName: AM-CreateAuthenticateRequest
+      Properties: {}
+      Set:
+        Headers:
+          Header:
+            .name: Content-Type
+            -Data: application/x-www-form-urlencoded
+        FormParams:
+          - FormParam:
+              .name: grant_type
+              -Data: password
+          - FormParam:
+              .name: username
+              -Data: '{the.username}'
+          - FormParam:
+              .name: password
+              -Data: '{the.password}'
+        Verb: POST
+        Path: {}
+      IgnoreUnresolvedVariables: true
+      AssignTo:
+        .createNew: true
+        .transport: https
+        .type: request
+        -Data: authenticate.request
+  - ExtractVariables:
+      .async: false
+      .continueOnError: false
+      .enabled: true
+      .name: EV-UsernamePassword
+      -Data:
+        - DisplayName: EV-UsernamePassword
+        - Source:
+            .clearPayload: false
+            -Data: request
+        - VariablePrefix: {}
+        - IgnoreUnresolvedVariables: false
+        - FormParam:
+            .name: grant_type
+            Pattern:
+              .ignoreCase: true
+              -Data: '{the.grant_type}'
+        - FormParam:
+            .name: username
+            Pattern:
+              .ignoreCase: true
+              -Data: '{the.username}'
+        - FormParam:
+            .name: password
+            Pattern:
+              .ignoreCase: true
+              -Data: '{the.password}'
+  - OAuthV2:
+      .async: false
+      .continueOnError: false
+      .enabled: true
+      .name: OA-GenerateAccessToken-Password
+      DisplayName: OA-GenerateAccessToken Password
+      Operation: GenerateAccessToken
+      ExternalAccessToken: apigee.access_token
+      ExpiresIn: 36000000
+      SupportedGrantTypes:
+        GrantType: password
+      GrantType: request.formparam.grant_type
+      UserName: request.formparam.username
+      PassWord: request.formparam.password
+      GenerateResponse:
+        .enabled: true
+      GenerateErrorResponse:
+        .enabled: true
+  - OAuthV2:
+      .async: false
+      .continueOnError: false
+      .enabled: true
+      .name: OA-VerifyAPIKey-and-Secret
+      DisplayName: OA-VerifyAPIKey and Secret
+      ExternalAuthorization: false
+      StoreToken: false
+      Operation: GenerateAccessToken
+      ExpiresIn: 36000000
+      SupportedGrantTypes:
+        GrantType: password
+      GrantType: request.formparam.grant_type
+      UserName: request.formparam.username
+      PassWord: request.formparam.password
+      GenerateResponse:
+        .enabled: false
+      GenerateErrorResponse:
+        .enabled: true
+      Tokens: {}
+  - RaiseFault:
+      .async: false
+      .continueOnError: false
+      .enabled: true
+      .name: RF-AutenticateFailed
+      DisplayName: RF-AutenticateFailed
+      Properties: {}
+      FaultResponse:
+        Set:
+          Headers: {}
+          Payload:
+            .contentType: text/plain
+            -Data: '{authenticate.response.content}'
+          StatusCode: 401
+          ReasonPhrase: Unauthorized
+      IgnoreUnresolvedVariables: true
+  - ServiceCallout:
+      .async: false
+      .continueOnError: true
+      .enabled: true
+      .name: SC-AuthenticateUser
+      DisplayName: SC-AuthenticateUser
+      Properties: {}
+      Request:
+        .clearPayload: false
+        .variable: authenticate.request
+        IgnoreUnresolvedVariables: false
+      Response: authenticate.response
+      HTTPTargetConnection:
+        Properties: {}
+        URL: https://api.usergrid.com/docfood/api-platform-samples/token
+ProxyEndpoints:
+  - ProxyEndpoint:
+      .name: default
+      Flows:
+        Flow:
+          .name: Token - Password
+          Request:
+            - Step:
+                Name: OA-VerifyAPIKey-and-Secret
+            - Step:
+                Name: EV-UsernamePassword
+            - Step:
+                Name: AM-CreateAuthenticateRequest
+            - Step:
+                Name: SC-AuthenticateUser
+            - Step:
+                Condition: authenticate.response.status.code != 200
+                Name: RF-AutenticateFailed
+            - Step:
+                Name: OA-GenerateAccessToken-Password
+          Response: {}
+          Condition: (request.verb = "POST") and (proxy.pathsuffix MatchesPath "/token") and (request.formparam.grant_type = "password")
+      HTTPProxyConnection:
+        BasePath: /oauth-validate-key-secret
+        Properties: {}
+        VirtualHost: secure
+      RouteRule:
+        .name: NoRoute
+TargetEndpoints: []
+Resources: {}
