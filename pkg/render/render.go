@@ -356,15 +356,17 @@ func GetRenderFlags(printVersion func(), printUsage func()) (*Flags, error) {
 	dryRun := utils.FlagBool(false)
 	setValue := values.NewValues(flags.Values)
 	setValueStr := values.NewValuesStr(flags.Values)
+	setValueFile := values.NewValuesFile(flags.Values)
 
 	flag.BoolVar(&flags.Version, "version", false, "(optional) prints version text")
 	flag.BoolVar(&flags.Help, "help", false, `(optional) prints additional help text`)
 	flag.StringVar(&flags.TemplateFile, "template", "", `(required) path to main template e.g. "./input.tpl"`)
 	flag.Var(&flags.IncludeList, "include", `(optional,0..*) path/glob for templates to include e.g. "./helpers/*.tpl"`)
 	flag.StringVar(&flags.OutputFile, "output", "", "(required) output directory")
-	flag.Var(&setValue, "set", `(optional,0..*) sets a key,value pair .e.g "boolVal=true" or "floatVal=1.37"`)
-	flag.Var(&setValueStr, "set-string", `(optional,0..*) sets a key,value .e.g key1="value1"`)
+	flag.Var(&setValue, "set", `(optional,0..*) sets a context key/value  .e.g "boolVal=true" or "floatVal=1.37"`)
+	flag.Var(&setValueStr, "set-string", `(optional,0..*) sets a context key/value .e.g key1="value1"`)
 	flag.Var(&dryRun, "dry-run", "(optional) prints the rendered template")
+	flag.Var(&setValueFile, "values", "(optional,0..1) sets context keys/values from YAML file")
 
 	flag.Parse()
 
