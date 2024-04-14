@@ -261,19 +261,19 @@ func APIProxyModel2BundleZip(proxyModel *APIProxyModel, outputZip string) error 
 	return nil
 }
 
-func APIProxyModelYAML2Bundle(input string, output string, validate bool, dryRun utils.DryRunFlag) (err error, validationErrs []error) {
+func APIProxyModelYAML2Bundle(input string, output string, validate bool, dryRun string) (err error, validationErrs []error) {
 	proxyModel, err := NewAPIProxyModel(input)
 	if err != nil {
 		return err, nil
 	}
 
-	if dryRun.IsXML() {
+	if dryRun == "xml" {
 		xmlText, err := proxyModel.XML()
 		if err != nil {
 			return err, nil
 		}
 		fmt.Println(string(xmlText))
-	} else if dryRun.IsYAML() {
+	} else if dryRun == "yaml" {
 		yamlText, err := proxyModel.YAML()
 		if err != nil {
 			return err, nil

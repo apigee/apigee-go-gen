@@ -18,6 +18,7 @@ import (
 	"flag"
 	"github.com/micovery/apigee-yaml-toolkit/cmd/bundle2yaml/resources"
 	"github.com/micovery/apigee-yaml-toolkit/pkg/bundle"
+	"github.com/micovery/apigee-yaml-toolkit/pkg/flags"
 	"github.com/micovery/apigee-yaml-toolkit/pkg/utils"
 )
 
@@ -26,7 +27,7 @@ func main() {
 	var version bool
 	var input string
 	var outputFile string
-	dryRun := utils.FlagBool(false)
+	dryRun := flags.Bool(false)
 
 	var err error
 
@@ -58,7 +59,7 @@ func main() {
 		return
 	}
 
-	if err = bundle.ProxyBundle2YAMLFile(input, outputFile, dryRun); err != nil {
+	if err = bundle.ProxyBundle2YAMLFile(input, outputFile, bool(dryRun)); err != nil {
 		utils.PrintErrorWithStackAndExit(err)
 		return
 	}

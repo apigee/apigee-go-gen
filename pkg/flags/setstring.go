@@ -12,37 +12,33 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-package values
+package flags
 
 import (
 	"fmt"
 	"github.com/go-errors/errors"
-	"gopkg.in/yaml.v3"
-	"os"
+	"github.com/micovery/apigee-yaml-toolkit/pkg/values"
+	"strings"
 )
 
-type FileMap struct {
-	Data *Map
+type SetString struct {
+	Data *values.Map
 }
 
-func NewValuesFile(data *Map) FileMap {
-	return FileMap{Data: data}
+func NewSetString(data *values.Map) SetString {
+	return SetString{Data: data}
 }
 
-func (v *FileMap) String() string {
+func (v *SetString) String() string {
 	return fmt.Sprintf("%v", v.Data)
 }
 
-func (v *FileMap) Set(filePath string) error {
-	yamlText, err := os.ReadFile(filePath)
-	if err != nil {
-		return errors.New(err)
+func (v *SetString) Set(entry string) error {
+	key, value, found := strings.Cut(entry, "=")
+	if !found {
+		return errors.Errorf("missing value in set for key=%s", key)
 	}
 
-	err = yaml.Unmarshal(yamlText, v.Data)
-	if err != nil {
-		return errors.New(err)
-	}
-
+	v.Data.Set(key, value)
 	return nil
 }

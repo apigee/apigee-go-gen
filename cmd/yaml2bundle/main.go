@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"github.com/micovery/apigee-yaml-toolkit/cmd/yaml2xml/resources"
 	v1 "github.com/micovery/apigee-yaml-toolkit/pkg/apigee/v1"
+	"github.com/micovery/apigee-yaml-toolkit/pkg/flags"
 	"github.com/micovery/apigee-yaml-toolkit/pkg/utils"
 	"os"
 )
@@ -29,8 +30,8 @@ func main() {
 	var version bool
 	var input string
 	var output string
-	var validate utils.FlagBool = true
-	var dryRun utils.DryRunFlag = ""
+	var validate flags.Bool = true
+	var dryRun flags.DryRun = ""
 
 	var err error
 
@@ -63,7 +64,7 @@ func main() {
 		return
 	}
 
-	err, validationErrs := v1.APIProxyModelYAML2Bundle(input, output, bool(validate), dryRun)
+	err, validationErrs := v1.APIProxyModelYAML2Bundle(input, output, bool(validate), string(dryRun))
 	if err != nil {
 		utils.PrintErrorWithStackAndExit(err)
 		return
