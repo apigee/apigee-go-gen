@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"github.com/micovery/apigee-yaml-toolkit/cmd/yaml2xml/resources"
 	v1 "github.com/micovery/apigee-yaml-toolkit/pkg/apigee/v1"
+	"github.com/micovery/apigee-yaml-toolkit/pkg/bundle"
 	"github.com/micovery/apigee-yaml-toolkit/pkg/utils"
 	"os"
 )
@@ -101,7 +102,7 @@ func main() {
 		return
 	}
 
-	err = v1.WriteBundleToDisk(proxyModel, output)
+	err = bundle.ProxyBundle2Disk(proxyModel, output)
 	if err != nil {
 		utils.PrintErrorWithStackAndExit(err)
 		return

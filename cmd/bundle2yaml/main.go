@@ -26,6 +26,7 @@ func main() {
 	var version bool
 	var input string
 	var outputFile string
+	dryRun := utils.FlagBool(false)
 
 	var err error
 
@@ -33,6 +34,8 @@ func main() {
 	flag.BoolVar(&help, "help", false, `(optional) prints additional help text`)
 	flag.StringVar(&input, "input", "", "(required) path to bundle zip or dir. e.g. \"./hello-world-rev1.zip\" or \"./hello-world-rev1\" ")
 	flag.StringVar(&outputFile, "output", "", "(required) output YAML file. e.g \"./hello-world/apiproxy.yaml\"")
+	flag.Var(&dryRun, "dry-run", "(optional) prints YAML document to stdout")
+
 	flag.Parse()
 
 	if version {
@@ -55,7 +58,7 @@ func main() {
 		return
 	}
 
-	if err = bundle.ProxyBundle2YAML(input, outputFile); err != nil {
+	if err = bundle.ProxyBundle2YAMLFile(input, outputFile, dryRun); err != nil {
 		utils.PrintErrorWithStackAndExit(err)
 		return
 	}

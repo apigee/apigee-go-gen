@@ -18,7 +18,6 @@ import (
 	"encoding/xml"
 	"github.com/go-errors/errors"
 	"github.com/micovery/apigee-yaml-toolkit/pkg/utils"
-	"github.com/micovery/apigee-yaml-toolkit/pkg/zip"
 	"gopkg.in/yaml.v3"
 	"net/url"
 	"os"
@@ -185,77 +184,5 @@ func LoadAPIProxyModelResources(proxyModel *APIProxyModel, fromDir string) error
 		}
 		resource.Content = content
 	}
-	return nil
-}
-
-func WriteBundleToDisk(proxyModel *APIProxyModel, output string) error {
-	extension := filepath.Ext(output)
-	if extension == ".zip" {
-		err := WriteBundleToZip(proxyModel, output)
-		if err != nil {
-			return err
-		}
-	} else if extension != "" {
-		return errors.Errorf("output extension %s is not supported", extension)
-	} else {
-		err := WriteBundleToDir(proxyModel, output)
-		if err != nil {
-			return err
-		}
-		//directory
-	}
-
-	return nil
-}
-
-func WriteBundleToDir(proxyModel *APIProxyModel, output string) error {
-
-	err := os.MkdirAll(output, os.ModePerm)
-	if err != nil {
-		return errors.New(err)
-	}
-
-	bundleFiles := proxyModel.GetBundleFiles()
-	for _, bundleFile := range bundleFiles {
-		filePath := bundleFile.FilePath()
-		fileDir := filepath.Dir(filePath)
-
-		dirDiskPath := filepath.Join(output, fileDir)
-		err := os.MkdirAll(dirDiskPath, os.ModePerm)
-		if err != nil {
-			return errors.New(err)
-		}
-
-		fileContent, err := bundleFile.FileContents()
-		if err != nil {
-			return err
-		}
-
-		fileDiskPath := filepath.Join(output, filePath)
-		err = os.WriteFile(fileDiskPath, fileContent, os.ModePerm)
-		if err != nil {
-			return errors.New(err)
-		}
-	}
-
-	return nil
-}
-
-func WriteBundleToZip(proxyModel *APIProxyModel, outputZip string) error {
-	tmpDir, err := os.MkdirTemp("", "unzipped-bundle-*")
-	if err != nil {
-		return errors.New(err)
-	}
-
-	err = WriteBundleToDisk(proxyModel, tmpDir)
-	if err != nil {
-		return err
-	}
-
-	err = zip.Zip(outputZip, tmpDir)
-	if err != nil {
-		return err
-	}
-
 	return nil
 }

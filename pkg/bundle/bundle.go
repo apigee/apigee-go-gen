@@ -18,6 +18,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/go-errors/errors"
+	"github.com/micovery/apigee-yaml-toolkit/pkg/apigee/v1"
 	"github.com/micovery/apigee-yaml-toolkit/pkg/utils"
 	"github.com/micovery/apigee-yaml-toolkit/pkg/zip"
 	"gopkg.in/yaml.v3"
@@ -28,17 +29,17 @@ import (
 	"strings"
 )
 
-func ProxyBundle2YAML(proxyBundle string, outputFile string) error {
+func ProxyBundle2YAMLFile(proxyBundle string, outputFile string, dryRun utils.FlagBool) error {
 	extension := filepath.Ext(proxyBundle)
 	if extension == ".zip" {
-		err := ProxyBundleZip2YAML(proxyBundle, outputFile)
+		err := ProxyBundleZip2YAMLFile(proxyBundle, outputFile, dryRun)
 		if err != nil {
 			return err
 		}
 	} else if extension != "" {
 		return errors.Errorf("input extension %s is not supported", extension)
 	} else {
-		err := ProxyBundleDir2YAML(proxyBundle, outputFile)
+		err := ProxyBundleDir2YAMLFile(proxyBundle, outputFile, dryRun)
 		if err != nil {
 			return err
 		}
@@ -47,7 +48,7 @@ func ProxyBundle2YAML(proxyBundle string, outputFile string) error {
 	return nil
 }
 
-func ProxyBundleZip2YAML(inputZip string, outputFile string) error {
+func ProxyBundleZip2YAMLFile(inputZip string, outputFile string, dryRun utils.FlagBool) error {
 	tmpDir, err := os.MkdirTemp("", "unzipped-bundle-*")
 	if err != nil {
 		return errors.New(err)
@@ -58,11 +59,11 @@ func ProxyBundleZip2YAML(inputZip string, outputFile string) error {
 		return errors.New(err)
 	}
 
-	return ProxyBundleDir2YAML(tmpDir, outputFile)
+	return ProxyBundleDir2YAMLFile(tmpDir, outputFile, dryRun)
 
 }
 
-func ProxyBundleDir2YAML(inputDir string, outputFile string) error {
+func ProxyBundleDir2YAMLFile(inputDir string, outputFile string, dryRun utils.FlagBool) error {
 	policyFiles := []string{}
 	proxyEndpointsFiles := []string{}
 	targetEndpointsFiles := []string{}
@@ -170,7 +171,17 @@ func ProxyBundleDir2YAML(inputDir string, outputFile string) error {
 		}
 	}
 
-	err = WriteYAMLDocToDisk(docNode, outputFile, manifestFiles[0])
+	var docBytes []byte
+	if docBytes, err = utils.YAML2Text(docNode, 2); err != nil {
+		return err
+	}
+
+	if dryRun {
+		fmt.Print(string(docBytes))
+		return nil
+	}
+
+	err = YAMLDoc2File(docNode, outputFile, manifestFiles[0])
 	if err != nil {
 		return err
 	}
@@ -178,7 +189,7 @@ func ProxyBundleDir2YAML(inputDir string, outputFile string) error {
 	return nil
 }
 
-func WriteYAMLDocToDisk(docNode *yaml.Node, outputFile string, fileName string) error {
+func YAMLDoc2File(docNode *yaml.Node, outputFile string, fileName string) error {
 	var err error
 	var docBytes []byte
 	if docBytes, err = utils.YAML2Text(docNode, 2); err != nil {
@@ -197,5 +208,77 @@ func WriteYAMLDocToDisk(docNode *yaml.Node, outputFile string, fileName string) 
 	if err = os.WriteFile(outputFile, docBytes, os.ModePerm); err != nil {
 		return err
 	}
+	return nil
+}
+
+func ProxyBundle2Disk(proxyModel *v1.APIProxyModel, output string) error {
+	extension := filepath.Ext(output)
+	if extension == ".zip" {
+		err := ProxyBundle2Zip(proxyModel, output)
+		if err != nil {
+			return err
+		}
+	} else if extension != "" {
+		return errors.Errorf("output extension %s is not supported", extension)
+	} else {
+		err := ProxyBundle2Dir(proxyModel, output)
+		if err != nil {
+			return err
+		}
+		//directory
+	}
+
+	return nil
+}
+
+func ProxyBundle2Dir(proxyModel *v1.APIProxyModel, output string) error {
+
+	err := os.MkdirAll(output, os.ModePerm)
+	if err != nil {
+		return errors.New(err)
+	}
+
+	bundleFiles := proxyModel.GetBundleFiles()
+	for _, bundleFile := range bundleFiles {
+		filePath := bundleFile.FilePath()
+		fileDir := filepath.Dir(filePath)
+
+		dirDiskPath := filepath.Join(output, fileDir)
+		err := os.MkdirAll(dirDiskPath, os.ModePerm)
+		if err != nil {
+			return errors.New(err)
+		}
+
+		fileContent, err := bundleFile.FileContents()
+		if err != nil {
+			return err
+		}
+
+		fileDiskPath := filepath.Join(output, filePath)
+		err = os.WriteFile(fileDiskPath, fileContent, os.ModePerm)
+		if err != nil {
+			return errors.New(err)
+		}
+	}
+
+	return nil
+}
+
+func ProxyBundle2Zip(proxyModel *v1.APIProxyModel, outputZip string) error {
+	tmpDir, err := os.MkdirTemp("", "unzipped-bundle-*")
+	if err != nil {
+		return errors.New(err)
+	}
+
+	err = ProxyBundle2Disk(proxyModel, tmpDir)
+	if err != nil {
+		return err
+	}
+
+	err = zip.Zip(outputZip, tmpDir)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
