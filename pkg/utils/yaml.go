@@ -190,7 +190,7 @@ func ParseYAMLFile(filePath string) (*yaml.Node, error) {
 	decoder := yaml.NewDecoder(file)
 	yamlNode := yaml.Node{}
 	if err = decoder.Decode(&yamlNode); err != nil {
-		return nil, errors.New(err)
+		return nil, errors.Errorf("could not parse %s. %s", filePath, err.Error())
 	}
 
 	resolvedNode, err := ResolveYAMLRefs(&yamlNode, filepath.Dir(absPath))
