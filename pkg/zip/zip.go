@@ -47,6 +47,13 @@ func Unzip(destDir string, srcZip string) error {
 		}
 		defer srcFile.Close()
 
+		//some zip files don't have directory entries, make one
+		dir := filepath.Dir(path)
+		err = os.MkdirAll(dir, os.ModePerm)
+		if err != nil {
+			return errors.New(err)
+		}
+
 		destFile, err := os.Create(path)
 		if err != nil {
 			return errors.New(err)
