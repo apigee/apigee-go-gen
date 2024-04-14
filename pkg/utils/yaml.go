@@ -190,7 +190,7 @@ func ParseYAMLFile(filePath string) (*yaml.Node, error) {
 	decoder := yaml.NewDecoder(file)
 	yamlNode := yaml.Node{}
 	if err = decoder.Decode(&yamlNode); err != nil {
-		return nil, errors.New(err)
+		return nil, errors.Errorf("could not parse %s. %s", filePath, err.Error())
 	}
 
 	resolvedNode, err := ResolveYAMLRefs(&yamlNode, filepath.Dir(absPath))
@@ -314,6 +314,26 @@ func ResolveYAMLRefs(node *yaml.Node, nodePath string) (*yaml.Node, error) {
 	}
 
 	return node, nil
+}
+
+func YAMLDoc2File(docNode *yaml.Node, outputFile string) error {
+	var err error
+	var docBytes []byte
+	if docBytes, err = YAML2Text(docNode, 2); err != nil {
+		return err
+	}
+
+	//generate output directory
+	outputDir := filepath.Dir(outputFile)
+	if err = os.MkdirAll(outputDir, os.ModePerm); err != nil {
+		return errors.New(err)
+	}
+
+	//generate the main YAML file
+	if err = os.WriteFile(outputFile, docBytes, os.ModePerm); err != nil {
+		return err
+	}
+	return nil
 }
 
 var ParsedYAMLFiles map[string]*yaml.Node

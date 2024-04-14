@@ -21,15 +21,15 @@ import (
 )
 
 type ProxyEndpoint struct {
-	Name                string              `xml:"name,attr"`
-	Description         string              `xml:"Description,omitempty"`
-	FaultRules          *FaultRules         `xml:"FaultRules"`
-	DefaultFaultRule    *DefaultFaultRule   `xml:"DefaultFaultRule,omitempty"`
-	PreFlow             PreFlow             `xml:"PreFlow"`
-	Flows               Flows               `xml:"Flows"`
-	PostFlow            PostFlow            `xml:"PostFlow"`
-	HTTPProxyConnection HTTPProxyConnection `xml:"HTTPProxyConnection,omitempty"`
-	RouteRules          RouteRuleList       `xml:"RouteRule,omitempty"`
+	Name                string               `xml:"name,attr"`
+	Description         string               `xml:"Description,omitempty"`
+	FaultRules          *FaultRules          `xml:"FaultRules"`
+	DefaultFaultRule    *DefaultFaultRule    `xml:"DefaultFaultRule,omitempty"`
+	PreFlow             *PreFlow             `xml:"PreFlow,omitempty"`
+	Flows               *Flows               `xml:"Flows,omitempty"`
+	PostFlow            *PostFlow            `xml:"PostFlow,omitempty"`
+	HTTPProxyConnection *HTTPProxyConnection `xml:"HTTPProxyConnection,omitempty"`
+	RouteRules          *RouteRuleList       `xml:"RouteRule,omitempty"`
 
 	UnknownNode AnyList `xml:",any"`
 }
@@ -61,11 +61,11 @@ func ValidateProxyEndpoint(v *ProxyEndpoint, path string) []error {
 	}
 
 	var subErrors []error
-	subErrors = append(subErrors, ValidateHTTPProxyConnection(&v.HTTPProxyConnection, subPath)...)
-	subErrors = append(subErrors, ValidatePreFlow(&v.PreFlow, subPath)...)
-	subErrors = append(subErrors, ValidateFlows(&v.Flows, subPath)...)
-	subErrors = append(subErrors, ValidatePostFlow(&v.PostFlow, subPath)...)
-	subErrors = append(subErrors, ValidateRouteRules(&v.RouteRules, subPath)...)
+	subErrors = append(subErrors, ValidateHTTPProxyConnection(v.HTTPProxyConnection, subPath)...)
+	subErrors = append(subErrors, ValidatePreFlow(v.PreFlow, subPath)...)
+	subErrors = append(subErrors, ValidateFlows(v.Flows, subPath)...)
+	subErrors = append(subErrors, ValidatePostFlow(v.PostFlow, subPath)...)
+	subErrors = append(subErrors, ValidateRouteRules(v.RouteRules, subPath)...)
 	subErrors = append(subErrors, ValidateFaultRules(v.FaultRules, subPath)...)
 	subErrors = append(subErrors, ValidateDefaultFaultRule(v.DefaultFaultRule, subPath)...)
 

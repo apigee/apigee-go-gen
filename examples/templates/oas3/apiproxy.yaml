@@ -1,6 +1,6 @@
 APIProxy:
   .revision: 1
-  .name: {{ .OAS3 | dig "info" "x-serviceName" .OAS3.info.title }}
+  .name: {{ slug_make (.OAS3 | dig "info" "x-serviceName" .OAS3.info.title) }}
   DisplayName: {{ .OAS3.info.title }}
   Description: {{ .OAS3.info.description }}
 Policies:

@@ -25,20 +25,19 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"strings"
 )
 
-func ProxyBundle2YAML(proxyBundle string, outputFile string) error {
+func ProxyBundle2YAMLFile(proxyBundle string, outputFile string, dryRun utils.FlagBool) error {
 	extension := filepath.Ext(proxyBundle)
 	if extension == ".zip" {
-		err := ProxyBundleZip2YAML(proxyBundle, outputFile)
+		err := ProxyBundleZip2YAMLFile(proxyBundle, outputFile, dryRun)
 		if err != nil {
 			return err
 		}
 	} else if extension != "" {
 		return errors.Errorf("input extension %s is not supported", extension)
 	} else {
-		err := ProxyBundleDir2YAML(proxyBundle, outputFile)
+		err := ProxyBundleDir2YAMLFile(proxyBundle, outputFile, dryRun)
 		if err != nil {
 			return err
 		}
@@ -47,7 +46,7 @@ func ProxyBundle2YAML(proxyBundle string, outputFile string) error {
 	return nil
 }
 
-func ProxyBundleZip2YAML(inputZip string, outputFile string) error {
+func ProxyBundleZip2YAMLFile(inputZip string, outputFile string, dryRun utils.FlagBool) error {
 	tmpDir, err := os.MkdirTemp("", "unzipped-bundle-*")
 	if err != nil {
 		return errors.New(err)
@@ -58,11 +57,11 @@ func ProxyBundleZip2YAML(inputZip string, outputFile string) error {
 		return errors.New(err)
 	}
 
-	return ProxyBundleDir2YAML(tmpDir, outputFile)
+	return ProxyBundleDir2YAMLFile(tmpDir, outputFile, dryRun)
 
 }
 
-func ProxyBundleDir2YAML(inputDir string, outputFile string) error {
+func ProxyBundleDir2YAMLFile(inputDir string, outputFile string, dryRun utils.FlagBool) error {
 	policyFiles := []string{}
 	proxyEndpointsFiles := []string{}
 	targetEndpointsFiles := []string{}
@@ -170,32 +169,20 @@ func ProxyBundleDir2YAML(inputDir string, outputFile string) error {
 		}
 	}
 
-	err = WriteYAMLDocToDisk(docNode, outputFile, manifestFiles[0])
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func WriteYAMLDocToDisk(docNode *yaml.Node, outputFile string, fileName string) error {
-	var err error
 	var docBytes []byte
 	if docBytes, err = utils.YAML2Text(docNode, 2); err != nil {
 		return err
 	}
 
-	//generate output directory
-	outputDir := filepath.Dir(outputFile)
-	if err = os.MkdirAll(outputDir, os.ModePerm); err != nil {
-		return errors.New(err)
+	if dryRun {
+		fmt.Print(string(docBytes))
+		return nil
 	}
 
-	//generate the main YAML file
-	fileName = filepath.Base(fileName)
-	fileName = fmt.Sprintf("%s.yaml", strings.TrimSuffix(fileName, filepath.Ext(fileName)))
-	if err = os.WriteFile(outputFile, docBytes, os.ModePerm); err != nil {
+	err = utils.YAMLDoc2File(docNode, outputFile)
+	if err != nil {
 		return err
 	}
+
 	return nil
 }

@@ -1,0 +1,117 @@
+APIProxy:
+  .revision: 1
+  .name: helloworld
+  ConfigurationVersion:
+    .majorVersion: 4
+    .minorVersion: 0
+  CreatedAt: 1459996798985
+  CreatedBy: adas@apigee.com
+  DisplayName: helloworld
+  LastModifiedAt: 1460000219331
+  LastModifiedBy: adas@apigee.com
+  Policies:
+    - Policy: add-cors
+    - Policy: check-quota
+  ProxyEndpoints:
+    ProxyEndpoint: default
+  Resources: {}
+  TargetServers: {}
+  TargetEndpoints:
+    TargetEndpoint: default
+  validate: false
+Policies:
+  - AssignMessage:
+      .async: false
+      .continueOnError: false
+      .enabled: true
+      .name: add-cors
+      DisplayName: Add CORS
+      FaultRules: {}
+      Properties: {}
+      Add:
+        Headers:
+          - Header:
+              .name: Access-Control-Allow-Origin
+              -Data: '{request.header.origin}'
+          - Header:
+              .name: Access-Control-Allow-Headers
+              -Data: origin, x-requested-with, accept
+          - Header:
+              .name: Access-Control-Max-Age
+              -Data: 3628800
+          - Header:
+              .name: Access-Control-Allow-Methods
+              -Data: GET, PUT, POST, DELETE
+      IgnoreUnresolvedVariables: true
+      AssignTo:
+        .createNew: false
+        .transport: http
+        .type: response
+  - Quota:
+      .async: false
+      .continueOnError: false
+      .enabled: true
+      .name: check-quota
+      .type: calendar
+      DisplayName: Check Quota
+      Properties: {}
+      Allow:
+        .count: 5
+        .countRef: request.header.allowed_quota
+      Interval:
+        .ref: request.header.quota_count
+        -Data: 1
+      Distributed: false
+      Synchronous: false
+      TimeUnit:
+        .ref: request.header.quota_timeout
+        -Data: minute
+      StartTime: 2016-3-31 00:00:00
+      AsynchronousConfiguration:
+        SyncIntervalInSeconds: 20
+        SyncMessageCount: 5
+ProxyEndpoints:
+  - ProxyEndpoint:
+      .name: default
+      -Data:
+        - PreFlow:
+            .name: PreFlow
+            Request:
+              - Step:
+                  Name: check-quota
+              - Step:
+                  Name: add-cors
+                  Condition: request.verb == "OPTIONS"
+            Response: {}
+        - Flows: {}
+        - PostFlow:
+            .name: PostFlow
+            Request: {}
+            Response: {}
+        - HTTPProxyConnection:
+            - BasePath: /v0/hello
+            - Properties: {}
+            - VirtualHost: default
+            - VirtualHost: secure
+        - RouteRule:
+            .name: preflight
+            Condition: request.verb == "OPTIONS"
+        - RouteRule:
+            .name: default
+            TargetEndpoint: default
+TargetEndpoints:
+  - TargetEndpoint:
+      .name: default
+      PreFlow:
+        .name: PreFlow
+        Request: {}
+        Response: {}
+      Flows: {}
+      PostFlow:
+        .name: PostFlow
+        Request: {}
+        Response: {}
+      HTTPTargetConnection:
+        Properties: {}
+        URL: http://mocktarget.apigee.net
+Resources: {}
