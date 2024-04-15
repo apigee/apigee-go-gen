@@ -7,11 +7,9 @@ export LD_FLAGS="-X main.BuildVersion=${VERSION} -X main.BuildTimestamp=${BUILD_
 
 
 mkdir -p bin
-echo "Building templating tools ..."
+echo "Building templating tool ..."
 go build -ldflags "${LD_FLAGS}" -o bin/render-template  ./cmd/render-template
-go build -ldflags "${LD_FLAGS}" -o bin/render-oas  ./cmd/render-oas
-go build -ldflags "${LD_FLAGS}" -o bin/render-grpc  ./cmd/render-grpc
-go build -ldflags "${LD_FLAGS}" -o bin/render-graphql  ./cmd/render-graphql
+
 
 echo "Building transformation tools ..."
 go build -ldflags "${LD_FLAGS}" -o bin/yaml2bundle  ./cmd/yaml2bundle

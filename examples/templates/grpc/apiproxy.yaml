@@ -1,7 +1,7 @@
 APIProxy:
   .revision: 1
-  .name: {{ include "get_api_name" $.Proto }}
-  DisplayName:  {{ include "get_api_name" $.Proto }}
+  .name: {{ include "get_api_name" $.Values.proto }}
+  DisplayName:  {{ include "get_api_name" $.Values.proto }}
   Description: API Proxy generated from proto file
 Policies:
   #{{- os_copyfile "./policies.yaml" "./policies.yaml" | blank }}
@@ -10,7 +10,7 @@ ProxyEndpoints:
   - ProxyEndpoint:
       .name: default
       Flows:
-        #{{- range $i,$service := $.Proto.Service }}
+        #{{- range $i,$service := $.Values.proto.Service }}
           #{{- range $j,$method := $service.Method }}
         - Flow:
             .name: {{ $method.Name }}
@@ -23,7 +23,7 @@ ProxyEndpoints:
               - Step:
                   Name: RF-CatchAll
       HTTPProxyConnection:
-        BasePath: {{ include "get_basepath" $.Proto }}
+        BasePath: {{ include "get_basepath" $.Values.proto }}
       RouteRule:
         .name: default
         TargetEndpoint: default
@@ -31,7 +31,7 @@ TargetEndpoints:
   - TargetEndpoint:
       .name: default
       HTTPTargetConnection:
-        Path: {{ include "get_basepath" $.Proto }}
+        Path: {{ include "get_basepath" $.Values.proto }}
         LoadBalancer:
           Servers:
             - Server:

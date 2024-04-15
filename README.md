@@ -1,4 +1,4 @@
-## Apigee YAML Toolkit 
+# Apigee YAML Toolkit 
 
 
 **Welcome!** This repo offers a set of tools to streamline your Apigee API Proxy development experience using a YAML-First approach.
@@ -20,11 +20,11 @@ By using these tools alongside the Apigee CLI, you'll unlock a highly customizab
   * [yaml2xml](#tool-yaml2xml)
   * [bundle2yaml](#tool-bundle2yaml)
   * [yaml2bundle](#tool-yaml2bundle)
-* [Template Rendering Tools](#template-rendering-tools)
-  * [render-oas](#tool-render-oas)
-  * [render-graphql](#tool-render-graphql)
-  * [render-grpc](#tool-render-grpc)
-  * [render-template ](#tool-render-template)
+* [Template Rendering Tool](#template-rendering-tool)
+  * [With OpenAPI Spec](#creating-api-proxy-from-openapi-spec)
+  * [With GraphQL Schema](#creating-api-proxy-from-graphql-schema)
+  * [With gRPC Proto](#creating-api-proxy-from-grpc-proto)
+  * [With Other Formats](#creating-api-proxy-from-other-formats)
 * [Installation](#installation)
 
     
@@ -367,16 +367,12 @@ Below are a couple of examples
                 -output ./out/bundles/petstore
     ```
 
-## Template Rendering Tools
+## Template Rendering Tool
 
-This toolkit includes tools that let you create API Proxy bundles based on popular formats like
-OpenAPI, GraphQL, and gRPC. Think of them as blueprints for your API Proxies.
+This toolkit includes a tool that let you create API Proxy bundles based on popular formats like
+OpenAPI, GraphQL, gRPC, and more. Think of them as blueprints for your API Proxies.
 
 * `render-template` - Renders a [Go-style](https://pkg.go.dev/text/template) template
-* `render-oas` - Renders a [Go-style](https://pkg.go.dev/text/template) template using an OpenAPI spec context
-* `render-graphql` - Renders a [Go-style](https://pkg.go.dev/text/template) template using a GraphQL schema context
-* `render-grpc` - Renders a [Go-style](https://pkg.go.dev/text/template) template using a gRPC proto context
-
 
 **Why use templates?**
 
@@ -388,24 +384,25 @@ automatically build out parts of your API Proxy configuration.
 
 Imagine easily adding security rules, setting target URLs based on your setup, or even having your API proxy structure adjust to match your API specifications. These tools make that possible!
 
-**The template language**
+### The Template Language
 
-The tools here use Go [text/template](https://pkg.go.dev/text/template) engine behind the scenes to render the input template.
+The `render-template` tool uses the Go [text/template](https://pkg.go.dev/text/template) engine render the input template.
 The Go templating engine is very powerful and gives you lots of flexibility and features like 
 loop constructs, conditional elements, template blocks for re-use and much more. 
 
 
+Below are a few examples of how to use the `render-template` tool for generating API Proxies from OAS, GraphQL, and GRPC.
 
-### Tool: render-oas
+### Creating API Proxy from OpenAPI Spec
 
-**Purpose:** This tool takes your OpenAPI spec and a customizable template, generating an intermediate YAML configuration for your Apigee API Proxy.
+You can use the `render-template` tool to render a template using an OpenAPI spec as input.
 
 **How it Works:**
 
 * **Start with Your Template:** This is your baseline. Include any standard policies or settings you want in your final proxy.
 * **Customize the Output:** Your template uses special placeholders that the tool will replace with details from your OpenAPI spec.
 * **Control the Output:** Use control logic in your template to adjust your proxy configuration based on your OpenAPI spec.
-* **Access the Spec:** The OpenAPI text and [map](https://go.dev/blog/maps) are available during template rendering.
+* **Access the Spec:** Use `--set-oas` to access the OpenAPI spec text and [map](https://go.dev/blog/maps) during template rendering.
 
 
 **See an Example:** Check out the included OAS3 template at [examples/template/oas3](examples/templates/oas3/apiproxy.yaml). 
@@ -415,10 +412,10 @@ It demonstrates the basics of how the tool creates Apigee-compatible YAML from y
 Here is how you would call it
 
 ```shell
-render-oas -template ./examples/templates/oas3/apiproxy.yaml \
-           -spec ./examples/specs/petstore.yaml \
-           -include ./examples/templates/oas3/*.tmpl \
-           -output ./out/yaml-first/petstore/apiproxy.yaml
+render-template -template ./examples/templates/oas3/apiproxy.yaml \
+                -set-oas spec=./examples/specs/petstore.yaml \
+                -include ./examples/templates/oas3/*.tmpl \
+                -output ./out/yaml-first/petstore/apiproxy.yaml
 ```
 
 > [!NOTE]
@@ -436,24 +433,24 @@ yaml2bundle -input ./out/yaml-first/petstore/apiproxy.yaml \
 For streamlined development, you can view the rendered template output directly in your terminal. This avoids writing to disk during your iterative process. Add the `-dry-run true` flag:
 
 ```shell
-render-oas -template ./examples/templates/oas3/apiproxy.yaml \
-           -spec ./examples/specs/petstore.yaml \
-           -include ./examples/templates/oas3/*.tmpl \
-           -dry-run true
+render-template -template ./examples/templates/oas3/apiproxy.yaml \
+                -set-oas spec=./examples/specs/petstore.yaml \
+                -include ./examples/templates/oas3/*.tmpl \
+                -dry-run true
 ```
 
 
-### Tool: render-graphql
+### Creating API Proxy from GraphQL Schema
 
-**Purpose:** This tool is used for rendering a template using a GraphQL schema as input.
+You can use the `render-template` tool to render a template using a GraphQL schema as input.
 
 While GraphQL schemas might not contain all the necessary details for a complete API Proxy bundle, this tool offers flexibility through the `--set` and `--set-string` parameters. This works similar to how values are set in Helm charts.
 
 **How it Works:**
 
 * **Start with Your Template:** The template, your inputs, and the schema guide the generation of an intermediate YAML configuration.
+* **Access the Schema:**  Use `--set-graphql` to access a GraphQL schema text and [AST](https://pkg.go.dev/github.com/vektah/gqlparser/v2/ast#Schema) during template rendering.
 * **Inject Your Values:** Use `--set` and `--set-string` to provide missing values (like target URLs) for your template.
-* **Access the Schema:** The GraphQL schema text and [AST](https://pkg.go.dev/github.com/vektah/gqlparser/v2/ast#Schema) are available during template rendering.
 
 
 **See an Example:** Check out the [examples/templates/graphql](examples/templates/graphql) directory for an example of building the intermediate YAML for a GraphQL API Proxy.
@@ -461,13 +458,13 @@ While GraphQL schemas might not contain all the necessary details for a complete
 Here is how you would call it
 
 ```shell
-render-graphql -template ./examples/templates/graphql/apiproxy.yaml \
-               -schema ./examples/graphql/resorts.graphql \
-               -set-string "api_name=resorts-api" \
-               -set-string "base_path=/graphql" \
-               -set-string "target_url=https://example.com/graphql" \
-               -include ./examples/templates/graphql/*.tmpl \
-               -output ./out/yaml-first/resorts/apiproxy.yaml
+render-template -template ./examples/templates/graphql/apiproxy.yaml \
+                -set-graphql schema=./examples/graphql/resorts.graphql \
+                -set-string "api_name=resorts-api" \
+                -set-string "base_path=/graphql" \
+                -set-string "target_url=https://example.com/graphql" \
+                -include ./examples/templates/graphql/*.tmpl \
+                -output ./out/yaml-first/resorts/apiproxy.yaml
 ``` 
 Once you render the template, you then use the `yaml2bundle` tool to transform this YAML output into a deployable API Proxy bundle. e.g.
 
@@ -477,9 +474,9 @@ yaml2bundle -input ./out/yaml-first/resorts/apiproxy.yaml \
 ``` 
 
 
-### Tool: render-grpc
+### Creating API Proxy from gRPC Proto
 
-**Purpose:** This tool is used for rendering a template using a gRPC proto file as input.
+You can use the `render-template` to render a template using a gRPC proto file as input.
 
 When working with gRPC in Apigee, it's crucial to ensure your API Proxy's base path and conditional flows are configured 
 correctly to handle gRPC traffic. This tool simplifies the process by letting you build a template that understands 
@@ -490,11 +487,8 @@ these gRPC-specific requirements.
 
 * **Start with Your Template:** Input your gRPC proto file, and the template generates the intermediate YAML configuration.
 * **Automate the Details:** The template handles the intricacies of gRPC integration within your API Proxy.
-* **Access the Proto:** The proto text and [descriptor](https://pkg.go.dev/google.golang.org/protobuf/types/descriptorpb#FileDescriptorProto) are available during template rendering.
-
-
-Any additional information (such as target server name) that is not available within the proto file
-can be supplied as values tom the rendering process using the `-set` and `-set-string` params.
+* **Access the Proto:** Use `--set-grpc` to access the gRPC proto text and [descriptor](https://pkg.go.dev/google.golang.org/protobuf/types/descriptorpb#FileDescriptorProto) during template rendering.
+* **Inject Your Values:** Use `--set` and `--set-string` to provide missing values (like target server) for your template.
 
 
 **See an Example:** Check out the [examples/templates/grpc](examples/templates/grpc) directory for an example of building the intermediate YAML for a gRPC API Proxy.
@@ -502,11 +496,11 @@ can be supplied as values tom the rendering process using the `-set` and `-set-s
 Here is how you would use the tool with this example:
 
 ```shell
-render-grpc -template ./examples/templates/grpc/apiproxy.yaml \
-            -proto ./examples/protos/greeter.proto \
-            -set-string "target_server=example-target-server" \
-            -include ./examples/templates/grpc/*.tmpl \
-            -output ./out/yaml-first/greeter/apiproxy.yaml
+render-template -template ./examples/templates/grpc/apiproxy.yaml \
+                -set-grpc proto=./examples/protos/greeter.proto \
+                -set-string "target_server=example-target-server" \
+                -include ./examples/templates/grpc/*.tmpl \
+                -output ./out/yaml-first/greeter/apiproxy.yaml
 ```
 
 Once you render the template, you then use the `yaml2bundle` tool to transform this YAML output into a deployable API Proxy bundle. e.g.
@@ -516,20 +510,19 @@ yaml2bundle -input ./out/yaml-first/greeter/apiproxy.yaml \
             -output ./out/bundles/greeter-from-grpc.zip
 ```
 
-### Tool: render-template
+### Creating API Proxy from other formats
 
-**Purpose:** This is the generic version of the rendering tools
+You can use the `render-template` tool to render any generic template. It's not necessary to start with
+an OpenAPI spec, a GraphQL schema, or a gRPC proto. The `render-template` tool gives you the freedom to design your own 
+templates for generating Apigee API Proxies. 
 
-If you're working with a spec format beyond OpenAPI, GraphQL, or gRPC, this tool gives you the freedom to design your own templates for
-generating Apigee API Proxies. Here's how it works:
+Here's how it works:
 
 * **Start with Your Template:** Use the familiar Go templating syntax, enhanced with helpful functions specifically for building API Proxies.
 * **Inject Your Values:** Use `-set` and `-set-string` to provide essential details that your template will use during the rendering process.
+* **Use built-in functions:** Use built-in [helper_functions](pkg/common/resources/helper_functions.txt) to assist you in the rendering process
+* **Use custom-function:** Define your own functions using [named template helpers](https://pkg.go.dev/text/template#hdr-Nested_template_definitions).
 
-> [!NOTE]
-> All rendering tools in this toolkit use the same underlying Go templating logic (including helper functions)
-
-For a full list of all available helper functions, see [helper_functions.txt](pkg/common/resources/helper_functions.txt)
 
 
 ## Installation

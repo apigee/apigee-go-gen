@@ -27,7 +27,7 @@ import (
 	"path/filepath"
 )
 
-func ProxyBundle2YAMLFile(proxyBundle string, outputFile string, dryRun utils.FlagBool) error {
+func ProxyBundle2YAMLFile(proxyBundle string, outputFile string, dryRun bool) error {
 	extension := filepath.Ext(proxyBundle)
 	if extension == ".zip" {
 		err := ProxyBundleZip2YAMLFile(proxyBundle, outputFile, dryRun)
@@ -37,7 +37,7 @@ func ProxyBundle2YAMLFile(proxyBundle string, outputFile string, dryRun utils.Fl
 	} else if extension != "" {
 		return errors.Errorf("input extension %s is not supported", extension)
 	} else {
-		err := ProxyBundleDir2YAMLFile(proxyBundle, outputFile, dryRun)
+		err := ProxyBundleDir2YAMLFile(proxyBundle, outputFile, bool(dryRun))
 		if err != nil {
 			return err
 		}
@@ -46,7 +46,7 @@ func ProxyBundle2YAMLFile(proxyBundle string, outputFile string, dryRun utils.Fl
 	return nil
 }
 
-func ProxyBundleZip2YAMLFile(inputZip string, outputFile string, dryRun utils.FlagBool) error {
+func ProxyBundleZip2YAMLFile(inputZip string, outputFile string, dryRun bool) error {
 	tmpDir, err := os.MkdirTemp("", "unzipped-bundle-*")
 	if err != nil {
 		return errors.New(err)
@@ -61,7 +61,7 @@ func ProxyBundleZip2YAMLFile(inputZip string, outputFile string, dryRun utils.Fl
 
 }
 
-func ProxyBundleDir2YAMLFile(inputDir string, outputFile string, dryRun utils.FlagBool) error {
+func ProxyBundleDir2YAMLFile(inputDir string, outputFile string, dryRun bool) error {
 	policyFiles := []string{}
 	proxyEndpointsFiles := []string{}
 	targetEndpointsFiles := []string{}

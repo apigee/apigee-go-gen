@@ -22,6 +22,7 @@ import (
 	"github.com/bmatcuk/doublestar/v4"
 	"github.com/go-errors/errors"
 	"github.com/gosimple/slug"
+	"github.com/micovery/apigee-yaml-toolkit/pkg/flags"
 	"github.com/micovery/apigee-yaml-toolkit/pkg/utils"
 	"github.com/micovery/apigee-yaml-toolkit/pkg/values"
 	"google.golang.org/protobuf/types/descriptorpb"
@@ -312,7 +313,7 @@ func CreateTemplate(templateFile string, includeList []string, outputFile string
 	return tmpl, nil
 }
 
-func ExpandInclude(includeTpl utils.IncludeList) ([]string, error) {
+func ExpandInclude(includeTpl flags.IncludeList) ([]string, error) {
 	// expand the included templates
 	allMatches := []string{}
 	for _, includePattern := range includeTpl {
@@ -343,56 +344,65 @@ type Flags struct {
 	OutputFile   string
 	DryRun       bool
 	Help         bool
-	IncludeList  utils.IncludeList
+	IncludeList  flags.IncludeList
 	Values       *values.Map
 }
 
 func GetRenderFlags(printVersion func(), printUsage func()) (*Flags, error) {
 
-	flags := &Flags{
+	rFlags := &Flags{
 		Values: &values.Map{},
 	}
 
-	dryRun := utils.FlagBool(false)
-	setValue := values.NewValues(flags.Values)
-	setValueStr := values.NewValuesStr(flags.Values)
-	setValueFile := values.NewValuesFile(flags.Values)
+	dryRun := flags.Bool(false)
+	setValue := flags.NewSetAny(rFlags.Values)
+	setValueStr := flags.NewSetString(rFlags.Values)
+	setValueFile := flags.NewValues(rFlags.Values)
+	setFile := flags.NewSetFile(rFlags.Values)
 
-	flag.BoolVar(&flags.Version, "version", false, "(optional) prints version text")
-	flag.BoolVar(&flags.Help, "help", false, `(optional) prints additional help text`)
-	flag.StringVar(&flags.TemplateFile, "template", "", `(required) path to main template e.g. "./input.tpl"`)
-	flag.Var(&flags.IncludeList, "include", `(optional,0..*) path/glob for templates to include e.g. "./helpers/*.tpl"`)
-	flag.StringVar(&flags.OutputFile, "output", "", "(required) output directory")
+	setOAS := flags.NewSetOAS(rFlags.Values)
+	setGraphQL := flags.NewSetGraphQL(rFlags.Values)
+	setGRPC := flags.NewSetGRPC(rFlags.Values)
+
+	flag.BoolVar(&rFlags.Version, "version", false, "(optional) prints version text")
+	flag.BoolVar(&rFlags.Help, "help", false, `(optional) prints additional help text`)
+	flag.StringVar(&rFlags.TemplateFile, "template", "", `(required) path to main template e.g. "./input.tpl"`)
+	flag.Var(&rFlags.IncludeList, "include", `(optional,0..*) path/glob for templates to include e.g. "./helpers/*.tpl"`)
+	flag.StringVar(&rFlags.OutputFile, "output", "", "(required) output directory")
 	flag.Var(&setValue, "set", `(optional,0..*) sets a context key/value  .e.g "boolVal=true" or "floatVal=1.37"`)
 	flag.Var(&setValueStr, "set-string", `(optional,0..*) sets a context key/value .e.g key1="value1"`)
 	flag.Var(&dryRun, "dry-run", "(optional) prints the rendered template")
 	flag.Var(&setValueFile, "values", "(optional,0..1) sets context keys/values from YAML file")
+	flag.Var(&setFile, "set-file", "(optional,0..*) sets context key/value where value is the content of a file e.g. \"my_script=foo.sh\"")
+	flag.Var(&setOAS, "set-oas", "(optional,0..*) sets context key/value where value is an OpenAPI spec of a file e.g. \"my_oas=petstore.yaml\"")
+	flag.Var(&setGRPC, "set-grpc", "(optional,0..*) sets context key/value where value is a gRPC proto of a file e.g. \"my_proto=greeter.proto\"")
+	flag.Var(&setGraphQL, "set-graphql", "(optional,0..*) sets context key/value where value is a GraphQL schema of a file e.g. \"my_schema=resorts.graphql\"")
 
 	flag.Parse()
 
-	flags.DryRun = bool(dryRun) //this hack is needed so user does not need to use equals sign i.e. --dry-run=false
+	rFlags.DryRun = bool(dryRun) //this hack is needed so user does not need to use equals sign i.e. --dry-run=false
 
-	if flags.Version {
+	if rFlags.Version {
 		printVersion()
 		os.Exit(0)
 		return nil, nil
 	}
 
-	if flags.Help {
+	if rFlags.Help {
 		printUsage()
 		os.Exit(0)
 		return nil, nil
 	}
 
-	if strings.TrimSpace(flags.TemplateFile) == "" {
+	if strings.TrimSpace(rFlags.TemplateFile) == "" {
 		utils.RequireParamAndExit("template")
 		return nil, nil
 	}
 
-	if strings.TrimSpace(flags.OutputFile) == "" && !flags.DryRun {
+	if strings.TrimSpace(rFlags.OutputFile) == "" && !rFlags.DryRun {
 		utils.RequireParamAndExit("output")
 		return nil, nil
 	}
 
-	return flags, nil
+	return rFlags, nil
 }
