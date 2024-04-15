@@ -358,6 +358,11 @@ func GetRenderFlags(printVersion func(), printUsage func()) (*Flags, error) {
 	setValue := flags.NewSetAny(rFlags.Values)
 	setValueStr := flags.NewSetString(rFlags.Values)
 	setValueFile := flags.NewValues(rFlags.Values)
+	setFile := flags.NewSetFile(rFlags.Values)
+
+	setOAS := flags.NewSetOAS(rFlags.Values)
+	setGraphQL := flags.NewSetGraphQL(rFlags.Values)
+	setGRPC := flags.NewSetGRPC(rFlags.Values)
 
 	flag.BoolVar(&rFlags.Version, "version", false, "(optional) prints version text")
 	flag.BoolVar(&rFlags.Help, "help", false, `(optional) prints additional help text`)
@@ -368,6 +373,10 @@ func GetRenderFlags(printVersion func(), printUsage func()) (*Flags, error) {
 	flag.Var(&setValueStr, "set-string", `(optional,0..*) sets a context key/value .e.g key1="value1"`)
 	flag.Var(&dryRun, "dry-run", "(optional) prints the rendered template")
 	flag.Var(&setValueFile, "values", "(optional,0..1) sets context keys/values from YAML file")
+	flag.Var(&setFile, "set-file", "(optional,0..*) sets context key/value where value is the content of a file e.g. \"my_script=foo.sh\"")
+	flag.Var(&setOAS, "set-oas", "(optional,0..*) sets context key/value where value is an OpenAPI spec of a file e.g. \"my_oas=petstore.yaml\"")
+	flag.Var(&setGRPC, "set-grpc", "(optional,0..*) sets context key/value where value is a gRPC proto of a file e.g. \"my_proto=greeter.proto\"")
+	flag.Var(&setGraphQL, "set-graphql", "(optional,0..*) sets context key/value where value is a GraphQL schema of a file e.g. \"my_schema=resorts.graphql\"")
 
 	flag.Parse()
 
