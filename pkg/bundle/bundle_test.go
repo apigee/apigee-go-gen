@@ -90,9 +90,8 @@ func TestAPIProxyModel2BundleZip(t *testing.T) {
 			expectedBundleZipPath := filepath.Join(bundlesDir, tt.dir, "bundle.zip")
 			outputBundleZipPath := filepath.Join(tmpDir, "bundle.zip")
 
-			err, validationErrors := v1.APIProxyModelYAML2Bundle(apiProxyModelYAMLPath, outputBundleZipPath, false, "")
+			err = v1.APIProxyModelYAML2Bundle(apiProxyModelYAMLPath, outputBundleZipPath, false, "")
 			require.NoError(t, err)
-			require.Equal(t, validationErrors, []error(nil))
 			RequireBundleZipEquals(t, expectedBundleZipPath, outputBundleZipPath)
 		})
 	}
