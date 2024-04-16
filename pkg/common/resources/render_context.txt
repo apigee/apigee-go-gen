@@ -1,0 +1,36 @@
+
+  struct {
+    Values map[string]any
+  }
+
+  * The Values field contains any value set with
+
+      --values key=./path/to/values.yaml
+        Sets keys/values from a YAML/JSON file
+
+      --set key=value
+        Sets individual key/value. The value is coerced to bool, int, float, or string.
+
+      --set-string key=value
+        Sets individual key/value. The value is assumed to be a string.
+
+      --set-file key=./path/to/file.sh
+         Sets individual key/value. The value is the contents of the file.
+
+      --set-graphql key=./path/to/schema.graphql
+         Sets individual key/value. The value is the GraphQL schema parsed into ast.Schema type
+         (see https://pkg.go.dev/github.com/vektah/gqlparser/v2/ast#Schema)
+
+      --set-oas key=./path/to/oas.yaml
+         Sets individual key/value. The value is the OpenAPI spec as a map[string]any.
+         (Only OAS 2.0 and OAS 3.X.X supported)
+
+      --set-grpc key=./path/to/protobuf.proto
+         Sets individual key/value. The Value is the gRPC proto is parsed into FileDescriptorProto type
+         (See https://pkg.go.dev/google.golang.org/protobuf/types/descriptorpb#FileDescriptorProto )
+
+
+  From your template, you can access data in the context with "$."
+
+  e.g.
+     Package Name: {{ $.Values.target_url }}

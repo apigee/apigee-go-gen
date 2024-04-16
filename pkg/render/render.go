@@ -16,7 +16,6 @@ package render
 
 import (
 	"bytes"
-	"flag"
 	"fmt"
 	"github.com/Masterminds/sprig/v3"
 	"github.com/bmatcuk/doublestar/v4"
@@ -24,7 +23,6 @@ import (
 	"github.com/gosimple/slug"
 	"github.com/micovery/apigee-yaml-toolkit/pkg/flags"
 	"github.com/micovery/apigee-yaml-toolkit/pkg/utils"
-	"github.com/micovery/apigee-yaml-toolkit/pkg/values"
 	"google.golang.org/protobuf/types/descriptorpb"
 	"net/url"
 	"os"
@@ -35,7 +33,7 @@ import (
 	"text/template"
 )
 
-func RenderGeneric(context any, flags *Flags) error {
+func RenderGeneric(context any, cFlags *CommonFlags, dryRun bool) error {
 	var err error
 
 	type RenderContext struct {
@@ -45,9 +43,9 @@ func RenderGeneric(context any, flags *Flags) error {
 		Values map[string]any
 	}
 
-	outputDir := filepath.Dir(flags.OutputFile)
+	outputDir := filepath.Dir(cFlags.OutputFile)
 	//create the output directory
-	if !flags.DryRun {
+	if !dryRun {
 		err = os.MkdirAll(outputDir, os.ModePerm)
 		if err != nil {
 			return errors.New(err)
@@ -55,7 +53,7 @@ func RenderGeneric(context any, flags *Flags) error {
 	}
 
 	//create the template
-	tmpl, err := CreateTemplate(flags.TemplateFile, flags.IncludeList, flags.OutputFile, flags.DryRun)
+	tmpl, err := CreateTemplate(cFlags.TemplateFile, cFlags.IncludeList, cFlags.OutputFile, dryRun)
 	if err != nil {
 		return err
 	}
@@ -67,15 +65,15 @@ func RenderGeneric(context any, flags *Flags) error {
 	}
 
 	//write rendered template to output
-	if !flags.DryRun {
-		err = os.WriteFile(flags.OutputFile, rendered, os.ModePerm)
+	if !dryRun {
+		err = os.WriteFile(cFlags.OutputFile, rendered, os.ModePerm)
 		if err != nil {
 			return errors.New(err)
 		}
 	}
 
-	if flags.DryRun {
-		fmt.Fprintf(os.Stdout, string(rendered))
+	if dryRun {
+		fmt.Print(string(rendered))
 	}
 
 	return nil
@@ -336,75 +334,4 @@ func ExpandInclude(includeTpl flags.IncludeList) ([]string, error) {
 	}
 
 	return allMatches, nil
-}
-
-type Flags struct {
-	Version      bool
-	TemplateFile string
-	OutputFile   string
-	DryRun       bool
-	Help         bool
-	IncludeList  flags.IncludeList
-	Values       *values.Map
-}
-
-func GetRenderFlags(printVersion func(), printUsage func()) (*Flags, error) {
-
-	rFlags := &Flags{
-		Values: &values.Map{},
-	}
-
-	dryRun := flags.Bool(false)
-	setValue := flags.NewSetAny(rFlags.Values)
-	setValueStr := flags.NewSetString(rFlags.Values)
-	setValueFile := flags.NewValues(rFlags.Values)
-	setFile := flags.NewSetFile(rFlags.Values)
-
-	setOAS := flags.NewSetOAS(rFlags.Values)
-	setGraphQL := flags.NewSetGraphQL(rFlags.Values)
-	setGRPC := flags.NewSetGRPC(rFlags.Values)
-	setJSON := flags.NewSetJSON(rFlags.Values)
-
-	flag.BoolVar(&rFlags.Version, "version", false, "(optional) prints version text")
-	flag.BoolVar(&rFlags.Help, "help", false, `(optional) prints additional help text`)
-	flag.StringVar(&rFlags.TemplateFile, "template", "", `(required) path to main template e.g. "./input.tpl"`)
-	flag.Var(&rFlags.IncludeList, "include", `(optional,0..*) path/glob for templates to include e.g. "./helpers/*.tpl"`)
-	flag.StringVar(&rFlags.OutputFile, "output", "", "(required) output directory")
-	flag.Var(&setValue, "set", `(optional,0..*) sets a context key/value  .e.g "boolVal=true" or "floatVal=1.37"`)
-	flag.Var(&setValueStr, "set-string", `(optional,0..*) sets a context key/value .e.g key1="value1"`)
-	flag.Var(&dryRun, "dry-run", "(optional) prints the rendered template")
-	flag.Var(&setValueFile, "values", "(optional,0..1) sets context keys/values from YAML file")
-	flag.Var(&setFile, "set-file", "(optional,0..*) sets context key/value where value is the content of a file e.g. \"my_script=foo.sh\"")
-	flag.Var(&setOAS, "set-oas", "(optional,0..*) sets context key/value where value is an OpenAPI spec of a file e.g. \"my_oas=petstore.yaml\"")
-	flag.Var(&setGRPC, "set-grpc", "(optional,0..*) sets context key/value where value is a gRPC proto of a file e.g. \"my_proto=greeter.proto\"")
-	flag.Var(&setGraphQL, "set-graphql", "(optional,0..*) sets context key/value where value is a GraphQL schema of a file e.g. \"my_schema=resorts.graphql\"")
-	flag.Var(&setJSON, "set-json", "(optional,0..*) sets context key/value where value is JSON  e.g. 'servers=[\"server1\",\"server2\"]'")
-
-	flag.Parse()
-
-	rFlags.DryRun = bool(dryRun) //this hack is needed so user does not need to use equals sign i.e. --dry-run=false
-
-	if rFlags.Version {
-		printVersion()
-		os.Exit(0)
-		return nil, nil
-	}
-
-	if rFlags.Help {
-		printUsage()
-		os.Exit(0)
-		return nil, nil
-	}
-
-	if strings.TrimSpace(rFlags.TemplateFile) == "" {
-		utils.RequireParamAndExit("template")
-		return nil, nil
-	}
-
-	if strings.TrimSpace(rFlags.OutputFile) == "" && !rFlags.DryRun {
-		utils.RequireParamAndExit("output")
-		return nil, nil
-	}
-
-	return rFlags, nil
 }

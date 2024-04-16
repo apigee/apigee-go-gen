@@ -17,54 +17,42 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/micovery/apigee-yaml-toolkit/cmd/yaml2xml/resources"
-	v1 "github.com/micovery/apigee-yaml-toolkit/pkg/apigee/v1"
+	"github.com/micovery/apigee-yaml-toolkit/cmd/render-bundle/resources"
 	"github.com/micovery/apigee-yaml-toolkit/pkg/flags"
+	"github.com/micovery/apigee-yaml-toolkit/pkg/render"
 	"github.com/micovery/apigee-yaml-toolkit/pkg/utils"
 	"os"
+	"strings"
 )
 
 func main() {
-
-	var help bool
-	var version bool
-	var input string
-	var output string
-	var validate flags.Bool = true
-	var dryRun = flags.NewEnum([]string{"xml", "yaml"})
-
 	var err error
 
-	flag.BoolVar(&version, "version", false, "(optional) prints version text")
-	flag.BoolVar(&help, "help", false, `(optional) prints additional help text`)
-	flag.StringVar(&input, "input", "", "(required) path to API Proxy YAML. e.g. \"./hello-world-v1.yaml\"")
-	flag.StringVar(&output, "output", "", "(required) output zip file or directory. e.g \"./hello-world-v1\" or .\"./hello-world-v1.zip\"")
-	flag.Var(&dryRun, "dry-run", "(optional) prints the full bundle text and exits, valid values are \"xml\" or \"yaml\"")
-	flag.Var(&validate, "validate", "(optional) exits early when it finds unknown elements")
+	var validate = flags.NewBool(true)
+	var dryRun = flags.NewEnum([]string{"xml", "yaml"})
+	cFlags := render.NewCommonFlags()
 
+	flag.Var(&validate, "validate", "(optional) exits early when it finds unknown bundle elements")
+	flag.Var(&dryRun, "dry-run", "(optional) prints the bundle contents and exits, valid values are \"xml\" or \"yaml\"")
+	render.SetupCommonFlags(cFlags)
 	flag.Parse()
 
-	if version {
+	if cFlags.Version {
 		utils.PrintVersion()
 		return
 	}
 
-	if help {
+	if cFlags.Help {
 		resources.PrintUsage()
 		return
 	}
 
-	if input == "" {
-		utils.RequireParamAndExit("input")
-		return
-	}
-
-	if output == "" && dryRun.IsUnset() {
+	if strings.TrimSpace(cFlags.OutputFile) == "" && dryRun.IsUnset() {
 		utils.RequireParamAndExit("output")
 		return
 	}
 
-	err, validationErrs := v1.APIProxyModelYAML2Bundle(input, output, bool(validate), dryRun.Value)
+	err, validationErrs := render.RenderBundle(cFlags, bool(validate), dryRun.Value)
 	if err != nil {
 		utils.PrintErrorWithStackAndExit(err)
 		return
@@ -76,5 +64,4 @@ func main() {
 		}
 		os.Exit(1)
 	}
-
 }

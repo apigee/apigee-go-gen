@@ -20,7 +20,7 @@ By using these tools alongside the Apigee CLI, you'll unlock a highly customizab
   * [yaml2xml](#tool-yaml2xml)
   * [bundle2yaml](#tool-bundle2yaml)
   * [yaml2bundle](#tool-yaml2bundle)
-* [Template Rendering Tool](#template-rendering-tool)
+* [Template Rendering Tools](#template-rendering-tools)
   * [With OpenAPI Spec](#creating-api-proxy-from-openapi-spec)
   * [With GraphQL Schema](#creating-api-proxy-from-graphql-schema)
   * [With gRPC Proto](#creating-api-proxy-from-grpc-proto)
@@ -367,12 +367,13 @@ Below are a couple of examples
                 -output ./out/bundles/petstore
     ```
 
-## Template Rendering Tool
+## Template Rendering Tools
 
-This toolkit includes a tool that let you create API Proxy bundles based on popular formats like
+This toolkit includes tools that let you create API Proxy bundles based on popular formats like
 OpenAPI, GraphQL, gRPC, and more. Think of them as blueprints for your API Proxies.
 
 * `render-template` - Renders a [Go-style](https://pkg.go.dev/text/template) template
+* `render-bundle` - Combines `render-template` and `yaml2bundle` into one
 
 **Why use templates?**
 
@@ -524,6 +525,27 @@ Here's how it works:
 * **Use custom-function:** Define your own functions using [named template helpers](https://pkg.go.dev/text/template#hdr-Nested_template_definitions).
 
 
+### Generating an API Proxy bundle directly
+
+Sometimes, you might not want to deal with the intermediate YAML that gets created during the template
+rendering process, and simply get an API Proxy bundle that is ready to be deployed.
+
+For this use-case, you have the `render-bundle` tool. It combines both the `render-template`, and `yaml2bundle`
+functionality into a single tool. This is useful if you do not plan storing the rendered YAML in 
+source code, and you are simply interested on deploying the bundle artifact.
+
+Below is an example of generating an API Proxy bundle directly from a template
+
+```shell
+render-bundle -template ./examples/templates/oas3/apiproxy.yaml \
+              -set-oas spec=./examples/specs/petstore.yaml \
+              -include ./examples/templates/oas3/*.tmpl \
+              -dry-run "yaml" \
+              -validate false \
+              -output ./out/bundles/petstore.zip
+```
+
+Just like the `render-template`, and `yaml2bundle` tool this tool supports flags such as `-validate` and `-dry-run`
 
 ## Installation
 

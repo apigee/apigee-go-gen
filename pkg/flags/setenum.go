@@ -17,33 +17,35 @@ package flags
 import (
 	"fmt"
 	"github.com/go-errors/errors"
+	"slices"
 	"strings"
 )
 
-type DryRun string
-
-func (f *DryRun) String() string {
-	return fmt.Sprintf("%s", string(*f))
+type Enum struct {
+	Value   string
+	Allowed []string
 }
 
-func (f *DryRun) Set(input string) error {
+func NewEnum(allowed []string) Enum {
+	return Enum{"", allowed}
+}
+
+func (f *Enum) String() string {
+	return fmt.Sprintf("%s", f.Value)
+}
+
+func (f *Enum) Set(input string) error {
 	input = strings.TrimSpace(input)
-	if input != "xml" && input != "yaml" {
-		return errors.Errorf("flag only allows \"xml\" or \"yaml\"")
+
+	index := slices.Index(f.Allowed, input)
+	if index < 0 {
+		return errors.Errorf("flag only allows %v", f.Allowed)
 	}
 
-	*f = DryRun(input)
+	f.Value = input
 	return nil
 }
 
-func (f *DryRun) IsXML() bool {
-	return f != nil && *f == "xml"
-}
-
-func (f *DryRun) IsYAML() bool {
-	return f != nil && *f == "yaml"
-}
-
-func (f *DryRun) IsUnset() bool {
-	return f == nil || strings.TrimSpace(string(*f)) == ""
+func (f *Enum) IsUnset() bool {
+	return f == nil || strings.TrimSpace(string(f.Value)) == ""
 }

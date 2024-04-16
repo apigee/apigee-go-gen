@@ -1,6 +1,8 @@
 Description:
 
-  This tool renders a Go-style template
+  This tool combines the render-template and yaml2bundle tools into one.
+
+  It takes an input template, renders it, and finally packages the result into a bundle.
 
   The rendering context includes the following data:
 %[3]s
@@ -12,14 +14,14 @@ Example 1 (simple):
  %[1]s -template apiproxy.tmpl \
        -set-string "base_path=/json" \
        -set-string "target_url=https://httpbin.org/json" \
-       -output ./out/example/apiproxy.yaml
+       -output ./out/example/bundle.zip
 
 Example 2 (with one include):
  %[1]s -template apiproxy.tmpl \
        -set-string "base_path=/json" \
        -set-string "target_url=https://httpbin.org/json" \
        -include ./helpers.tpl \
-       -output ./out/example/apiproxy.yaml
+       -output ./out/example/bundle.zip
 
 Example 3 (with multiple includes):
  %[1]s -template apiproxy.tmpl \
@@ -27,13 +29,13 @@ Example 3 (with multiple includes):
        -set-string "target_url=https://httpbin.org/json" \
        -include ./helper1.tpl \
        -include ./helper2.tpl \
-       -output ./out/example/apiproxy.yaml
+       -output ./out/example/bundle.zip
 
 Example 4 (with glob include):
  %[1]s -template apiproxy.tmpl \
        -set-string "base_path=/json" \
        -set-string "target_url=https://httpbin.org/json" \
        -include './helpers/*.tpl' \
-       -output ./out/example/apiproxy.yaml
+       -output ./out/example/bundle.zip
 
 Flags:

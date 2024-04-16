@@ -12,16 +12,35 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package render
+package resources
 
-func RenderGenericTemplate(cFlags *CommonFlags, dryRun bool) error {
-	type TemplateContext struct {
-		Values map[string]any
+import (
+	"embed"
+	"flag"
+	"fmt"
+	"github.com/micovery/apigee-yaml-toolkit/pkg/common/resources"
+	"os"
+	"path/filepath"
+)
+
+//go:embed *
+var FS embed.FS
+
+func PrintUsage() {
+	program := filepath.Base(os.Args[0])
+	usageText, err := FS.ReadFile("usage.txt")
+
+	helpersText, err := resources.FS.ReadFile("helper_functions.txt")
+	if err != nil {
+		panic(err)
 	}
 
-	context := &TemplateContext{
-		Values: *cFlags.Values,
+	renderContextText, err := resources.FS.ReadFile("render_context.txt")
+	if err != nil {
+		panic(err)
 	}
 
-	return RenderGeneric(context, cFlags, dryRun)
+	fmt.Fprintf(os.Stderr, string(usageText), program, helpersText, renderContextText)
+
+	flag.PrintDefaults()
 }

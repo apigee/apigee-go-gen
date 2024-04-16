@@ -15,21 +15,40 @@
 package main
 
 import (
+	"flag"
 	"github.com/micovery/apigee-yaml-toolkit/cmd/render-template/resources"
+	"github.com/micovery/apigee-yaml-toolkit/pkg/flags"
 	"github.com/micovery/apigee-yaml-toolkit/pkg/render"
 	"github.com/micovery/apigee-yaml-toolkit/pkg/utils"
+	"strings"
 )
 
 func main() {
+	var err error
 
-	flags, err := render.GetRenderFlags(utils.PrintVersion, resources.PrintUsage)
+	var dryRun = flags.NewBool(false)
+	cFlags := render.NewCommonFlags()
 
-	if err != nil {
-		utils.PrintErrorWithStackAndExit(err)
+	flag.Var(&dryRun, "dry-run", "(optional) prints the bundle contents and exits, valid values are \"true\" or \"false\"")
+	render.SetupCommonFlags(cFlags)
+	flag.Parse()
+
+	if cFlags.Version {
+		utils.PrintVersion()
 		return
 	}
 
-	err = render.RenderGenericTemplate(flags)
+	if cFlags.Help {
+		resources.PrintUsage()
+		return
+	}
+
+	if strings.TrimSpace(cFlags.OutputFile) == "" && dryRun == false {
+		utils.RequireParamAndExit("output")
+		return
+	}
+
+	err = render.RenderGenericTemplate(cFlags, bool(dryRun))
 	if err != nil {
 		utils.PrintErrorWithStackAndExit(err)
 		return

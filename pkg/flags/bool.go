@@ -22,6 +22,10 @@ import (
 
 type Bool bool
 
+func NewBool(value bool) Bool {
+	return Bool(value)
+}
+
 func (f *Bool) String() string {
 	return fmt.Sprintf("%v", bool(*f))
 }
