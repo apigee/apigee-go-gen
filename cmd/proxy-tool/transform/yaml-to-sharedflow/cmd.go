@@ -12,36 +12,17 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-package flags
+package yaml_to_sharedflow
 
 import (
 	"github.com/go-errors/errors"
-	"github.com/micovery/apigee-yaml-toolkit/pkg/values"
-	"strings"
+	"github.com/spf13/cobra"
 )
 
-type SetString struct {
-	Data *values.Map
-}
-
-func NewSetString(data *values.Map) SetString {
-	return SetString{Data: data}
-}
-
-func (v *SetString) Type() string {
-	return "string"
-}
-
-func (v *SetString) String() string {
-	return ""
-}
-
-func (v *SetString) Set(entry string) error {
-	key, value, found := strings.Cut(entry, "=")
-	if !found {
-		return errors.Errorf("missing value in set for key=%s", key)
-	}
-
-	v.Data.Set(key, value)
-	return nil
+var Cmd = &cobra.Command{
+	Use:   "yaml-to-sharedflow",
+	Short: "Transforms a YAML file into a shared-flow",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return errors.New("this command is not implemented yet")
+	},
 }

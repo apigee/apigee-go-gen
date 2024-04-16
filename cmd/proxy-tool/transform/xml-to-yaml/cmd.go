@@ -12,36 +12,28 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-package flags
+package xml_to_yaml
 
 import (
-	"github.com/go-errors/errors"
-	"github.com/micovery/apigee-yaml-toolkit/pkg/values"
-	"strings"
+	"bufio"
+	"fmt"
+	"github.com/micovery/apigee-yaml-toolkit/pkg/utils"
+	"github.com/spf13/cobra"
+	"os"
 )
 
-type SetString struct {
-	Data *values.Map
-}
+var Cmd = &cobra.Command{
+	Use:   "xml-to-yaml",
+	Short: "Transform XML snippet to YAML",
+	Long:  `This command reads XML (form stdin) and outputs YAML (to stdout)`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		var err error
+		yamlText, err := utils.XMLText2YAMLText(bufio.NewReader(os.Stdin))
+		if err != nil {
+			return err
+		}
 
-func NewSetString(data *values.Map) SetString {
-	return SetString{Data: data}
-}
-
-func (v *SetString) Type() string {
-	return "string"
-}
-
-func (v *SetString) String() string {
-	return ""
-}
-
-func (v *SetString) Set(entry string) error {
-	key, value, found := strings.Cut(entry, "=")
-	if !found {
-		return errors.Errorf("missing value in set for key=%s", key)
-	}
-
-	v.Data.Set(key, value)
-	return nil
+		fmt.Printf("%s\n", string(yamlText))
+		return nil
+	},
 }

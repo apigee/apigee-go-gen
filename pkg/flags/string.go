@@ -14,34 +14,21 @@
 
 package flags
 
-import (
-	"github.com/go-errors/errors"
-	"github.com/micovery/apigee-yaml-toolkit/pkg/values"
-	"strings"
-)
+type String string
 
-type SetString struct {
-	Data *values.Map
+func NewString(value string) String {
+	return String(value)
 }
 
-func NewSetString(data *values.Map) SetString {
-	return SetString{Data: data}
-}
-
-func (v *SetString) Type() string {
+func (f *String) Type() string {
 	return "string"
 }
 
-func (v *SetString) String() string {
+func (f *String) String() string {
 	return ""
 }
 
-func (v *SetString) Set(entry string) error {
-	key, value, found := strings.Cut(entry, "=")
-	if !found {
-		return errors.Errorf("missing value in set for key=%s", key)
-	}
-
-	v.Data.Set(key, value)
+func (f *String) Set(input string) error {
+	*f = String(input)
 	return nil
 }

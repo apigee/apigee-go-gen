@@ -47,14 +47,16 @@ type APIProxyModel struct {
 	YAMLDoc *yaml.Node `xml:"-"`
 }
 
-func ValidateAPIProxyModel(v *APIProxyModel) []error {
+func ValidateAPIProxyModel(v *APIProxyModel) error {
 	if v == nil {
 		return nil
 	}
 
+	err := ValidationErrors{Errors: []error{}}
 	path := "Root"
 	if len(v.UnknownNode) > 0 {
-		return []error{&UnknownNodeError{path, v.UnknownNode[0]}}
+		err.Errors = append(err.Errors, &UnknownNodeError{path, v.UnknownNode[0]})
+		return err
 	}
 
 	var subErrors []error
@@ -63,7 +65,12 @@ func ValidateAPIProxyModel(v *APIProxyModel) []error {
 	subErrors = append(subErrors, ValidateTargetEndpoints(&v.TargetEndpoints, path)...)
 	subErrors = append(subErrors, ValidateResources(&v.Resources, path)...)
 
-	return subErrors
+	if len(subErrors) > 0 {
+		err.Errors = append(err.Errors, subErrors...)
+		return err
+	}
+
+	return nil
 }
 
 type BundleFile interface {
@@ -261,41 +268,41 @@ func APIProxyModel2BundleZip(proxyModel *APIProxyModel, outputZip string) error 
 	return nil
 }
 
-func APIProxyModelYAML2Bundle(input string, output string, validate bool, dryRun string) (err error, validationErrs []error) {
+func APIProxyModelYAML2Bundle(input string, output string, validate bool, dryRun string) (err error) {
 	proxyModel, err := NewAPIProxyModel(input)
 	if err != nil {
-		return err, nil
+		return err
 	}
 
 	if dryRun == "xml" {
 		xmlText, err := proxyModel.XML()
 		if err != nil {
-			return err, nil
+			return err
 		}
 		fmt.Println(string(xmlText))
 	} else if dryRun == "yaml" {
 		yamlText, err := proxyModel.YAML()
 		if err != nil {
-			return err, nil
+			return err
 		}
 		fmt.Println(string(yamlText))
 	}
 
 	if validate {
-		validationErrs = ValidateAPIProxyModel(proxyModel)
-		if len(validationErrs) > 0 {
-			return nil, validationErrs
+		err = ValidateAPIProxyModel(proxyModel)
+		if err != nil {
+			return err
 		}
 	}
 
 	if dryRun != "" {
-		return nil, nil
+		return nil
 	}
 
 	err = APIProxyModel2Bundle(proxyModel, output)
 	if err != nil {
-		return err, nil
+		return err
 	}
 
-	return nil, nil
+	return nil
 }

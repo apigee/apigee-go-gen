@@ -29,13 +29,11 @@ func XMLText2YAMLText(reader io.Reader) ([]byte, error) {
 	var err error
 	var doc *etree.Document
 	if doc, err = Text2XML(reader); err != nil {
-		PrintErrorWithStackAndExit(err)
 		return nil, err
 	}
 
 	var yamlText []byte
 	if yamlText, err = XML2YAMLText(doc, 2); err != nil {
-		PrintErrorWithStackAndExit(err)
 		return nil, err
 	}
 	return yamlText, nil

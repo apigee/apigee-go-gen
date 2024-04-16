@@ -12,36 +12,28 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-package flags
+package main
 
 import (
-	"github.com/go-errors/errors"
-	"github.com/micovery/apigee-yaml-toolkit/pkg/values"
-	"strings"
+	"github.com/micovery/apigee-yaml-toolkit/cmd/proxy-tool/render"
+	"github.com/micovery/apigee-yaml-toolkit/cmd/proxy-tool/transform"
+	"github.com/micovery/apigee-yaml-toolkit/cmd/proxy-tool/version"
+	"github.com/micovery/apigee-yaml-toolkit/pkg/flags"
+	"github.com/spf13/cobra"
+	"os"
+	"path/filepath"
 )
 
-type SetString struct {
-	Data *values.Map
+var showStack = flags.NewBool(false)
+
+var RootCmd = &cobra.Command{
+	Use: filepath.Base(os.Args[0]),
 }
 
-func NewSetString(data *values.Map) SetString {
-	return SetString{Data: data}
-}
+func init() {
+	RootCmd.AddCommand(render.Cmd)
+	RootCmd.AddCommand(transform.Cmd)
+	RootCmd.AddCommand(version.Cmd)
 
-func (v *SetString) Type() string {
-	return "string"
-}
-
-func (v *SetString) String() string {
-	return ""
-}
-
-func (v *SetString) Set(entry string) error {
-	key, value, found := strings.Cut(entry, "=")
-	if !found {
-		return errors.Errorf("missing value in set for key=%s", key)
-	}
-
-	v.Data.Set(key, value)
-	return nil
+	RootCmd.PersistentFlags().Var(&showStack, "show-stack", "show stack trace for errors")
 }

@@ -32,8 +32,12 @@ func NewSetOAS(data *values.Map) SetOAS {
 	return SetOAS{Data: data}
 }
 
+func (v *SetOAS) Type() string {
+	return "string"
+}
+
 func (v *SetOAS) String() string {
-	return fmt.Sprintf("%v", v.Data)
+	return ""
 }
 
 func (v *SetOAS) Set(entry string) error {

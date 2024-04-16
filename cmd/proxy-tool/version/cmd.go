@@ -12,36 +12,21 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-package flags
+package version
 
 import (
-	"github.com/go-errors/errors"
-	"github.com/micovery/apigee-yaml-toolkit/pkg/values"
-	"strings"
+	"github.com/micovery/apigee-yaml-toolkit/pkg/utils"
+	"github.com/spf13/cobra"
 )
 
-type SetString struct {
-	Data *values.Map
+var Cmd = &cobra.Command{
+	Use:   "version",
+	Short: "Print tool version",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		utils.PrintVersion()
+		return nil
+	},
 }
 
-func NewSetString(data *values.Map) SetString {
-	return SetString{Data: data}
-}
-
-func (v *SetString) Type() string {
-	return "string"
-}
-
-func (v *SetString) String() string {
-	return ""
-}
-
-func (v *SetString) Set(entry string) error {
-	key, value, found := strings.Cut(entry, "=")
-	if !found {
-		return errors.Errorf("missing value in set for key=%s", key)
-	}
-
-	v.Data.Set(key, value)
-	return nil
+func init() {
 }

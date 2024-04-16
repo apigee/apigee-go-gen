@@ -32,7 +32,6 @@ func YAMLText2XMLText(reader io.Reader) ([]byte, error) {
 	var err error
 	var yamlNode *yaml.Node
 	if yamlNode, err = Text2YAML(reader); err != nil {
-		PrintErrorWithStackAndExit(err)
 		return nil, err
 	}
 
@@ -41,7 +40,6 @@ func YAMLText2XMLText(reader io.Reader) ([]byte, error) {
 
 	var xmlText []byte
 	if xmlText, err = YAML2XMLText(docNode); err != nil {
-		PrintErrorWithStackAndExit(err)
 		return nil, err
 	}
 	return xmlText, nil

@@ -12,44 +12,25 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-package flags
+package main
 
 import (
 	"fmt"
 	"github.com/go-errors/errors"
-	"slices"
-	"strings"
+	"os"
 )
 
-type Enum struct {
-	Value   string
-	Allowed []string
-}
+func main() {
+	err := RootCmd.Execute()
 
-func (f *Enum) Type() string {
-	return fmt.Sprintf("enum(%s)", strings.Join(f.Allowed, "|"))
-}
-
-func NewEnum(allowed []string) Enum {
-	return Enum{"", allowed}
-}
-
-func (f *Enum) String() string {
-	return fmt.Sprintf("%s", f.Value)
-}
-
-func (f *Enum) Set(input string) error {
-	input = strings.TrimSpace(input)
-
-	index := slices.Index(f.Allowed, input)
-	if index < 0 {
-		return errors.Errorf("flag only allows %v", f.Allowed)
+	if err != nil {
+		_, _ = fmt.Fprintf(os.Stderr, "Error: %s\n", err.Error())
+		if showStack {
+			_, _ = fmt.Fprintf(os.Stderr, "%s\n", errors.Wrap(err, 0).Stack())
+		}
+		os.Exit(1)
 	}
 
-	f.Value = input
-	return nil
-}
+	return
 
-func (f *Enum) IsUnset() bool {
-	return f == nil || strings.TrimSpace(string(f.Value)) == ""
 }

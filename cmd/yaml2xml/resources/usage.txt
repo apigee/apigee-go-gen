@@ -1,5 +1,0 @@
-Description:
-
- This tool reads YAML (form stdin) and outputs XML (to stdout)
-
-Flags:
