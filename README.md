@@ -540,12 +540,28 @@ Below is an example of generating an API Proxy bundle directly from a template
 render-bundle -template ./examples/templates/oas3/apiproxy.yaml \
               -set-oas spec=./examples/specs/petstore.yaml \
               -include ./examples/templates/oas3/*.tmpl \
-              -dry-run "yaml" \
-              -validate false \
               -output ./out/bundles/petstore.zip
 ```
 
 Just like the `render-template`, and `yaml2bundle` tool this tool supports flags such as `-validate` and `-dry-run`
+
+For example, the following command will print out the XML, but not create the bundle.
+
+```shell
+render-bundle -template ./examples/templates/oas3/apiproxy.yaml \
+              -set-oas spec=./examples/specs/petstore.yaml \
+              -include ./examples/templates/oas3/*.tmpl \
+              -dry-run "xml"
+```
+
+Or, if you want to peek and see what the intermediate YAML looks like, you can pass `-dry-run "yaml` like this:
+
+```shell
+render-bundle -template ./examples/templates/oas3/apiproxy.yaml \
+              -set-oas spec=./examples/specs/petstore.yaml \
+              -include ./examples/templates/oas3/*.tmpl \
+              -dry-run "yaml"
+```
 
 ## Installation
 
