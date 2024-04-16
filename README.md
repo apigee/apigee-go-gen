@@ -373,7 +373,7 @@ This toolkit includes tools that let you create API Proxy bundles based on popul
 OpenAPI, GraphQL, gRPC, and more. Think of them as blueprints for your API Proxies.
 
 * `render-template` - Renders a [Go-style](https://pkg.go.dev/text/template) template
-* `render-bundle` - Combines `render-template` and `yaml2bundle` into one
+* `template2bundle` - Combines `render-template` and `yaml2bundle` into one
 
 **Why use templates?**
 
@@ -530,17 +530,17 @@ Here's how it works:
 Sometimes, you might not want to deal with the intermediate YAML that gets created during the template
 rendering process, and simply get an API Proxy bundle that is ready to be deployed.
 
-For this use-case, you have the `render-bundle` tool. It combines both the `render-template`, and `yaml2bundle`
+For this use-case, you have the `template2bundle` tool. It combines both the `render-template`, and `yaml2bundle`
 functionality into a single tool. This is useful if you do not plan storing the rendered YAML in 
 source code, and you are simply interested on deploying the bundle artifact.
 
 Below is an example of generating an API Proxy bundle directly from a template
 
 ```shell
-render-bundle -template ./examples/templates/oas3/apiproxy.yaml \
-              -set-oas spec=./examples/specs/petstore.yaml \
-              -include ./examples/templates/oas3/*.tmpl \
-              -output ./out/bundles/petstore.zip
+template2bundle -template ./examples/templates/oas3/apiproxy.yaml \
+                -set-oas spec=./examples/specs/petstore.yaml \
+                -include ./examples/templates/oas3/*.tmpl \
+                -output ./out/bundles/petstore.zip
 ```
 
 Just like the `render-template`, and `yaml2bundle` tool this tool supports flags such as `-validate` and `-dry-run`
@@ -548,19 +548,19 @@ Just like the `render-template`, and `yaml2bundle` tool this tool supports flags
 For example, the following command will print out the XML, but not create the bundle.
 
 ```shell
-render-bundle -template ./examples/templates/oas3/apiproxy.yaml \
-              -set-oas spec=./examples/specs/petstore.yaml \
-              -include ./examples/templates/oas3/*.tmpl \
-              -dry-run "xml"
+template2bundle -template ./examples/templates/oas3/apiproxy.yaml \
+                -set-oas spec=./examples/specs/petstore.yaml \
+                -include ./examples/templates/oas3/*.tmpl \
+                -dry-run "xml"
 ```
 
-Or, if you want to peek and see what the intermediate YAML looks like, you can pass `-dry-run "yaml` like this:
+Or, if you want to peek and see what the intermediate YAML looks like, you can pass `-dry-run "yaml"` like this:
 
 ```shell
-render-bundle -template ./examples/templates/oas3/apiproxy.yaml \
-              -set-oas spec=./examples/specs/petstore.yaml \
-              -include ./examples/templates/oas3/*.tmpl \
-              -dry-run "yaml"
+template2bundle -template ./examples/templates/oas3/apiproxy.yaml \
+                -set-oas spec=./examples/specs/petstore.yaml \
+                -include ./examples/templates/oas3/*.tmpl \
+                -dry-run "yaml"
 ```
 
 ## Installation

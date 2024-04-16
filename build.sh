@@ -9,7 +9,7 @@ export LD_FLAGS="-X main.BuildVersion=${VERSION} -X main.BuildTimestamp=${BUILD_
 mkdir -p bin
 echo "Building templating tools ..."
 go build -ldflags "${LD_FLAGS}" -o bin/render-template  ./cmd/render-template
-go build -ldflags "${LD_FLAGS}" -o bin/render-bundle  ./cmd/render-bundle
+go build -ldflags "${LD_FLAGS}" -o bin/template2bundle  ./cmd/template2bundle
 
 
 

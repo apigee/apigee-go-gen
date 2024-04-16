@@ -17,7 +17,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/micovery/apigee-yaml-toolkit/cmd/render-bundle/resources"
+	"github.com/micovery/apigee-yaml-toolkit/cmd/template2bundle/resources"
 	"github.com/micovery/apigee-yaml-toolkit/pkg/flags"
 	"github.com/micovery/apigee-yaml-toolkit/pkg/render"
 	"github.com/micovery/apigee-yaml-toolkit/pkg/utils"
