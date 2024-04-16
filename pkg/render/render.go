@@ -43,7 +43,7 @@ func RenderGeneric(context any, cFlags *CommonFlags, dryRun bool) error {
 		Values map[string]any
 	}
 
-	outputDir := filepath.Dir(cFlags.OutputFile)
+	outputDir := filepath.Dir(string(cFlags.OutputFile))
 	//create the output directory
 	if !dryRun {
 		err = os.MkdirAll(outputDir, os.ModePerm)
@@ -53,7 +53,7 @@ func RenderGeneric(context any, cFlags *CommonFlags, dryRun bool) error {
 	}
 
 	//create the template
-	tmpl, err := CreateTemplate(cFlags.TemplateFile, cFlags.IncludeList, cFlags.OutputFile, dryRun)
+	tmpl, err := CreateTemplate(string(cFlags.TemplateFile), cFlags.IncludeList, string(cFlags.OutputFile), dryRun)
 	if err != nil {
 		return err
 	}
@@ -66,7 +66,7 @@ func RenderGeneric(context any, cFlags *CommonFlags, dryRun bool) error {
 
 	//write rendered template to output
 	if !dryRun {
-		err = os.WriteFile(cFlags.OutputFile, rendered, os.ModePerm)
+		err = os.WriteFile(string(cFlags.OutputFile), rendered, os.ModePerm)
 		if err != nil {
 			return errors.New(err)
 		}

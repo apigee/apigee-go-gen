@@ -15,7 +15,6 @@
 package flags
 
 import (
-	"fmt"
 	"github.com/go-errors/errors"
 	"github.com/micovery/apigee-yaml-toolkit/pkg/values"
 	"gopkg.in/yaml.v3"
@@ -30,8 +29,12 @@ func NewValues(data *values.Map) Values {
 	return Values{Data: data}
 }
 
+func (v *Values) Type() string {
+	return "string"
+}
+
 func (v *Values) String() string {
-	return fmt.Sprintf("%v", v.Data)
+	return ""
 }
 
 func (v *Values) Set(filePath string) error {

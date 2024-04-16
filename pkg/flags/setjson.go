@@ -30,8 +30,12 @@ func NewSetJSON(data *values.Map) SetJSON {
 	return SetJSON{Data: data}
 }
 
+func (v *SetJSON) Type() string {
+	return "string"
+}
+
 func (v *SetJSON) String() string {
-	return fmt.Sprintf("%v", v.Data)
+	return ""
 }
 
 func (v *SetJSON) Set(entry string) error {

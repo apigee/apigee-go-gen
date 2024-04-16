@@ -15,19 +15,22 @@
 package flags
 
 import (
-	"fmt"
 	"github.com/go-errors/errors"
 	"strconv"
 )
 
 type Bool bool
 
+func (f *Bool) Type() string {
+	return "boolean"
+}
+
 func NewBool(value bool) Bool {
 	return Bool(value)
 }
 
 func (f *Bool) String() string {
-	return fmt.Sprintf("%v", bool(*f))
+	return ""
 }
 
 func (f *Bool) Set(input string) error {

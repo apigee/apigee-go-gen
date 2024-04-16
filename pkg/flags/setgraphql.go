@@ -30,8 +30,12 @@ func NewSetGraphQL(data *values.Map) SetGraphQL {
 	return SetGraphQL{Data: data}
 }
 
+func (v *SetGraphQL) Type() string {
+	return "string"
+}
+
 func (v *SetGraphQL) String() string {
-	return fmt.Sprintf("%v", v.Data)
+	return ""
 }
 
 func (v *SetGraphQL) Set(entry string) error {

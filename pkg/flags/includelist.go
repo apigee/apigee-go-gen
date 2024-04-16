@@ -21,8 +21,16 @@ import (
 
 type IncludeList []string
 
+func NewIncludeList() IncludeList {
+	return IncludeList{}
+}
+
+func (i *IncludeList) Type() string {
+	return "string"
+}
+
 func (i *IncludeList) String() string {
-	return strings.Join(([]string)(*i), ",")
+	return ""
 }
 
 func (i *IncludeList) Set(input string) error {

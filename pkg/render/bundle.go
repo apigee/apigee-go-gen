@@ -17,11 +17,12 @@ package render
 import (
 	"github.com/go-errors/errors"
 	"github.com/micovery/apigee-yaml-toolkit/pkg/apigee/v1"
+	"github.com/micovery/apigee-yaml-toolkit/pkg/flags"
 	"os"
 	"path/filepath"
 )
 
-func RenderBundle(cFlags *CommonFlags, validate bool, dryRun string) (error, []error) {
+func RenderBundle(cFlags *CommonFlags, validate bool, dryRun string) error {
 	var err error
 
 	bundleOutputFile := cFlags.OutputFile
@@ -29,16 +30,16 @@ func RenderBundle(cFlags *CommonFlags, validate bool, dryRun string) (error, []e
 	//create a temporary location for rendering into
 	tmpDir, err := os.MkdirTemp("", "render-*")
 	if err != nil {
-		return errors.New(err), nil
+		return errors.New(err)
 	}
 
 	// render the template to a temporary location
-	cFlags.OutputFile = filepath.Join(tmpDir, "apiproxy.yaml")
+	cFlags.OutputFile = flags.String(filepath.Join(tmpDir, "apiproxy.yaml"))
 	err = RenderGenericTemplate(cFlags, false)
 	if err != nil {
-		return errors.New(err), nil
+		return errors.New(err)
 	}
 
 	// create bundle from rendered template
-	return v1.APIProxyModelYAML2Bundle(cFlags.OutputFile, bundleOutputFile, validate, dryRun)
+	return v1.APIProxyModelYAML2Bundle(string(cFlags.OutputFile), string(bundleOutputFile), validate, dryRun)
 }

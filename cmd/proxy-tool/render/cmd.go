@@ -12,36 +12,23 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-package flags
+package render
 
 import (
-	"github.com/go-errors/errors"
-	"github.com/micovery/apigee-yaml-toolkit/pkg/values"
-	"strings"
+	"github.com/micovery/apigee-yaml-toolkit/cmd/proxy-tool/render/bundle"
+	sharedflow "github.com/micovery/apigee-yaml-toolkit/cmd/proxy-tool/render/shared-flow"
+	"github.com/micovery/apigee-yaml-toolkit/cmd/proxy-tool/render/template"
+	"github.com/spf13/cobra"
 )
 
-type SetString struct {
-	Data *values.Map
+var Cmd = &cobra.Command{
+	Use:   "render",
+	Short: "Render a bundle shared-flow from a template",
 }
 
-func NewSetString(data *values.Map) SetString {
-	return SetString{Data: data}
-}
+func init() {
+	Cmd.AddCommand(bundle.Cmd)
+	Cmd.AddCommand(sharedflow.Cmd)
+	Cmd.AddCommand(template.Cmd)
 
-func (v *SetString) Type() string {
-	return "string"
-}
-
-func (v *SetString) String() string {
-	return ""
-}
-
-func (v *SetString) Set(entry string) error {
-	key, value, found := strings.Cut(entry, "=")
-	if !found {
-		return errors.Errorf("missing value in set for key=%s", key)
-	}
-
-	v.Data.Set(key, value)
-	return nil
 }

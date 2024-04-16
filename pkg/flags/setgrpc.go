@@ -30,8 +30,12 @@ func NewSetGRPC(data *values.Map) SetGRPC {
 	return SetGRPC{Data: data}
 }
 
+func (v *SetGRPC) Type() string {
+	return "string"
+}
+
 func (v *SetGRPC) String() string {
-	return fmt.Sprintf("%v", v.Data)
+	return ""
 }
 
 func (v *SetGRPC) Set(entry string) error {

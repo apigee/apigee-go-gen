@@ -1,30 +1,30 @@
-# Apigee YAML Toolkit 
+# Apigee Proxy Tool 
 
 
-**Welcome!** This repo offers a set of tools to streamline your Apigee API Proxy development experience using a YAML-First approach.
+**Welcome!** This repo offers a tool to streamline your Apigee API Proxy development experience using Go-Style templates with YAML-First approach.
 
 **Here's what you'll find:**
 
-* **Transformation tools:** Easily convert between Apigee's API Proxy format and YAML for better readability and management.
-* **Templating tools:**  Enjoy powerful customization and dynamic configuration options, inspired by the flexibility of Helm using the Go [text/template](https://pkg.go.dev/text/template) engine.
+* **Transformation commands:** Easily convert between Apigee's API Proxy format and YAML for better readability and management.
+* **Templating commands:**  Enjoy powerful customization and dynamic configuration options, inspired by the flexibility of Helm using the Go [text/template](https://pkg.go.dev/text/template) engine.
 
-By using these tools alongside the Apigee CLI, you'll unlock a highly customizable YAML-First workflow. This is perfect for both streamlined local development and robust CI/CD pipelines.
+By using this tool alongside the Apigee CLI, you'll unlock a highly customizable YAML-First workflow. This is perfect for both streamlined local development and robust CI/CD pipelines.
 
 
 ## Table of Contents
 
 * [Why use YAML-First](#why-use-yaml-first)
 * [Understanding API Proxy Bundles](#understanding-api-proxy-bundles)
-* [Transformation Tools](#transformation-tools)
-  * [xml2yaml](#tool-xml2yaml)
-  * [yaml2xml](#tool-yaml2xml)
-  * [bundle2yaml](#tool-bundle2yaml)
-  * [yaml2bundle](#tool-yaml2bundle)
-* [Template Rendering Tools](#template-rendering-tools)
-  * [With OpenAPI Spec](#creating-api-proxy-from-openapi-spec)
-  * [With GraphQL Schema](#creating-api-proxy-from-graphql-schema)
-  * [With gRPC Proto](#creating-api-proxy-from-grpc-proto)
-  * [With Other Formats](#creating-api-proxy-from-other-formats)
+* [Transformation Commands](#transformation-commands)
+  * [xml-to-yaml](#xml-to-yaml-command)
+  * [yaml-to-xml](#yaml-to-bundle-command)
+  * [bundle-to-yaml](#bundle-to-yaml-command)
+  * [yaml-to-bundle](#yaml-to-bundle-command)
+* [Template Rendering Commands](#template-rendering-commands)
+  * [Using OpenAPI Spec](#creating-api-proxy-from-openapi-spec)
+  * [Using GraphQL Schema](#creating-api-proxy-from-graphql-schema)
+  * [Using gRPC Proto](#creating-api-proxy-from-grpc-proto)
+  * [Using Other Formats](#creating-api-proxy-from-other-formats)
 * [Installation](#installation)
 
     
@@ -120,44 +120,44 @@ Below is the general structure of a bundle
 ./apiproxy/resources/properties/values.properties
 ```
 
-I've only showed some of the resources that could exist in a `bundle`. There are other a few others, that are not used as frequently.
-(i.e. for xsds, wsdls and others)
+There are more resource types such as xsds, wsdls, and others. (see [docs](https://cloud.google.com/apigee/docs/api-platform/develop/resource-files))
 
-## Transformation Tools
 
-This toolkit offers a powerful set of conversion tools for your Apigee development workflow.
+## Transformation Commands
+
+The `proxy-tool` offers a powerful set of `transform` commands for your Apigee development workflow.
 
 **XML ↔️ YAML Conversion:** Easily switch between XML and YAML formats
 
-  * `yaml2xml` - Converts a snippet of XML to YAML snippet
-  * `xml2yaml` - Converts a snippet of XML to YAML snippet
+  * `yaml-to-xml` - Transforms a snippet of XML to YAML snippet
+  * `xml-to-yaml` - Transforms a snippet of XML to YAML snippet
 
 
 **API Proxy Bundles ↔️ YAML-First API Proxies:**  Convert between traditional API Proxy bundles and a more user-friendly YAML representation.
 
-* `bundle2yaml` - Converts an API Proxy bundle to a YAML doc
-* `yaml2bundle` - Converts a YAML doc to an API Proxy bundle
+* `bundle-to-yaml` - Transforms an API Proxy bundle to a YAML doc
+* `yaml-to-bundle` - Transforms a YAML doc to an API Proxy bundle
 
-### Tool: xml2yaml
+### XML to YAML Command
 
-**Purpose:** This tool takes XML snippets and effortlessly converts them into YAML.
+**Purpose:** This command takes XML snippets and effortlessly converts them into YAML.
 
 **Why does this matter?** Let's say you have an Apigee policy written in XML format. Instead of manually retyping the whole thing into YAML, you can simply use this tool for instant conversion. This is especially handy when you're working with examples from the Apigee documentation – just copy, paste, convert!
 
-The tool follows a reliable set of rules to transform your XML into clean YAML (see  [docs/rules.md](docs/rules.md))
+The command follows a reliable set of rules to transform your XML into clean YAML (see  [docs/rules.md](docs/rules.md))
 
 
 **Usage**
 
-The tool reads XML form `stdin`, and writes YAML to `stdout`. Below are a couple of examples.
+The command reads XML form `stdin`, and writes YAML to `stdout`. Below are a couple of examples.
 
   * Reading input redirected from a file
     ```shell
-    xml2yaml < ./examples/snippets/check-quota.xml
+    proxy-tool transform xml-to-yaml < ./examples/snippets/check-quota.xml
     ```
   * Reading input directly from stdin
     ```shell
-    xml2yaml << EOF 
+    proxy-tool transform xml-to-yaml << EOF 
     <Parent>
       <Child>Fizz</Child>
       <Child>Buzz</Child>
@@ -170,14 +170,14 @@ The tool reads XML form `stdin`, and writes YAML to `stdout`. Below are a couple
     <Parent>
       <Child>Fizz</Child>
       <Child>Buzz</Child>
-    </Parent>' | xml2yaml
+    </Parent>' | proxy-tool transform xml-to-yaml
     ```
     > **NOTE:** Using echo as shown above will not work properly if your input already contains single quotes
 
 
-### Tool: yaml2xml
+### YAML to XML Command
 
-**Purpose:** This tool converts YAML snippets to XML for quick validation and troubleshooting.
+**Purpose:** This command converts YAML snippets to XML for quick validation and troubleshooting.
 
 Here's how it helps:
 
@@ -186,15 +186,15 @@ Here's how it helps:
 
 **Usage**
 
-The tool reads YAML form `stdin`, and writes XML to `stdout`. Below are a few examples.
+The command reads YAML form `stdin`, and writes XML to `stdout`. Below are a few examples.
 
   * Reading input redirected from a file
     ```shell
-    yaml2xml < ./examples/snippets/ducks.yaml
+    proxy-tool transform yaml-to-xml < ./examples/snippets/ducks.yaml
     ```
   * Reading input from `stdin` directly
     ```shell
-    yaml2xml << EOF
+    proxy-tool transform yaml-to-xml << EOF
     Parent:
       - Child: Fizz
       - Child: Buzz
@@ -205,13 +205,13 @@ The tool reads YAML form `stdin`, and writes XML to `stdout`. Below are a few ex
     echo '
     Parent:
       - Child: Fizz
-      - Child: Buzz' | yaml2xml
+      - Child: Buzz' | proxy-tool transform yaml-to-xml
     ```
     > **NOTE:** Using echo as shown above will not work properly if your input already contains single quotes
 
-### Tool: bundle2yaml
+### Bundle to YAML Command
 
-**Purpose:** This tool takes existing API Proxy bundles and transforms them into editable YAML documents. This offers several advantages:
+**Purpose:** This command takes existing API Proxy bundles and transforms them into editable YAML documents. This offers several advantages:
 
 * **Enhanced Customization:** Tweak your API Proxy configurations with the readability of YAML.
 * **Workflow Integration:** YAML's compatibility opens up possibilities for version control and automation.
@@ -220,7 +220,7 @@ The tool reads YAML form `stdin`, and writes XML to `stdout`. Below are a few ex
 
 **YAML Document Structure**
 
-The YAML document created by `bundle2yaml` contains all the elements from the bundle in a single file.
+The YAML document created by `bundle-to-yaml` contains all the elements from the bundle in a single file.
 
 The structure looks like this
 
@@ -268,38 +268,40 @@ Resources:
       Path: "./path/to/script.js"
 ```
 
-The tool creates resource files alongside the YAML doc.
+The command creates resource files alongside the YAML doc.
 
 **Usage**
 
-The `bundle2yaml` tool takes two parameters `-input` and `-output`.
+The `bundle-to-yaml` command takes two parameters `-input` and `-output`.
 
-* `-input` is either from a bundle zip file or an existing bundle directory. 
+* `--input` is either from a bundle zip file or an existing bundle directory. 
 
-* `-output` is the path for the YAML document to create
+* `--output` is the path for the YAML document to create
 
-* `-output` full path is created if it does not exist (like `mkdir -p`)
+* `--output` full path is created if it does not exist (like `mkdir -p`)
 
-Bundle resources are created in the same location as the `-output`
+Bundle resources are created in the same location as the `--output`
 
 Below are a couple of examples
 
 
   * Reading bundle from a zip file
     ```shell
-    bundle2yaml -input ./examples/bundles/helloworld/helloworld.zip \
-                -output ./out/yaml-first/helloworld1/apiproxy.yaml
+    proxy-tool transform bundle-to-yaml \
+        --input ./examples/bundles/helloworld/helloworld.zip \
+        --output ./out/yaml-first/helloworld1/apiproxy.yaml
     ```
   * Reading bundle from a directory
     ```shell
-    bundle2yaml -input ./examples/bundles/helloworld/ \
-                -output ./out/yaml-first/helloworld2/apiproxy.yaml
+    proxy-tool transform bundle-to-yaml \
+        --input ./examples/bundles/helloworld/ \
+        --output ./out/yaml-first/helloworld2/apiproxy.yaml
     ```
 
 
 **YAML Documents With JSONRefs**
 
-The `bundle2yaml` tool offers a starting point by converting your API Proxy bundle into a single YAML document. 
+The `bundle-to-yaml` command offers a starting point by converting your API Proxy bundle into a single YAML document. 
 
 To further enhance organization and reusability, you can use [JSONRef](http://jsonref.org/)s. This allows you to:
 
@@ -332,48 +334,50 @@ The new `policies.yaml` file would look like this:
     #...
 ```
 
-### Tool: yaml2bundle
+### YAML to Bundle Command
 
-**Purpose:** This tool takes an existing YAML document and converts it into a ready-to-use API Proxy bundle.
+**Purpose:** This command takes an existing YAML document and converts it into a ready-to-use API Proxy bundle.
 
-This tool plays a crucial part in streamlining your Apigee development process. Here's how it works:
+This command plays a crucial part in streamlining your Apigee development process. Here's how it works:
 
 1. **Design:** Craft your API Proxy configuration using the more readable and manageable YAML format. 
-2. **Convert:** Feed your YAML document into the tool to get a fully compliant API Proxy bundle.
+2. **Convert:** Feed your YAML document into the command to get a fully compliant API Proxy bundle.
 3. **Deploy:** Use the Apigee CLI to deploy the bundle
 
 **Usage**
 
-The `yaml2bundle` tool takes two parameters `-input` and `-output`
+The `yaml-to-bundle` command takes two parameters `-input` and `-output`
 
-* `-input` is the YAML document that contains the API Proxy definitions
+* `--input` is the YAML document that contains the API Proxy definitions
 
-* `-output` is either a bundle zip or a bundle directory to be created
+* `--output` is either a bundle zip or a bundle directory to be created
 
-* `-output` full path is created if it does not exist (like `mkdir -p`)
+* `--output` full path is created if it does not exist (like `mkdir -p`)
 
-Bundle resources are read relative to the location of the `-input` 
+Bundle resources are read relative to the location of the `--input` 
 
 Below are a couple of examples
 
   * Creating a bundle zip
     ```shell
-    yaml2bundle -input ./examples/yaml-first/petstore/apiproxy.yaml \
-                -output ./out/bundles/petstore.zip 
+    proxy-tool transform yaml-to-bundle \
+        --input ./examples/yaml-first/petstore/apiproxy.yaml \
+        --output ./out/bundles/petstore.zip 
     ```
   * Creating a bundle directory
     ```shell
-    yaml2bundle -input ./examples/yaml-first/petstore/apiproxy.yaml \
-                -output ./out/bundles/petstore
+    proxy-tool transform yaml-to-bundle \
+        --input ./examples/yaml-first/petstore/apiproxy.yaml \
+        --output ./out/bundles/petstore
     ```
 
-## Template Rendering Tools
+## Template Rendering Commands
 
-This toolkit includes tools that let you create API Proxy bundles based on popular formats like
-OpenAPI, GraphQL, gRPC, and more. Think of them as blueprints for your API Proxies.
+The `proxy-tool` includes a set of `render` commands that let you create API Proxy bundles based on popular formats like
+OpenAPI, GraphQL, gRPC, and more using templates. Think of these templates as blueprints for your API Proxies.
 
-* `render-template` - Renders a [Go-style](https://pkg.go.dev/text/template) template
-* `template2bundle` - Combines `render-template` and `yaml2bundle` into one
+* `render template` - Renders a [Go-style](https://pkg.go.dev/text/template) template
+* `render bundle` - Combines `render template` and `yaml-to-bundle` into one
 
 **Why use templates?**
 
@@ -387,16 +391,15 @@ Imagine easily adding security rules, setting target URLs based on your setup, o
 
 ### The Template Language
 
-The `render-template` tool uses the Go [text/template](https://pkg.go.dev/text/template) engine render the input template.
-The Go templating engine is very powerful and gives you lots of flexibility and features like 
-loop constructs, conditional elements, template blocks for re-use and much more. 
+The `render` commands are powered by the Go [text/template](https://pkg.go.dev/text/template) engine.
 
+Some popular tool that also use this same engine are [Helm](https://helm.sh/), and [Hugo](https://gohugo.io/).
 
-Below are a few examples of how to use the `render-template` tool for generating API Proxies from OAS, GraphQL, and GRPC.
+Below are a few examples of how to use the `render bundle` command for generating API Proxies from OAS, GraphQL, and GRPC.
 
 ### Creating API Proxy from OpenAPI Spec
 
-You can use the `render-template` tool to render a template using an OpenAPI spec as input.
+You can use the `render bundle` command to create a bundle using a template and an OpenAPI spec as input.
 
 **How it Works:**
 
@@ -408,44 +411,42 @@ You can use the `render-template` tool to render a template using an OpenAPI spe
 
 **See an Example:** Check out the included OAS3 template at [examples/template/oas3](examples/templates/oas3/apiproxy.yaml). 
 
-It demonstrates the basics of how the tool creates Apigee-compatible YAML from your OpenAPI 3 spec.
+It demonstrates the basics of how the command creates API Proxy bundles from your OpenAPI 3 spec.
 
 Here is how you would call it
 
 ```shell
-render-template -template ./examples/templates/oas3/apiproxy.yaml \
-                -set-oas spec=./examples/specs/petstore.yaml \
-                -include ./examples/templates/oas3/*.tmpl \
-                -output ./out/yaml-first/petstore/apiproxy.yaml
+proxy-tool render bundle \
+    --template ./examples/templates/oas3/apiproxy.yaml \
+    --set-oas spec=./examples/specs/petstore.yaml \
+    --include ./examples/templates/oas3/*.tmpl \
+    --output ./out/yaml-first/petstore.zip
 ```
 
 > [!NOTE]
 > You may pass the `-include` flag multiple time to load template helpers from multiple sources.
 
-Once you render the template, you then use the `yaml2bundle` tool to transform this YAML output into a deployable API Proxy bundle. e.g.
 
-```shell
-yaml2bundle -input ./out/yaml-first/petstore/apiproxy.yaml \
-            -output ./out/bundles/petstore-from-oas.zip
-```
 
 **Quick Template Previews with Dry Run**
 
-For streamlined development, you can view the rendered template output directly in your terminal. This avoids writing to disk during your iterative process. Add the `-dry-run true` flag:
+For streamlined development, you can view the rendered template output directly in your terminal. This avoids writing to disk during your iterative process. Add the `--dry-run xml` or `--dry-run yaml` flag:
 
 ```shell
-render-template -template ./examples/templates/oas3/apiproxy.yaml \
-                -set-oas spec=./examples/specs/petstore.yaml \
-                -include ./examples/templates/oas3/*.tmpl \
-                -dry-run true
+proxy-tool render bundle \
+    --template ./examples/templates/oas3/apiproxy.yaml \
+    --set-oas spec=./examples/specs/petstore.yaml \
+    --include ./examples/templates/oas3/*.tmpl \
+    --dry-run xml
 ```
 
 
 ### Creating API Proxy from GraphQL Schema
 
-You can use the `render-template` tool to render a template using a GraphQL schema as input.
+You can use the `render bundle` command to create a bundle using a template and a GraphQL schema as input.
 
-While GraphQL schemas might not contain all the necessary details for a complete API Proxy bundle, this tool offers flexibility through the `--set` and `--set-string` parameters. This works similar to how values are set in Helm charts.
+While GraphQL schemas might not contain all the necessary details for a complete API Proxy bundle, this command offers flexibility through the `--set` and `--set-string` parameters. 
+This works similar to how values are set in Helm charts.
 
 **How it Works:**
 
@@ -459,28 +460,23 @@ While GraphQL schemas might not contain all the necessary details for a complete
 Here is how you would call it
 
 ```shell
-render-template -template ./examples/templates/graphql/apiproxy.yaml \
-                -set-graphql schema=./examples/graphql/resorts.graphql \
-                -set-string "api_name=resorts-api" \
-                -set-string "base_path=/graphql" \
-                -set-string "target_url=https://example.com/graphql" \
-                -include ./examples/templates/graphql/*.tmpl \
-                -output ./out/yaml-first/resorts/apiproxy.yaml
-``` 
-Once you render the template, you then use the `yaml2bundle` tool to transform this YAML output into a deployable API Proxy bundle. e.g.
-
-```shell
-yaml2bundle -input ./out/yaml-first/resorts/apiproxy.yaml \
-            -output ./out/bundles/resorts-from-graphql.zip
+proxy-tool render bundle \
+     --template ./examples/templates/graphql/apiproxy.yaml \
+     --set-graphql schema=./examples/graphql/resorts.graphql \
+     --set-string "api_name=resorts-api" \
+     --set-string "base_path=/graphql" \
+     --set-string "target_url=https://example.com/graphql" \
+     --include ./examples/templates/graphql/*.tmpl \
+     --output ./out/yaml-first/resorts/apiproxy.zip
 ``` 
 
 
 ### Creating API Proxy from gRPC Proto
 
-You can use the `render-template` to render a template using a gRPC proto file as input.
+You can use the `render bundle` command to create bundle using a template and a gRPC proto file as input.
 
 When working with gRPC in Apigee, it's crucial to ensure your API Proxy's base path and conditional flows are configured 
-correctly to handle gRPC traffic. This tool simplifies the process by letting you build a template that understands 
+correctly to handle gRPC traffic. This command simplifies the process by letting you build a template that understands 
 these gRPC-specific requirements. 
 
 
@@ -494,74 +490,28 @@ these gRPC-specific requirements.
 
 **See an Example:** Check out the [examples/templates/grpc](examples/templates/grpc) directory for an example of building the intermediate YAML for a gRPC API Proxy.
 
-Here is how you would use the tool with this example:
+Here is how you would use the command with this example:
 
 ```shell
-render-template -template ./examples/templates/grpc/apiproxy.yaml \
-                -set-grpc proto=./examples/protos/greeter.proto \
-                -set-string "target_server=example-target-server" \
-                -include ./examples/templates/grpc/*.tmpl \
-                -output ./out/yaml-first/greeter/apiproxy.yaml
-```
-
-Once you render the template, you then use the `yaml2bundle` tool to transform this YAML output into a deployable API Proxy bundle. e.g.
-
-```shell
-yaml2bundle -input ./out/yaml-first/greeter/apiproxy.yaml \
-            -output ./out/bundles/greeter-from-grpc.zip
+proxy-tool render bundle \
+    --template ./examples/templates/grpc/apiproxy.yaml \
+    --set-grpc proto=./examples/protos/greeter.proto \
+    --set-string "target_server=example-target-server" \
+    --include ./examples/templates/grpc/*.tmpl \
+    --output ./out/yaml-first/greeter/apiproxy.zip
 ```
 
 ### Creating API Proxy from other formats
 
-You can use the `render-template` tool to render any generic template. It's not necessary to start with
-an OpenAPI spec, a GraphQL schema, or a gRPC proto. The `render-template` tool gives you the freedom to design your own 
-templates for generating Apigee API Proxies. 
+The `render bundle` command can be used to create a bundle from any template.
+It's not necessary to start from an OpenAPI spec, GraphQL schema, or gRPC proto. 
 
-Here's how it works:
+You can use flags such as `--set` and `--set-string` to dynamically provide values for the template.
+These values are available during the rendering process using `{{ $.Values.key }}`.
 
-* **Start with Your Template:** Use the familiar Go templating syntax, enhanced with helpful functions specifically for building API Proxies.
-* **Inject Your Values:** Use `-set` and `-set-string` to provide essential details that your template will use during the rendering process.
-* **Use built-in functions:** Use built-in [helper_functions](pkg/common/resources/helper_functions.txt) to assist you in the rendering process
-* **Use custom-function:** Define your own functions using [named template helpers](https://pkg.go.dev/text/template#hdr-Nested_template_definitions).
+This allows you to create templates, and dynamically generate API Proxy bundles based
+on your specific requirements.
 
-
-### Generating an API Proxy bundle directly
-
-Sometimes, you might not want to deal with the intermediate YAML that gets created during the template
-rendering process, and simply get an API Proxy bundle that is ready to be deployed.
-
-For this use-case, you have the `template2bundle` tool. It combines both the `render-template`, and `yaml2bundle`
-functionality into a single tool. This is useful if you do not plan storing the rendered YAML in 
-source code, and you are simply interested on deploying the bundle artifact.
-
-Below is an example of generating an API Proxy bundle directly from a template
-
-```shell
-template2bundle -template ./examples/templates/oas3/apiproxy.yaml \
-                -set-oas spec=./examples/specs/petstore.yaml \
-                -include ./examples/templates/oas3/*.tmpl \
-                -output ./out/bundles/petstore.zip
-```
-
-Just like the `render-template`, and `yaml2bundle` tool this tool supports flags such as `-validate` and `-dry-run`
-
-For example, the following command will print out the XML, but not create the bundle.
-
-```shell
-template2bundle -template ./examples/templates/oas3/apiproxy.yaml \
-                -set-oas spec=./examples/specs/petstore.yaml \
-                -include ./examples/templates/oas3/*.tmpl \
-                -dry-run "xml"
-```
-
-Or, if you want to peek and see what the intermediate YAML looks like, you can pass `-dry-run "yaml"` like this:
-
-```shell
-template2bundle -template ./examples/templates/oas3/apiproxy.yaml \
-                -set-oas spec=./examples/specs/petstore.yaml \
-                -include ./examples/templates/oas3/*.tmpl \
-                -dry-run "yaml"
-```
 
 ## Installation
 
@@ -571,9 +521,9 @@ If you already have [Go](https://go.dev/doc/install) installed in your machine, 
 go install github.com/micovery/apigee-yaml-toolkit/cmd/...@latest
 ```
 
-This will download, build and install all the tools into your `$GOPATH/bin` directory
+This will download, build and install the `proxy-tool` into your `$GOPATH/bin` directory
 
-You can change the `@latest` tag for any other version that has been tagged. (e.g. `@v0.1.1`)
+You can change the `@latest` tag for any other version that has been tagged. (e.g. `@v0.1.8`)
 
 > [!NOTE]
 > The Go tool (and compiler) is only necessary to build the tools in this repo. 

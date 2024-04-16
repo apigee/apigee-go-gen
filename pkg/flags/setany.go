@@ -15,7 +15,6 @@
 package flags
 
 import (
-	"fmt"
 	"github.com/go-errors/errors"
 	"github.com/micovery/apigee-yaml-toolkit/pkg/values"
 	"strconv"
@@ -30,8 +29,12 @@ func NewSetAny(data *values.Map) SetAny {
 	return SetAny{Data: data}
 }
 
+func (v *SetAny) Type() string {
+	return "string"
+}
+
 func (v *SetAny) String() string {
-	return fmt.Sprintf("%v", v.Data)
+	return ""
 }
 
 func (v *SetAny) Set(entry string) error {
