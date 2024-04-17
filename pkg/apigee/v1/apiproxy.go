@@ -17,7 +17,7 @@ package v1
 import (
 	"fmt"
 	"github.com/gosimple/slug"
-	"github.com/micovery/apigee-yaml-toolkit/pkg/utils"
+	"github.com/micovery/apigee-go-gen/pkg/utils"
 	"path/filepath"
 )
 

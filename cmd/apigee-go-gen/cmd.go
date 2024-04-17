@@ -15,9 +15,9 @@
 package main
 
 import (
-	"github.com/micovery/apigee-yaml-toolkit/cmd/apigee-go-gen/render"
-	"github.com/micovery/apigee-yaml-toolkit/cmd/apigee-go-gen/transform"
-	"github.com/micovery/apigee-yaml-toolkit/pkg/flags"
+	"github.com/micovery/apigee-go-gen/cmd/apigee-go-gen/render"
+	"github.com/micovery/apigee-go-gen/cmd/apigee-go-gen/transform"
+	"github.com/micovery/apigee-go-gen/pkg/flags"
 	"github.com/spf13/cobra"
 	"os"
 	"path/filepath"

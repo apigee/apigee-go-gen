@@ -17,8 +17,8 @@ package flags
 import (
 	"fmt"
 	"github.com/go-errors/errors"
-	"github.com/micovery/apigee-yaml-toolkit/pkg/parser"
-	"github.com/micovery/apigee-yaml-toolkit/pkg/values"
+	"github.com/micovery/apigee-go-gen/pkg/parser"
+	"github.com/micovery/apigee-go-gen/pkg/values"
 	"gopkg.in/yaml.v3"
 	"os"
 	"strings"

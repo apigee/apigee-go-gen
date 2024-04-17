@@ -16,8 +16,8 @@ package bundle_to_yaml
 
 import (
 	"github.com/go-errors/errors"
-	"github.com/micovery/apigee-yaml-toolkit/pkg/bundle"
-	"github.com/micovery/apigee-yaml-toolkit/pkg/flags"
+	"github.com/micovery/apigee-go-gen/pkg/bundle"
+	"github.com/micovery/apigee-go-gen/pkg/flags"
 	"github.com/spf13/cobra"
 	"strings"
 )

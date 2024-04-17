@@ -16,8 +16,8 @@ package render
 
 import (
 	"github.com/go-errors/errors"
-	"github.com/micovery/apigee-yaml-toolkit/pkg/apigee/v1"
-	"github.com/micovery/apigee-yaml-toolkit/pkg/flags"
+	"github.com/micovery/apigee-go-gen/pkg/apigee/v1"
+	"github.com/micovery/apigee-go-gen/pkg/flags"
 	"os"
 	"path/filepath"
 )

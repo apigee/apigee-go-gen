@@ -17,7 +17,7 @@ package yaml_to_xml
 import (
 	"bufio"
 	"fmt"
-	"github.com/micovery/apigee-yaml-toolkit/pkg/utils"
+	"github.com/micovery/apigee-go-gen/pkg/utils"
 	"github.com/spf13/cobra"
 	"os"
 )

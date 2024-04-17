@@ -15,12 +15,12 @@
 package transform
 
 import (
-	bundle_to_yaml "github.com/micovery/apigee-yaml-toolkit/cmd/apigee-go-gen/transform/bundle-to-yaml"
-	sharedflow_to_yaml "github.com/micovery/apigee-yaml-toolkit/cmd/apigee-go-gen/transform/sharedflow-to-yaml"
-	xml_to_yaml "github.com/micovery/apigee-yaml-toolkit/cmd/apigee-go-gen/transform/xml-to-yaml"
-	yaml_to_bundle "github.com/micovery/apigee-yaml-toolkit/cmd/apigee-go-gen/transform/yaml-to-bundle"
-	yaml_to_sharedflow "github.com/micovery/apigee-yaml-toolkit/cmd/apigee-go-gen/transform/yaml-to-sharedflow"
-	yaml_to_xml "github.com/micovery/apigee-yaml-toolkit/cmd/apigee-go-gen/transform/yaml-to-xml"
+	bundle_to_yaml "github.com/micovery/apigee-go-gen/cmd/apigee-go-gen/transform/bundle-to-yaml"
+	sharedflow_to_yaml "github.com/micovery/apigee-go-gen/cmd/apigee-go-gen/transform/sharedflow-to-yaml"
+	xml_to_yaml "github.com/micovery/apigee-go-gen/cmd/apigee-go-gen/transform/xml-to-yaml"
+	yaml_to_bundle "github.com/micovery/apigee-go-gen/cmd/apigee-go-gen/transform/yaml-to-bundle"
+	yaml_to_sharedflow "github.com/micovery/apigee-go-gen/cmd/apigee-go-gen/transform/yaml-to-sharedflow"
+	yaml_to_xml "github.com/micovery/apigee-go-gen/cmd/apigee-go-gen/transform/yaml-to-xml"
 	"github.com/spf13/cobra"
 )
 

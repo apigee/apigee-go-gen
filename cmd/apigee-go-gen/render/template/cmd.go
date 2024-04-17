@@ -17,9 +17,9 @@ package template
 import (
 	"fmt"
 	"github.com/go-errors/errors"
-	"github.com/micovery/apigee-yaml-toolkit/pkg/common/resources"
-	"github.com/micovery/apigee-yaml-toolkit/pkg/flags"
-	"github.com/micovery/apigee-yaml-toolkit/pkg/render"
+	"github.com/micovery/apigee-go-gen/pkg/common/resources"
+	"github.com/micovery/apigee-go-gen/pkg/flags"
+	"github.com/micovery/apigee-go-gen/pkg/render"
 	"github.com/spf13/cobra"
 	"strings"
 )

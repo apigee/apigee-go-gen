@@ -16,7 +16,7 @@ package flags
 
 import (
 	"github.com/go-errors/errors"
-	"github.com/micovery/apigee-yaml-toolkit/pkg/values"
+	"github.com/micovery/apigee-go-gen/pkg/values"
 	"strconv"
 	"strings"
 )

@@ -17,8 +17,8 @@ package yaml_to_bundle
 import (
 	"fmt"
 	"github.com/go-errors/errors"
-	v1 "github.com/micovery/apigee-yaml-toolkit/pkg/apigee/v1"
-	"github.com/micovery/apigee-yaml-toolkit/pkg/flags"
+	v1 "github.com/micovery/apigee-go-gen/pkg/apigee/v1"
+	"github.com/micovery/apigee-go-gen/pkg/flags"
 	"github.com/spf13/cobra"
 	"os"
 	"strings"
