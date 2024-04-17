@@ -1,5 +1,8 @@
 # Apigee Proxy Tool 
 
+[![Go Report Card](https://goreportcard.com/badge/github.com/micovery/apigee-yaml-toolkit)](https://goreportcard.com/report/github.com/micovery/apigee-yaml-toolkit)
+[![GitHub release](https://img.shields.io/github/v/release/micovery/apigee-yaml-toolkit)](https://github.com/micovery/apigee-yaml-toolkit/releases)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 **Welcome!** This repo offers a tool to streamline your Apigee API Proxy development experience using Go-Style templates with YAML-First approach.
 
