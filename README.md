@@ -438,7 +438,7 @@ apigee-go-gen render bundle \
     --template ./examples/templates/oas3/apiproxy.yaml \
     --set-oas spec=./examples/specs/petstore.yaml \
     --include ./examples/templates/oas3/*.tmpl \
-    --output ./out/yaml-first/petstore.zip
+    --output ./out/bundles/petstore.zip
 ```
 
 > [!NOTE]
@@ -485,7 +485,7 @@ apigee-go-gen render bundle \
      --set-string "base_path=/graphql" \
      --set-string "target_url=https://example.com/graphql" \
      --include ./examples/templates/graphql/*.tmpl \
-     --output ./out/yaml-first/resorts/apiproxy.zip
+     --output ./out/bundles/resorts.zip
 ``` 
 
 
@@ -516,7 +516,7 @@ apigee-go-gen render bundle \
     --set-grpc proto=./examples/protos/greeter.proto \
     --set-string "target_server=example-target-server" \
     --include ./examples/templates/grpc/*.tmpl \
-    --output ./out/yaml-first/greeter/apiproxy.zip
+    --output ./out/bundles/greeter.zip
 ```
 
 ### Creating API Proxy from other formats
