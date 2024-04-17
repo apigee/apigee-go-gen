@@ -15,8 +15,8 @@
 package main
 
 import (
-	"github.com/micovery/apigee-yaml-toolkit/cmd/proxy-tool/render"
-	"github.com/micovery/apigee-yaml-toolkit/cmd/proxy-tool/transform"
+	"github.com/micovery/apigee-yaml-toolkit/cmd/apigee-go-gen/render"
+	"github.com/micovery/apigee-yaml-toolkit/cmd/apigee-go-gen/transform"
 	"github.com/micovery/apigee-yaml-toolkit/pkg/flags"
 	"github.com/spf13/cobra"
 	"os"

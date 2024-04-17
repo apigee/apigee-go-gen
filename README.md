@@ -1,17 +1,17 @@
-# Apigee Proxy Tool 
+# Apigee Go Gen
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/micovery/apigee-yaml-toolkit)](https://goreportcard.com/report/github.com/micovery/apigee-yaml-toolkit)
 [![GitHub release](https://img.shields.io/github/v/release/micovery/apigee-yaml-toolkit)](https://github.com/micovery/apigee-yaml-toolkit/releases)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-**Welcome!** This repo offers a tool to streamline your Apigee API Proxy development experience using Go-Style templates with YAML-First approach.
+The `apigee-go-gen` tool streamlines your Apigee development experience using [Go style](https://developer.hashicorp.com/nomad/tutorials/templates/go-template-syntax) templates with a [YAML-First](#why-use-yaml-first) approach.
 
 **Here's what you'll find:**
 
 * **Transformation commands:** Easily convert between Apigee's API Proxy format and YAML for better readability and management.
 * **Templating commands:**  Enjoy powerful customization and dynamic configuration options, inspired by the flexibility of Helm using the Go [text/template](https://pkg.go.dev/text/template) engine.
 
-By using this tool alongside the Apigee CLI, you'll unlock a highly customizable YAML-First workflow. This is perfect for both streamlined local development and robust CI/CD pipelines.
+By using this tool alongside the [Apigee CLI](https://github.com/apigee/apigeecli), you'll unlock a highly customizable workflow. This is perfect for both streamlined local development and robust CI/CD pipelines.
 
 
 ## Table of Contents
@@ -128,7 +128,7 @@ There are more resource types such as xsds, wsdls, and others. (see [docs](https
 
 ## Transformation Commands
 
-The `proxy-tool` offers a powerful set of `transform` commands for your Apigee development workflow.
+The `apigee-go-gen` offers a powerful set of `transform` commands for your Apigee development workflow.
 
 **XML ↔️ YAML Conversion:** Easily switch between XML and YAML formats
 
@@ -156,11 +156,11 @@ The command reads XML form `stdin`, and writes YAML to `stdout`. Below are a cou
 
   * Reading input redirected from a file
     ```shell
-    proxy-tool transform xml-to-yaml < ./examples/snippets/check-quota.xml
+    apigee-go-gen transform xml-to-yaml < ./examples/snippets/check-quota.xml
     ```
   * Reading input directly from stdin
     ```shell
-    proxy-tool transform xml-to-yaml << EOF 
+    apigee-go-gen transform xml-to-yaml << EOF 
     <Parent>
       <Child>Fizz</Child>
       <Child>Buzz</Child>
@@ -173,7 +173,7 @@ The command reads XML form `stdin`, and writes YAML to `stdout`. Below are a cou
     <Parent>
       <Child>Fizz</Child>
       <Child>Buzz</Child>
-    </Parent>' | proxy-tool transform xml-to-yaml
+    </Parent>' | apigee-go-gen transform xml-to-yaml
     ```
     > **NOTE:** Using echo as shown above will not work properly if your input already contains single quotes
 
@@ -193,11 +193,11 @@ The command reads YAML form `stdin`, and writes XML to `stdout`. Below are a few
 
   * Reading input redirected from a file
     ```shell
-    proxy-tool transform yaml-to-xml < ./examples/snippets/ducks.yaml
+    apigee-go-gen transform yaml-to-xml < ./examples/snippets/ducks.yaml
     ```
   * Reading input from `stdin` directly
     ```shell
-    proxy-tool transform yaml-to-xml << EOF
+    apigee-go-gen transform yaml-to-xml << EOF
     Parent:
       - Child: Fizz
       - Child: Buzz
@@ -208,7 +208,7 @@ The command reads YAML form `stdin`, and writes XML to `stdout`. Below are a few
     echo '
     Parent:
       - Child: Fizz
-      - Child: Buzz' | proxy-tool transform yaml-to-xml
+      - Child: Buzz' | apigee-go-gen transform yaml-to-xml
     ```
     > **NOTE:** Using echo as shown above will not work properly if your input already contains single quotes
 
@@ -290,13 +290,13 @@ Below are a couple of examples
 
   * Reading bundle from a zip file
     ```shell
-    proxy-tool transform bundle-to-yaml \
+    apigee-go-gen transform bundle-to-yaml \
         --input ./examples/bundles/helloworld/helloworld.zip \
         --output ./out/yaml-first/helloworld1/apiproxy.yaml
     ```
   * Reading bundle from a directory
     ```shell
-    proxy-tool transform bundle-to-yaml \
+    apigee-go-gen transform bundle-to-yaml \
         --input ./examples/bundles/helloworld/ \
         --output ./out/yaml-first/helloworld2/apiproxy.yaml
     ```
@@ -363,20 +363,20 @@ Below are a couple of examples
 
   * Creating a bundle zip
     ```shell
-    proxy-tool transform yaml-to-bundle \
+    apigee-go-gen transform yaml-to-bundle \
         --input ./examples/yaml-first/petstore/apiproxy.yaml \
         --output ./out/bundles/petstore.zip 
     ```
   * Creating a bundle directory
     ```shell
-    proxy-tool transform yaml-to-bundle \
+    apigee-go-gen transform yaml-to-bundle \
         --input ./examples/yaml-first/petstore/apiproxy.yaml \
         --output ./out/bundles/petstore
     ```
 
 ## Template Rendering Commands
 
-The `proxy-tool` includes a set of `render` commands that let you create API Proxy bundles based on popular formats like
+The `apigee-go-gen` includes a set of `render` commands that let you create API Proxy bundles based on popular formats like
 OpenAPI, GraphQL, gRPC, and more using templates. Think of these templates as blueprints for your API Proxies.
 
 * `render template` - Renders a [Go-style](https://pkg.go.dev/text/template) template
@@ -419,7 +419,7 @@ It demonstrates the basics of how the command creates API Proxy bundles from you
 Here is how you would call it
 
 ```shell
-proxy-tool render bundle \
+apigee-go-gen render bundle \
     --template ./examples/templates/oas3/apiproxy.yaml \
     --set-oas spec=./examples/specs/petstore.yaml \
     --include ./examples/templates/oas3/*.tmpl \
@@ -436,7 +436,7 @@ proxy-tool render bundle \
 For streamlined development, you can view the rendered template output directly in your terminal. This avoids writing to disk during your iterative process. Add the `--dry-run xml` or `--dry-run yaml` flag:
 
 ```shell
-proxy-tool render bundle \
+apigee-go-gen render bundle \
     --template ./examples/templates/oas3/apiproxy.yaml \
     --set-oas spec=./examples/specs/petstore.yaml \
     --include ./examples/templates/oas3/*.tmpl \
@@ -463,7 +463,7 @@ This works similar to how values are set in Helm charts.
 Here is how you would call it
 
 ```shell
-proxy-tool render bundle \
+apigee-go-gen render bundle \
      --template ./examples/templates/graphql/apiproxy.yaml \
      --set-graphql schema=./examples/graphql/resorts.graphql \
      --set-string "api_name=resorts-api" \
@@ -496,7 +496,7 @@ these gRPC-specific requirements.
 Here is how you would use the command with this example:
 
 ```shell
-proxy-tool render bundle \
+apigee-go-gen render bundle \
     --template ./examples/templates/grpc/apiproxy.yaml \
     --set-grpc proto=./examples/protos/greeter.proto \
     --set-string "target_server=example-target-server" \
@@ -524,7 +524,7 @@ If you already have [Go](https://go.dev/doc/install) installed in your machine, 
 go install github.com/micovery/apigee-yaml-toolkit/cmd/...@latest
 ```
 
-This will download, build and install the `proxy-tool` into your `$GOPATH/bin` directory
+This will download, build and install the `apigee-go-gen` into your `$GOPATH/bin` directory
 
 You can change the `@latest` tag for any other version that has been tagged. (e.g. `@v0.1.8`)
 

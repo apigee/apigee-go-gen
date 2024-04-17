@@ -13,16 +13,16 @@
 #  limitations under the License.
 
 version: 1
-project_name: proxy-tool
+project_name: apigee-go-gen
 before:
   hooks:
     - go mod tidy
     - go generate ./...
     - go test ./...
 builds:
-  - id: proxy-tool
-    main: ./cmd/proxy-tool
-    binary: proxy-tool
+  - id: apigee-go-gen
+    main: ./cmd/apigee-go-gen
+    binary: apigee-go-gen
     goos:
       - linux
       - darwin
@@ -62,7 +62,7 @@ archives:
     files:
       - LICENSE
     builds:
-      - proxy-tool
+      - apigee-go-gen
 checksum:
   name_template: "checksums.txt"
 changelog:
@@ -77,3 +77,4 @@ changelog:
       - "^refactor:"
       - "^docs:"
       - "^test:"
+      - "^chore:"

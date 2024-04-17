@@ -1,4 +1,4 @@
-name: proxy-tool-binary
+name: apigee-go-gen-binary
 on:
   workflow_dispatch:
 permissions:
@@ -27,5 +27,5 @@ jobs:
       - name: Upload assets
         uses: actions/upload-artifact@v3
         with:
-          name: proxy-tool
+          name: apigee-go-gen
           path: dist/*
