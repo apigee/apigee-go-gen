@@ -15,18 +15,8 @@
 package utils
 
 import (
-	"fmt"
 	"os"
-	"path/filepath"
-	"runtime/debug"
 )
-
-func PrintVersion() {
-	program := filepath.Base(os.Args[0])
-	info, _ := debug.ReadBuildInfo()
-
-	fmt.Printf("%s %s\n", program, info.Main.Version)
-}
 
 func MustReadFileBytes(path string) []byte {
 	data, err := os.ReadFile(path)

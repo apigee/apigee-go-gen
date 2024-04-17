@@ -17,7 +17,6 @@ package main
 import (
 	"github.com/micovery/apigee-yaml-toolkit/cmd/proxy-tool/render"
 	"github.com/micovery/apigee-yaml-toolkit/cmd/proxy-tool/transform"
-	"github.com/micovery/apigee-yaml-toolkit/cmd/proxy-tool/version"
 	"github.com/micovery/apigee-yaml-toolkit/pkg/flags"
 	"github.com/spf13/cobra"
 	"os"
@@ -33,7 +32,7 @@ var RootCmd = &cobra.Command{
 func init() {
 	RootCmd.AddCommand(render.Cmd)
 	RootCmd.AddCommand(transform.Cmd)
-	RootCmd.AddCommand(version.Cmd)
+	RootCmd.AddCommand(VersionCmd)
 
 	RootCmd.PersistentFlags().Var(&showStack, "show-stack", "show stack trace for errors")
 }

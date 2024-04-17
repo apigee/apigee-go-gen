@@ -24,6 +24,7 @@ require (
 	github.com/go-errors/errors v1.5.1
 	github.com/gosimple/slug v1.14.0
 	github.com/pb33f/libopenapi v0.15.14
+	github.com/spf13/cobra v1.8.0
 	github.com/stretchr/testify v1.9.0
 	github.com/vektah/gqlparser/v2 v2.5.11
 	github.com/vmware-labs/yaml-jsonpath v0.3.2
@@ -52,7 +53,6 @@ require (
 	github.com/rogpeppe/go-internal v1.11.0 // indirect
 	github.com/shopspring/decimal v1.2.0 // indirect
 	github.com/spf13/cast v1.3.1 // indirect
-	github.com/spf13/cobra v1.8.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/wk8/go-ordered-map/v2 v2.1.8 // indirect
 	golang.org/x/crypto v0.3.0 // indirect
