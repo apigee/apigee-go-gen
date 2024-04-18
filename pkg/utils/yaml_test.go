@@ -18,6 +18,7 @@ import (
 	"bytes"
 	"github.com/stretchr/testify/assert"
 	"path/filepath"
+	"regexp"
 	"testing"
 )
 
@@ -77,9 +78,16 @@ func TestYAMLText2XMLText(t *testing.T) {
 
 			gotBytes, err := YAMLText2XMLText(bytes.NewReader(inBytes))
 			assert.NoError(t, err)
+			wantBytes = RemoveXMLComments(wantBytes)
 			assert.Equal(t, string(wantBytes), string(gotBytes))
 		})
 	}
+}
+
+func RemoveXMLComments(data []byte) []byte {
+	regex := regexp.MustCompile(`(?ms)^\s*<!--.*-->\s*[\r\n]?`)
+	replaced := regex.ReplaceAll(data, []byte{})
+	return replaced
 }
 
 func TestSplitJSONRef(t *testing.T) {

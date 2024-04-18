@@ -24,6 +24,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"regexp"
 	"slices"
 	"strings"
 	"testing"
@@ -152,6 +153,7 @@ func RequireBundleZipEquals(t *testing.T, expectedBundleZip string, actualBundle
 			expected, err := utils.XMLText2YAMLText(expectedFileReader)
 			require.NoError(t, err)
 
+			expected = RemoveYAMLComments(expected)
 			actual, err := utils.XMLText2YAMLText(actualFileReader)
 			require.NoError(t, err)
 
@@ -160,6 +162,7 @@ func RequireBundleZipEquals(t *testing.T, expectedBundleZip string, actualBundle
 			expectedContents, err := io.ReadAll(expectedFileReader)
 			require.NoError(t, err)
 
+			expectedContents = RemoveYAMLComments(expectedContents)
 			actualContents, err := io.ReadAll(actualFileReader)
 			require.Equal(t, string(expectedContents), string(actualContents), fmt.Sprintf("%s contents do not match", expectedFile.Name))
 		}
@@ -171,4 +174,10 @@ func MustClose(reader *zip.ReadCloser) {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func RemoveYAMLComments(data []byte) []byte {
+	regex := regexp.MustCompile(`(?ms)^\s*#[^\n\r]*$[\r\n]*`)
+	replaced := regex.ReplaceAll(data, []byte{})
+	return replaced
 }
