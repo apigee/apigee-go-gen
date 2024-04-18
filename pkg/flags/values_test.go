@@ -15,6 +15,7 @@
 package flags
 
 import (
+	"github.com/micovery/apigee-go-gen/pkg/utils"
 	"github.com/micovery/apigee-go-gen/pkg/values"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -69,7 +70,7 @@ target_info:
 			data := values.Map{}
 			v := NewValues(&data)
 			valuesFile, err := os.CreateTemp("", "test-values-*.yaml")
-			defer valuesFile.Close()
+			defer func() { utils.MustClose(valuesFile) }()
 			require.NoError(t, err)
 
 			err = os.WriteFile(valuesFile.Name(), []byte(tt.entry), os.ModePerm)

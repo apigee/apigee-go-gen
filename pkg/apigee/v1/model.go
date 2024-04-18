@@ -16,6 +16,7 @@ package v1
 
 import (
 	"github.com/go-errors/errors"
+	"github.com/micovery/apigee-go-gen/pkg/utils"
 	"github.com/micovery/apigee-go-gen/pkg/zip"
 	"net/url"
 	"os"
@@ -112,7 +113,7 @@ func HydrateResources(model Model, fromDir string) error {
 	if err != nil {
 		return errors.New(err)
 	}
-	defer os.Chdir(wd)
+	defer func() { utils.Must(os.Chdir(wd)) }()
 
 	err = os.Chdir(fromDir)
 	if err != nil {

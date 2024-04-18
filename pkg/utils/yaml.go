@@ -59,7 +59,10 @@ func YAML2Text(node *yaml.Node, indent int) ([]byte, error) {
 	var buffer bytes.Buffer
 	yamlEncoder := yaml.NewEncoder(&buffer)
 	yamlEncoder.SetIndent(indent)
-	yamlEncoder.Encode(node)
+	err := yamlEncoder.Encode(node)
+	if err != nil {
+		return nil, errors.New(err)
+	}
 
 	return buffer.Bytes(), nil
 }
@@ -346,14 +349,14 @@ func YAMLFile2YAML(filePath string) (*yaml.Node, error) {
 	if file, err = os.Open(filePath); err != nil {
 		return nil, errors.New(err)
 	}
-	defer file.Close()
+	defer func() { MustClose(file) }()
 
 	//switch to directory relative to the YAML file so that JSON $refs are valid
 	wd, err := os.Getwd()
 	if err != nil {
 		return nil, errors.New(err)
 	}
-	defer os.Chdir(wd)
+	defer func() { Must(os.Chdir(wd)) }()
 
 	err = os.Chdir(filepath.Dir(filePath))
 	if err != nil {

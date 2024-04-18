@@ -44,6 +44,7 @@ var Cmd = &cobra.Command{
 		}
 
 		err = render.CreateBundle(model, string(output), bool(validate), dryRun.Value)
+		//goland:noinspection GoTypeAssertionOnErrors
 		if errs, ok := err.(v1.ValidationErrors); ok {
 			for i := 0; i < len(errs.Errors) && i < 10; i++ {
 				_, _ = fmt.Fprintf(os.Stderr, "Error: %s\n", errs.Errors[i].Error())

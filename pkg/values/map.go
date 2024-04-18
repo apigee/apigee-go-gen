@@ -16,6 +16,7 @@ package values
 
 import (
 	"github.com/go-errors/errors"
+	"github.com/micovery/apigee-go-gen/pkg/utils"
 	"regexp"
 	"strconv"
 	"strings"
@@ -27,7 +28,7 @@ type Slice []any
 func (m *Map) Set(key string, value any) {
 	regex := regexp.MustCompile(`(?:[^.\[\]]+|(?:\[\d+\]))`)
 	keyParts := regex.FindAllString(key, -1)
-	set(m, keyParts, 0, value)
+	utils.Must(set(m, keyParts, 0, value))
 
 }
 
@@ -87,9 +88,9 @@ func set(parent any, keyParts []string, keyIndex int, value any) error {
 		//the end
 		switch typedParent := parent.(type) {
 		case Map:
-			set(&typedParent, keyParts, keyIndex, value)
+			return set(&typedParent, keyParts, keyIndex, value)
 		case Slice:
-			set(&typedParent, keyParts, keyIndex, value)
+			return set(&typedParent, keyParts, keyIndex, value)
 		case *Map:
 			if isUnnamedSlice(cKey) {
 				return errors.Errorf("cannot set key %s on map type", cKey)
@@ -114,7 +115,7 @@ func set(parent any, keyParts []string, keyIndex int, value any) error {
 		//walk down
 		switch typedParent := parent.(type) {
 		case Map:
-			set(&typedParent, keyParts, keyIndex, value)
+			return set(&typedParent, keyParts, keyIndex, value)
 		case *Map:
 			if isUnnamedSlice(cKey) {
 				return errors.Errorf("cannot set key %s on map type", cKey)
@@ -131,9 +132,9 @@ func set(parent any, keyParts []string, keyIndex int, value any) error {
 				}
 				(*typedParent)[cKey] = newParent
 			}
-			set(newParent, keyParts, keyIndex+1, value)
+			return set(newParent, keyParts, keyIndex+1, value)
 		case Slice:
-			set(&typedParent, keyParts, keyIndex, value)
+			return set(&typedParent, keyParts, keyIndex, value)
 		case *Slice:
 			if !isUnnamedSlice(cKey) {
 				return errors.Errorf("cannot key set %s on slice type", cKey)
@@ -157,7 +158,7 @@ func set(parent any, keyParts []string, keyIndex int, value any) error {
 
 			(*typedParent)[index] = newParent
 
-			set(newParent, keyParts, keyIndex+1, value)
+			return set(newParent, keyParts, keyIndex+1, value)
 		default:
 			return errors.Errorf("cannot set value on type %T", parent)
 		}

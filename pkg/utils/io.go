@@ -26,7 +26,7 @@ func CopyFile(dest string, src string) error {
 	if err != nil {
 		return errors.New(err)
 	}
-	defer srcFile.Close()
+	defer func() { MustClose(srcFile) }()
 
 	destDir := filepath.Dir(dest)
 	err = os.MkdirAll(destDir, os.ModePerm)
@@ -38,7 +38,7 @@ func CopyFile(dest string, src string) error {
 	if err != nil {
 		return errors.New(err)
 	}
-	defer destFile.Close()
+	defer func() { MustClose(destFile) }()
 
 	_, err = io.Copy(destFile, srcFile)
 	if err != nil {
@@ -50,4 +50,17 @@ func CopyFile(dest string, src string) error {
 		return errors.New(err)
 	}
 	return nil
+}
+
+func MustClose(c io.Closer) {
+	err := c.Close()
+	if err != nil {
+		panic(err)
+	}
+}
+
+func Must(err error) {
+	if err != nil {
+		panic(err)
+	}
 }

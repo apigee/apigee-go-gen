@@ -40,8 +40,8 @@ var setJSON = flags.NewSetJSON(cFlags.Values)
 
 var Cmd = &cobra.Command{
 	Use:   "sharedflow",
-	Short: "Generate a shared flow bundle from template",
-	Long:  `This command renders an template, then it generates a sharedflow`,
+	Short: "Generate a shared flow bundle from a template",
+	Long:  Usage(),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if strings.TrimSpace(string(cFlags.OutputFile)) == "" && dryRun.IsUnset() {
 			return errors.New("required flag(s) \"output\" not set")
@@ -52,6 +52,7 @@ var Cmd = &cobra.Command{
 		}
 
 		err := render.GenerateBundle(createModelFunc, cFlags, bool(validate), dryRun.Value)
+		//goland:noinspection GoTypeAssertionOnErrors
 		if errs, ok := err.(v1.ValidationErrors); ok {
 			for i := 0; i < len(errs.Errors) && i < 10; i++ {
 				_, _ = fmt.Fprintf(os.Stderr, "error: %s\n", errs.Errors[i].Error())

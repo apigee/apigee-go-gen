@@ -102,7 +102,7 @@ func CreateTemplate(templateFile string, includeList []string, outputFile string
 	if err != nil {
 		return nil, errors.New(err)
 	}
-	defer tmpFile.Close()
+	defer func() { utils.MustClose(tmpFile) }()
 
 	err = utils.CopyFile(tmpFile.Name(), templateFile)
 	if err != nil {
