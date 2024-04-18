@@ -47,7 +47,7 @@ func (p *ProxyEndpoint) FileName() string {
 }
 
 func (p *ProxyEndpoint) FilePath() string {
-	return filepath.Join("apiproxy", "proxies", p.FileName())
+	return filepath.Join("proxies", p.FileName())
 }
 
 func ValidateProxyEndpoint(v *ProxyEndpoint, path string) []error {

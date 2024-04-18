@@ -12,12 +12,13 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-package bundle
+package apiproxy
 
 import (
 	"archive/zip"
 	"fmt"
 	v1 "github.com/micovery/apigee-go-gen/pkg/apigee/v1"
+	"github.com/micovery/apigee-go-gen/pkg/render"
 	"github.com/micovery/apigee-go-gen/pkg/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -50,11 +51,11 @@ func TestProxyBundle2YAMLFile(t *testing.T) {
 
 			defer stdout.Restore()
 
-			proxyBundle := filepath.Join(bundlesDir, tt.dir, "bundle.zip")
+			proxyBundle := filepath.Join(bundlesDir, tt.dir, "apiproxy.zip")
 			apiProxyYAMLFile := filepath.Join(bundlesDir, tt.dir, "apiproxy.yaml")
 			apiProxyYAML := utils.MustReadFileBytes(apiProxyYAMLFile)
 
-			err = ProxyBundle2YAMLFile(proxyBundle, "", true)
+			err = Bundle2YAMLFile(proxyBundle, "", true)
 			require.NoError(t, err)
 
 			data, err := stdout.Read()
@@ -88,11 +89,15 @@ func TestAPIProxyModel2BundleZip(t *testing.T) {
 			require.NoError(t, err)
 
 			apiProxyModelYAMLPath := filepath.Join(bundlesDir, tt.dir, "apiproxy.yaml")
-			expectedBundleZipPath := filepath.Join(bundlesDir, tt.dir, "bundle.zip")
-			outputBundleZipPath := filepath.Join(tmpDir, "bundle.zip")
+			expectedBundleZipPath := filepath.Join(bundlesDir, tt.dir, "apiproxy.zip")
+			outputBundleZipPath := filepath.Join(tmpDir, "apiproxy.zip")
 
-			err = v1.APIProxyModelYAML2Bundle(apiProxyModelYAMLPath, outputBundleZipPath, false, "")
+			model, err := v1.NewAPIProxyModel(apiProxyModelYAMLPath)
 			require.NoError(t, err)
+
+			err = render.CreateBundle(model, outputBundleZipPath, false, "")
+			require.NoError(t, err)
+
 			RequireBundleZipEquals(t, expectedBundleZipPath, outputBundleZipPath)
 		})
 	}
@@ -138,7 +143,7 @@ func RequireBundleZipEquals(t *testing.T, expectedBundleZip string, actualBundle
 	expectedFileNames := getFileNames(expectedFiles)
 	actualFileNames := getFileNames(actualFiles)
 
-	require.Equal(t, expectedFileNames, actualFileNames, "bundle structures do not match")
+	require.Equal(t, expectedFileNames, actualFileNames, "API proxy structures do not match")
 	for index, expectedFile := range expectedFiles {
 		actualFile := actualFiles[index]
 

@@ -339,3 +339,31 @@ var ParsedYAMLFiles map[string]*yaml.Node
 func init() {
 	ParsedYAMLFiles = make(map[string]*yaml.Node)
 }
+
+func YAMLFile2YAML(filePath string) (*yaml.Node, error) {
+	var file *os.File
+	var err error
+	if file, err = os.Open(filePath); err != nil {
+		return nil, errors.New(err)
+	}
+	defer file.Close()
+
+	//switch to directory relative to the YAML file so that JSON $refs are valid
+	wd, err := os.Getwd()
+	if err != nil {
+		return nil, errors.New(err)
+	}
+	defer os.Chdir(wd)
+
+	err = os.Chdir(filepath.Dir(filePath))
+	if err != nil {
+		return nil, errors.New(err)
+	}
+
+	dataNode, err := Text2YAML(file)
+	if err != nil {
+		return nil, err
+	}
+
+	return dataNode, nil
+}

@@ -12,23 +12,4 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-package render
-
-import (
-	"github.com/micovery/apigee-go-gen/cmd/apigee-go-gen/render/apiproxy"
-	sharedflow "github.com/micovery/apigee-go-gen/cmd/apigee-go-gen/render/sharedflow"
-	"github.com/micovery/apigee-go-gen/cmd/apigee-go-gen/render/template"
-	"github.com/spf13/cobra"
-)
-
-var Cmd = &cobra.Command{
-	Use:   "render",
-	Short: "Generate an API proxy or shared flow bundle from a template",
-}
-
-func init() {
-	Cmd.AddCommand(apiproxy.Cmd)
-	Cmd.AddCommand(sharedflow.Cmd)
-	Cmd.AddCommand(template.Cmd)
-
-}
+package utils

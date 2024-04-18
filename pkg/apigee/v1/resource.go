@@ -36,7 +36,7 @@ func (p *Resource) FileName() string {
 }
 
 func (p *Resource) FilePath() string {
-	return filepath.Join("apiproxy", "resources", p.Type, p.FileName())
+	return filepath.Join("resources", p.Type, p.FileName())
 }
 
 func ValidateResource(v *Resource, path string) []error {

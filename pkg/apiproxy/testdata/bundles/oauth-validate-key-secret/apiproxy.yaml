@@ -192,4 +192,4 @@ ProxyEndpoints:
       RouteRule:
         .name: NoRoute
 TargetEndpoints: []
-Resources: {}
+Resources: []

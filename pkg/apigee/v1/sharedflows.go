@@ -12,18 +12,33 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-package shared_flow
+package v1
 
-import (
-	"github.com/go-errors/errors"
-	"github.com/spf13/cobra"
-)
+import "fmt"
 
-var Cmd = &cobra.Command{
-	Use:   "shared-flow",
-	Short: "Generate a shared flow from template",
-	Long:  `This command renders an template, then it generates a shared-flow`,
-	RunE: func(cmd *cobra.Command, args []string) error {
-		return errors.New("this command is not implemented yet")
-	},
+type SharedFlowList []*SharedFlow
+type SharedFlows struct {
+	List SharedFlowList `xml:"SharedFlow,omitempty"`
+
+	UnknownNode AnyList `xml:",any"`
+}
+
+func ValidateSharedFlows(v *SharedFlows, path string) []error {
+	if v == nil {
+		return nil
+	}
+
+	subPath := fmt.Sprintf("%s.SharedFlows", path)
+	if len(v.UnknownNode) > 0 {
+		return []error{&UnknownNodeError{subPath, v.UnknownNode[0]}}
+	}
+
+	for index, vv := range v.List {
+		errs := ValidateSharedFlow(vv, fmt.Sprintf("%s.%v", subPath, index))
+		if len(errs) > 0 {
+			return errs
+		}
+	}
+
+	return nil
 }

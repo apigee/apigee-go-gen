@@ -12,7 +12,7 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-package bundle
+package apiproxy
 
 import (
 	"fmt"
@@ -39,15 +39,19 @@ var setGRPC = flags.NewSetGRPC(cFlags.Values)
 var setJSON = flags.NewSetJSON(cFlags.Values)
 
 var Cmd = &cobra.Command{
-	Use:   "bundle",
-	Short: "Generate a bundle from a template",
+	Use:   "apiproxy",
+	Short: "Generate an API proxy bundle from a template",
 	Long:  Usage(),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if strings.TrimSpace(string(cFlags.OutputFile)) == "" && dryRun.IsUnset() {
 			return errors.New("required flag(s) \"output\" not set")
 		}
 
-		err := render.RenderBundle(cFlags, bool(validate), dryRun.Value)
+		createModelFunc := func(input string) (v1.Model, error) {
+			return v1.NewAPIProxyModel(input)
+		}
+
+		err := render.GenerateBundle(createModelFunc, cFlags, bool(validate), dryRun.Value)
 		if errs, ok := err.(v1.ValidationErrors); ok {
 			for i := 0; i < len(errs.Errors) && i < 10; i++ {
 				_, _ = fmt.Fprintf(os.Stderr, "error: %s\n", errs.Errors[i].Error())
@@ -64,7 +68,7 @@ func init() {
 	Cmd.Flags().VarP(&cFlags.TemplateFile, "template", "t", `path to main template"`)
 	Cmd.Flags().VarP(&cFlags.IncludeList, "include", "i", `path to helper templates (globs allowed)`)
 	Cmd.Flags().VarP(&cFlags.OutputFile, "output", "o", `output directory or file`)
-	Cmd.Flags().VarP(&dryRun, "dry-run", "d", `prints rendered bundle template to stdout"`)
+	Cmd.Flags().VarP(&dryRun, "dry-run", "d", `prints rendered API proxy template to stdout"`)
 	Cmd.Flags().VarP(&validate, "validate", "v", "check for unknown elements")
 	Cmd.Flags().Var(&setValue, "set", `sets a key=value (bool,float,string), e.g. "use_ssl=true"`)
 	Cmd.Flags().Var(&setValueStr, "set-string", `sets key=value (string), e.g. "base_path=/v1/hello" `)
@@ -80,7 +84,7 @@ func init() {
 
 func Usage() string {
 	usageText := `
-This command takes template, renders it, and finally packages the result into a bundle.
+This command takes template, renders it, and finally packages the result into an API proxy bundle.
 
 The rendering context includes the following data:
 

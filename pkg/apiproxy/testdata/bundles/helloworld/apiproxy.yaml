@@ -127,4 +127,4 @@ TargetEndpoints:
       HTTPTargetConnection:
         Properties: {}
         URL: http://mocktarget.apigee.net
-Resources: {}
+Resources: []

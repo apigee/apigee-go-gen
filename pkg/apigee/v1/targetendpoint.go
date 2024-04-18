@@ -47,7 +47,7 @@ func (p *TargetEndpoint) FileName() string {
 }
 
 func (p *TargetEndpoint) FilePath() string {
-	return filepath.Join("apiproxy", "targets", p.FileName())
+	return filepath.Join("targets", p.FileName())
 }
 
 func ValidateTargetEndpoint(v *TargetEndpoint, path string) []error {

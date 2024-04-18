@@ -16,19 +16,15 @@ package v1
 
 import (
 	"encoding/xml"
-	"fmt"
 	"github.com/go-errors/errors"
 	"github.com/micovery/apigee-go-gen/pkg/utils"
-	"github.com/micovery/apigee-go-gen/pkg/zip"
 	"gopkg.in/yaml.v3"
-	"net/url"
-	"os"
 	"path/filepath"
 )
 
 func NewAPIProxyModel(input string) (*APIProxyModel, error) {
 	proxyModel := &APIProxyModel{}
-	err := proxyModel.HydrateModelFromYAMLDoc(input)
+	err := proxyModel.Hydrate(input)
 	if err != nil {
 		return nil, err
 	}
@@ -47,23 +43,39 @@ type APIProxyModel struct {
 	YAMLDoc *yaml.Node `xml:"-"`
 }
 
-func ValidateAPIProxyModel(v *APIProxyModel) error {
-	if v == nil {
+func (a *APIProxyModel) Name() string {
+	return a.APIProxy.Name
+}
+
+func (a *APIProxyModel) DisplayName() string {
+	return a.APIProxy.DisplayName
+}
+
+func (a *APIProxyModel) Revision() int {
+	return a.APIProxy.Revision
+}
+
+func (a *APIProxyModel) GetResources() *Resources {
+	return &a.Resources
+}
+
+func (a *APIProxyModel) Validate() error {
+	if a == nil {
 		return nil
 	}
 
 	err := ValidationErrors{Errors: []error{}}
 	path := "Root"
-	if len(v.UnknownNode) > 0 {
-		err.Errors = append(err.Errors, &UnknownNodeError{path, v.UnknownNode[0]})
+	if len(a.UnknownNode) > 0 {
+		err.Errors = append(err.Errors, &UnknownNodeError{path, a.UnknownNode[0]})
 		return err
 	}
 
 	var subErrors []error
-	subErrors = append(subErrors, ValidateAPIProxy(&v.APIProxy, path)...)
-	subErrors = append(subErrors, ValidateProxyEndpoints(&v.ProxyEndpoints, path)...)
-	subErrors = append(subErrors, ValidateTargetEndpoints(&v.TargetEndpoints, path)...)
-	subErrors = append(subErrors, ValidateResources(&v.Resources, path)...)
+	subErrors = append(subErrors, ValidateAPIProxy(&a.APIProxy, path)...)
+	subErrors = append(subErrors, ValidateProxyEndpoints(&a.ProxyEndpoints, path)...)
+	subErrors = append(subErrors, ValidateTargetEndpoints(&a.TargetEndpoints, path)...)
+	subErrors = append(subErrors, ValidateResources(&a.Resources, path)...)
 
 	if len(subErrors) > 0 {
 		err.Errors = append(err.Errors, subErrors...)
@@ -73,13 +85,11 @@ func ValidateAPIProxyModel(v *APIProxyModel) error {
 	return nil
 }
 
-type BundleFile interface {
-	FileContents() ([]byte, error)
-	FileName() string
-	FilePath() string
+func (a *APIProxyModel) BundleRoot() string {
+	return "apiproxy"
 }
 
-func (a *APIProxyModel) GetBundleFiles() []BundleFile {
+func (a *APIProxyModel) BundleFiles() []BundleFile {
 	bundleFiles := []BundleFile{
 		BundleFile(&a.APIProxy),
 	}
@@ -111,10 +121,10 @@ func (a *APIProxyModel) YAML() ([]byte, error) {
 	return utils.YAML2Text(a.YAMLDoc, 2)
 }
 
-func (a *APIProxyModel) HydrateModelFromYAMLDoc(filePath string) error {
+func (a *APIProxyModel) Hydrate(filePath string) error {
 	var err error
 
-	a.YAMLDoc, err = ReadAPIProxyModelFromYAML(filePath)
+	a.YAMLDoc, err = utils.YAMLFile2YAML(filePath)
 
 	if err != nil {
 		return err
@@ -132,176 +142,9 @@ func (a *APIProxyModel) HydrateModelFromYAMLDoc(filePath string) error {
 		return errors.New(err)
 	}
 
-	err = LoadAPIProxyModelResources(a, filepath.Dir(filePath))
+	err = HydrateResources(a, filepath.Dir(filePath))
 	if err != nil {
 		return errors.New(err)
-	}
-
-	return nil
-}
-
-func ReadAPIProxyModelFromYAML(filePath string) (*yaml.Node, error) {
-	var file *os.File
-	var err error
-	if file, err = os.Open(filePath); err != nil {
-		return nil, errors.New(err)
-	}
-	defer file.Close()
-
-	//switch to directory relative to the YAML file so that JSON $refs are valid
-	wd, err := os.Getwd()
-	if err != nil {
-		return nil, errors.New(err)
-	}
-	defer os.Chdir(wd)
-
-	err = os.Chdir(filepath.Dir(filePath))
-	if err != nil {
-		return nil, errors.New(err)
-	}
-
-	dataNode, err := utils.Text2YAML(file)
-	if err != nil {
-		return nil, err
-	}
-
-	return dataNode, nil
-}
-
-func LoadAPIProxyModelResources(proxyModel *APIProxyModel, fromDir string) error {
-	// switch to directory relative to the YAML file so that resource paths are valid
-	wd, err := os.Getwd()
-	if err != nil {
-		return errors.New(err)
-	}
-	defer os.Chdir(wd)
-
-	err = os.Chdir(fromDir)
-	if err != nil {
-		return errors.New(err)
-	}
-
-	for _, resource := range proxyModel.Resources.List {
-		parsedUrl, err := url.Parse(resource.Path)
-		if err != nil {
-			return errors.New(err)
-		}
-
-		content, err := os.ReadFile(parsedUrl.Path)
-		if err != nil {
-			return errors.New(err)
-		}
-		resource.Content = content
-	}
-	return nil
-}
-
-func APIProxyModel2Bundle(proxyModel *APIProxyModel, output string) error {
-	extension := filepath.Ext(output)
-	if extension == ".zip" {
-		err := APIProxyModel2BundleZip(proxyModel, output)
-		if err != nil {
-			return err
-		}
-	} else if extension != "" {
-		return errors.Errorf("output extension %s is not supported", extension)
-	} else {
-		err := APIProxyModel2BundleDir(proxyModel, output)
-		if err != nil {
-			return err
-		}
-		//directory
-	}
-
-	return nil
-}
-
-func APIProxyModel2BundleDir(proxyModel *APIProxyModel, output string) error {
-
-	err := os.MkdirAll(output, os.ModePerm)
-	if err != nil {
-		return errors.New(err)
-	}
-
-	bundleFiles := proxyModel.GetBundleFiles()
-	for _, bundleFile := range bundleFiles {
-		filePath := bundleFile.FilePath()
-		fileDir := filepath.Dir(filePath)
-
-		dirDiskPath := filepath.Join(output, fileDir)
-		err := os.MkdirAll(dirDiskPath, os.ModePerm)
-		if err != nil {
-			return errors.New(err)
-		}
-
-		fileContent, err := bundleFile.FileContents()
-		if err != nil {
-			return err
-		}
-
-		fileDiskPath := filepath.Join(output, filePath)
-		err = os.WriteFile(fileDiskPath, fileContent, os.ModePerm)
-		if err != nil {
-			return errors.New(err)
-		}
-	}
-
-	return nil
-}
-
-func APIProxyModel2BundleZip(proxyModel *APIProxyModel, outputZip string) error {
-	tmpDir, err := os.MkdirTemp("", "unzipped-bundle-*")
-	if err != nil {
-		return errors.New(err)
-	}
-
-	err = APIProxyModel2Bundle(proxyModel, tmpDir)
-	if err != nil {
-		return err
-	}
-
-	err = zip.Zip(outputZip, tmpDir)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func APIProxyModelYAML2Bundle(input string, output string, validate bool, dryRun string) (err error) {
-	proxyModel, err := NewAPIProxyModel(input)
-	if err != nil {
-		return err
-	}
-
-	if dryRun == "xml" {
-		xmlText, err := proxyModel.XML()
-		if err != nil {
-			return err
-		}
-		fmt.Println(string(xmlText))
-	} else if dryRun == "yaml" {
-		yamlText, err := proxyModel.YAML()
-		if err != nil {
-			return err
-		}
-		fmt.Println(string(yamlText))
-	}
-
-	if validate {
-		err = ValidateAPIProxyModel(proxyModel)
-		if err != nil {
-			return err
-		}
-	}
-
-	if dryRun != "" {
-		return nil
-	}
-
-	err = APIProxyModel2Bundle(proxyModel, output)
-	if err != nil {
-		return err
 	}
 
 	return nil

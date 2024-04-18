@@ -32,7 +32,7 @@
 
     slug_make(in string) string
         Converts string to a slug
-        e.g. {{ slug_maek "My API Proxy" }} outputs "my-api-proxy"
+        e.g. {{ slug_maek "My API proxy" }} outputs "my-api-proxy"
 
     url_parse(url string) net.URL
         Parse a URL into its parts

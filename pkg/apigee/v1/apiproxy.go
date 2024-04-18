@@ -18,7 +18,6 @@ import (
 	"fmt"
 	"github.com/gosimple/slug"
 	"github.com/micovery/apigee-go-gen/pkg/utils"
-	"path/filepath"
 )
 
 type APIProxy struct {
@@ -63,7 +62,7 @@ func (a *APIProxy) FileName() string {
 }
 
 func (a *APIProxy) FilePath() string {
-	return filepath.Join("apiproxy", a.FileName())
+	return a.FileName()
 }
 
 func (a *APIProxy) XML() ([]byte, error) {

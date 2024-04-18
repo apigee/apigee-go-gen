@@ -15,10 +15,10 @@
 package transform
 
 import (
-	bundle_to_yaml "github.com/micovery/apigee-go-gen/cmd/apigee-go-gen/transform/bundle-to-yaml"
+	apiproxy_to_yaml "github.com/micovery/apigee-go-gen/cmd/apigee-go-gen/transform/apiproxy-to-yaml"
 	sharedflow_to_yaml "github.com/micovery/apigee-go-gen/cmd/apigee-go-gen/transform/sharedflow-to-yaml"
 	xml_to_yaml "github.com/micovery/apigee-go-gen/cmd/apigee-go-gen/transform/xml-to-yaml"
-	yaml_to_bundle "github.com/micovery/apigee-go-gen/cmd/apigee-go-gen/transform/yaml-to-bundle"
+	yaml_to_apiproxy "github.com/micovery/apigee-go-gen/cmd/apigee-go-gen/transform/yaml-to-apiproxy"
 	yaml_to_sharedflow "github.com/micovery/apigee-go-gen/cmd/apigee-go-gen/transform/yaml-to-sharedflow"
 	yaml_to_xml "github.com/micovery/apigee-go-gen/cmd/apigee-go-gen/transform/yaml-to-xml"
 	"github.com/spf13/cobra"
@@ -26,14 +26,14 @@ import (
 
 var Cmd = &cobra.Command{
 	Use:   "transform",
-	Short: "Transform between shared-flow, bundle, xml, and yaml",
+	Short: "Transform between shared flow, API proxy, xml, and yaml",
 }
 
 func init() {
 	Cmd.AddCommand(xml_to_yaml.Cmd)
 	Cmd.AddCommand(yaml_to_xml.Cmd)
-	Cmd.AddCommand(bundle_to_yaml.Cmd)
-	Cmd.AddCommand(yaml_to_bundle.Cmd)
+	Cmd.AddCommand(apiproxy_to_yaml.Cmd)
+	Cmd.AddCommand(yaml_to_apiproxy.Cmd)
 	Cmd.AddCommand(sharedflow_to_yaml.Cmd)
 	Cmd.AddCommand(yaml_to_sharedflow.Cmd)
 }

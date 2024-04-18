@@ -16,13 +16,35 @@ package sharedflow_to_yaml
 
 import (
 	"github.com/go-errors/errors"
+	"github.com/micovery/apigee-go-gen/pkg/flags"
+	"github.com/micovery/apigee-go-gen/pkg/sharedflow"
 	"github.com/spf13/cobra"
+	"strings"
 )
+
+var input flags.String
+var output flags.String
+var dryRun = flags.NewBool(false)
 
 var Cmd = &cobra.Command{
 	Use:   "sharedflow-to-yaml",
-	Short: "Transforms a shared-flow into a YAML file",
+	Short: "Transforms a sharedflow into a YAML file",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return errors.New("this command is not implemented yet")
+		if strings.TrimSpace(string(output)) == "" && dryRun == false {
+			return errors.New("required flag(s) \"output\" not set")
+		}
+
+		return sharedflow.Bundle2YAMLFile(string(input), string(output), bool(dryRun))
 	},
+}
+
+func init() {
+
+	Cmd.Flags().SortFlags = false
+	Cmd.Flags().VarP(&input, "input", "i", "path to bundle zip or dir")
+	Cmd.Flags().VarP(&output, "output", "o", "path to output YAML file or dir")
+	Cmd.Flags().VarP(&dryRun, "dry-run", "d", "prints YAML document to stdout")
+
+	_ = Cmd.MarkFlagRequired("input")
+
 }

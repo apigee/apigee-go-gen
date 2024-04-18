@@ -15,14 +15,53 @@
 package yaml_to_sharedflow
 
 import (
+	"fmt"
 	"github.com/go-errors/errors"
+	v1 "github.com/micovery/apigee-go-gen/pkg/apigee/v1"
+	"github.com/micovery/apigee-go-gen/pkg/flags"
+	"github.com/micovery/apigee-go-gen/pkg/render"
 	"github.com/spf13/cobra"
+	"os"
+	"strings"
 )
+
+var input flags.String
+var output flags.String
+var dryRun = flags.NewEnum([]string{"xml", "yaml"})
+var validate = flags.NewBool(true)
 
 var Cmd = &cobra.Command{
 	Use:   "yaml-to-sharedflow",
-	Short: "Transforms a YAML file into a shared-flow",
+	Short: "Transforms a YAML file into a sharedflow",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return errors.New("this command is not implemented yet")
+		if strings.TrimSpace(string(output)) == "" && dryRun.IsUnset() {
+			return errors.New("required flag(s) \"output\" not set")
+		}
+
+		model, err := v1.NewSharedFlowBundleModel(string(input))
+		if err != nil {
+			return err
+		}
+
+		err = render.CreateBundle(model, string(output), bool(validate), dryRun.Value)
+		if errs, ok := err.(v1.ValidationErrors); ok {
+			for i := 0; i < len(errs.Errors) && i < 10; i++ {
+				_, _ = fmt.Fprintf(os.Stderr, "Error: %s\n", errs.Errors[i].Error())
+			}
+			os.Exit(1)
+		}
+
+		return err
 	},
+}
+
+func init() {
+
+	Cmd.Flags().SortFlags = false
+	Cmd.Flags().VarP(&input, "input", "i", "path to shared flow YAML file")
+	Cmd.Flags().VarP(&output, "output", "o", "path to output zip file or dir")
+	Cmd.Flags().VarP(&dryRun, "dry-run", "d", "print XML or YAML to stdout")
+	Cmd.Flags().VarP(&validate, "validate", "v", "check for unknown elements")
+
+	_ = Cmd.MarkFlagRequired("input")
 }

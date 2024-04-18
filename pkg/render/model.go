@@ -15,6 +15,7 @@
 package render
 
 import (
+	"fmt"
 	"github.com/go-errors/errors"
 	"github.com/micovery/apigee-go-gen/pkg/apigee/v1"
 	"github.com/micovery/apigee-go-gen/pkg/flags"
@@ -22,7 +23,7 @@ import (
 	"path/filepath"
 )
 
-func RenderBundle(cFlags *CommonFlags, validate bool, dryRun string) error {
+func GenerateBundle(createModelFunc func(string) (v1.Model, error), cFlags *CommonFlags, validate bool, dryRun string) error {
 	var err error
 
 	bundleOutputFile := cFlags.OutputFile
@@ -34,12 +35,54 @@ func RenderBundle(cFlags *CommonFlags, validate bool, dryRun string) error {
 	}
 
 	// render the template to a temporary location
-	cFlags.OutputFile = flags.String(filepath.Join(tmpDir, "apiproxy.yaml"))
+	cFlags.OutputFile = flags.String(filepath.Join(tmpDir, "model.yaml"))
 	err = RenderGenericTemplate(cFlags, false)
 	if err != nil {
 		return errors.New(err)
 	}
 
-	// create bundle from rendered template
-	return v1.APIProxyModelYAML2Bundle(string(cFlags.OutputFile), string(bundleOutputFile), validate, dryRun)
+	// create apiproxy from rendered template
+	model, err := createModelFunc(string(cFlags.OutputFile))
+	if err != nil {
+		return err
+	}
+	return CreateBundle(model, string(bundleOutputFile), validate, dryRun)
+}
+
+func CreateBundle(model v1.Model, output string, validate bool, dryRun string) (err error) {
+	if err != nil {
+		return err
+	}
+
+	if dryRun == "xml" {
+		xmlText, err := model.XML()
+		if err != nil {
+			return err
+		}
+		fmt.Println(string(xmlText))
+	} else if dryRun == "yaml" {
+		yamlText, err := model.YAML()
+		if err != nil {
+			return err
+		}
+		fmt.Println(string(yamlText))
+	}
+
+	if validate {
+		err = model.Validate()
+		if err != nil {
+			return err
+		}
+	}
+
+	if dryRun != "" {
+		return nil
+	}
+
+	err = v1.Model2Bundle(model, output)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

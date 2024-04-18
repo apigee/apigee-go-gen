@@ -23,7 +23,7 @@ The `apigee-go-gen` tool streamlines your Apigee development experience using [G
 
 **Here's what you'll find:**
 
-* **Transformation commands:** Easily convert between Apigee's API Proxy format and YAML for better readability and management.
+* **Transformation commands:** Easily convert between Apigee's API proxy format and YAML for better readability and management.
 * **Templating commands:**  Enjoy powerful customization and dynamic configuration options, inspired by the flexibility of Helm using the Go [text/template](https://pkg.go.dev/text/template) engine.
 
 By using this tool alongside the [Apigee CLI](https://github.com/apigee/apigeecli), you'll unlock a highly customizable workflow. This is perfect for both streamlined local development and robust CI/CD pipelines.
@@ -35,9 +35,12 @@ By using this tool alongside the [Apigee CLI](https://github.com/apigee/apigeecl
 * [Understanding API Proxy Bundles](#understanding-api-proxy-bundles)
 * [Transformation Commands](#transformation-commands)
   * [xml-to-yaml](#xml-to-yaml-command)
-  * [yaml-to-xml](#yaml-to-bundle-command)
-  * [bundle-to-yaml](#bundle-to-yaml-command)
-  * [yaml-to-bundle](#yaml-to-bundle-command)
+  * [yaml-to-xml](#yaml-to-xml-command)
+  * [apiproxy-to-yaml](#api-proxy-to-yaml-command)
+  * [yaml-to-apiproxy](#yaml-to-api-proxy-command)
+  * [sharedflow-to-yaml](#shared-flow-to-yaml-command)
+  * [yaml-to-sharedflow](#yaml-to-shared-flow-command)
+  * [sharedflow-to-yaml](#shared-flow-to-yaml-command)
 * [Template Rendering Commands](#template-rendering-commands)
   * [Using OpenAPI Spec](#creating-api-proxy-from-openapi-spec)
   * [Using GraphQL Schema](#creating-api-proxy-from-graphql-schema)
@@ -48,12 +51,12 @@ By using this tool alongside the [Apigee CLI](https://github.com/apigee/apigeecl
     
 ## Why use YAML-First
 
-The API Proxy bundle format has certain characteristics that can present challenges:
+The API proxy bundle format has certain characteristics that can present challenges:
 
 * **XML Format**: XML is a polarizing format. While it offers advantages like legacy tooling 
 support and well-defined schema validation, its verbosity can make it less  ideal for smaller configuration files.
 
-* **Prescriptive Structure**: The structure of API Proxy bundles can feel somewhat rigid, potentially 
+* **Prescriptive Structure**: The structure of API proxy bundles can feel somewhat rigid, potentially 
 limiting flexibility in terms of re-use and customization. This often leads Apigee customers to develop their 
 own systems to manage, adapt, and deploy these bundles across environments.
 
@@ -77,14 +80,14 @@ This approach has the potential to address the current challenges, offering:
 ## Understanding API Proxy Bundles
 
 
-In the Apigee world, API Proxy bundles are like the packages that hold all the instructions your API needs to work. Here's a simple breakdown:
+In the Apigee world, API proxy bundles are like the packages that hold all the instructions your API needs to work. Here's a simple breakdown:
 
-* **Creating APIs:** When you design an API using the Apigee X UI and download the zip file, you're actually getting an API Proxy bundle.
+* **Creating APIs:** When you design an API using the Apigee X UI and download the zip file, you're actually getting an API proxy bundle.
 * **Deploying APIs:** Every time you deploy an API in Apigee, you're sending a copy of that bundle to the Apigee system to tell it how to handle your API requests.
 
 **What's inside a bundle?**
 
-Think of an API Proxy bundle like a neatly organized package. It contains the essential components for your API to function:
+Think of an API proxy bundle like a neatly organized package. It contains the essential components for your API to function:
 
 * **Instructions for handling requests:** This part tells Apigee how to respond to the different types of requests your API might receive.
 * **Policies for security and management:** These define how to protect your API, control access, and even things like tracking usage.
@@ -151,10 +154,10 @@ The `apigee-go-gen` offers a powerful set of `transform` commands for your Apige
   * `xml-to-yaml` - Transforms a snippet of XML to YAML snippet
 
 
-**API Proxy Bundles ↔️ YAML-First API Proxies:**  Convert between traditional API Proxy bundles and a more user-friendly YAML representation.
+**API Proxy Bundles ↔️ YAML-First API Proxies:**  Convert between traditional API proxy bundles and a more user-friendly YAML representation.
 
-* `bundle-to-yaml` - Transforms an API Proxy bundle to a YAML doc
-* `yaml-to-bundle` - Transforms a YAML doc to an API Proxy bundle
+* `apiproxy-to-yaml` - Transforms an API proxy bundle to a YAML doc
+* `yaml-to-apiproxy` - Transforms a YAML doc to an API proxy bundle
 
 ### XML to YAML Command
 
@@ -227,18 +230,18 @@ The command reads YAML form `stdin`, and writes XML to `stdout`. Below are a few
     ```
     > **NOTE:** Using echo as shown above will not work properly if your input already contains single quotes
 
-### Bundle to YAML Command
+### API Proxy to YAML Command
 
-**Purpose:** This command takes existing API Proxy bundles and transforms them into editable YAML documents. This offers several advantages:
+**Purpose:** This command takes existing API proxy bundles and transforms them into editable YAML documents. This offers several advantages:
 
-* **Enhanced Customization:** Tweak your API Proxy configurations with the readability of YAML.
+* **Enhanced Customization:** Tweak your API proxy configurations with the readability of YAML.
 * **Workflow Integration:** YAML's compatibility opens up possibilities for version control and automation.
 * **YAML-First Transition:** Start using a YAML-First approach with your existing API Proxies.
 
 
 **YAML Document Structure**
 
-The YAML document created by `bundle-to-yaml` contains all the elements from the bundle in a single file.
+The YAML document created by `apiproxy-to-yaml` contains all the elements from the bundle in a single file.
 
 The structure looks like this
 
@@ -290,7 +293,7 @@ The command creates resource files alongside the YAML doc.
 
 **Usage**
 
-The `bundle-to-yaml` command takes two parameters `-input` and `-output`.
+The `apiproxy-to-yaml` command takes two parameters `-input` and `-output`.
 
 * `--input` is either from a bundle zip file or an existing bundle directory. 
 
@@ -305,21 +308,21 @@ Below are a couple of examples
 
   * Reading bundle from a zip file
     ```shell
-    apigee-go-gen transform bundle-to-yaml \
-        --input ./examples/bundles/helloworld/helloworld.zip \
+    apigee-go-gen transform apiproxy-to-yaml \
+        --input ./examples/apiproxies/helloworld/helloworld.zip \
         --output ./out/yaml-first/helloworld1/apiproxy.yaml
     ```
   * Reading bundle from a directory
     ```shell
-    apigee-go-gen transform bundle-to-yaml \
-        --input ./examples/bundles/helloworld/ \
+    apigee-go-gen transform apiproxy-to-yaml \
+        --input ./examples/apiproxies/helloworld/ \
         --output ./out/yaml-first/helloworld2/apiproxy.yaml
     ```
 
 
 **YAML Documents With JSONRefs**
 
-The `bundle-to-yaml` command offers a starting point by converting your API Proxy bundle into a single YAML document. 
+The `apiproxy-to-yaml` command offers a starting point by converting your API proxy bundle into a single YAML document. 
 
 To further enhance organization and reusability, you can use [JSONRef](http://jsonref.org/)s. This allows you to:
 
@@ -352,21 +355,21 @@ The new `policies.yaml` file would look like this:
     #...
 ```
 
-### YAML to Bundle Command
+### YAML to API Proxy Command
 
-**Purpose:** This command takes an existing YAML document and converts it into a ready-to-use API Proxy bundle.
+**Purpose:** This command takes an existing YAML document and converts it into a ready-to-use API proxy bundle.
 
 This command plays a crucial part in streamlining your Apigee development process. Here's how it works:
 
-1. **Design:** Craft your API Proxy configuration using the more readable and manageable YAML format. 
-2. **Convert:** Feed your YAML document into the command to get a fully compliant API Proxy bundle.
+1. **Design:** Craft your API proxy configuration using the more readable and manageable YAML format. 
+2. **Convert:** Feed your YAML document into the command to get a fully compliant API proxy bundle.
 3. **Deploy:** Use the Apigee CLI to deploy the bundle
 
 **Usage**
 
-The `yaml-to-bundle` command takes two parameters `-input` and `-output`
+The `yaml-to-apiproxy` command takes two parameters `-input` and `-output`
 
-* `--input` is the YAML document that contains the API Proxy definitions
+* `--input` is the YAML document that contains the API proxy definitions
 
 * `--output` is either a bundle zip or a bundle directory to be created
 
@@ -378,24 +381,134 @@ Below are a couple of examples
 
   * Creating a bundle zip
     ```shell
-    apigee-go-gen transform yaml-to-bundle \
+    apigee-go-gen transform yaml-to-apiproxy \
         --input ./examples/yaml-first/petstore/apiproxy.yaml \
-        --output ./out/bundles/petstore.zip 
+        --output ./out/apiproxies/petstore.zip 
     ```
   * Creating a bundle directory
     ```shell
-    apigee-go-gen transform yaml-to-bundle \
+    apigee-go-gen transform yaml-to-apiproxy \
         --input ./examples/yaml-first/petstore/apiproxy.yaml \
-        --output ./out/bundles/petstore
+        --output ./out/apiproxies/petstore
     ```
+
+
+### Shared Flow to YAML Command
+
+**Purpose:** This command takes existing shared flow bundles and transforms them into editable YAML documents. 
+
+
+**YAML Document Structure**
+
+The YAML document created by `sharedflow-to-yaml` contains all the elements from the bundle in a single file.
+
+The structure looks like this
+
+```yaml
+# From ./sharedflowbundle/flow-name.xml
+SharedFlowBundle:
+  .name: hello-world
+  .revision: 1
+  #...
+
+# From ./sharedflowbundle/policies/*
+Policies: 
+  - AssignMessage: 
+      .name: AM-SetTarget
+      #...
+  - RaiseFault:
+      .name: RF-Set500
+      #...
+
+# From ./sharedflowbundle/sharedflows/*
+SharedFlows: 
+  - SharedFlow: 
+      .name: proxy1
+      #...
+
+# From ./sharedflowbundle/resources/*/* 
+Resources: 
+  - Resource:
+      Type: "properties"
+      Path: "./path/to/resource.properties"
+  - Resource: 
+      Type: "jsc"
+      Path: "./path/to/script.js"
+```
+
+The command creates resource files alongside the YAML doc.
+
+**Usage**
+
+The `sharedflow-to-yaml` command takes two parameters `-input` and `-output`.
+
+* `--input` is either from a bundle zip file or an existing bundle directory.
+
+* `--output` is the path for the YAML document to create
+
+* `--output` full path is created if it does not exist (like `mkdir -p`)
+
+Bundle resources are created in the same location as the `--output`
+
+Below are a couple of examples
+
+
+* Reading bundle from a zip file
+  ```shell
+  apigee-go-gen transform sharedflow-to-yaml \
+      --input ./examples/sharedflows/owasp/owasp.zip \
+      --output ./out/yaml-first/owasp/sharedflow.yaml
+  ```
+* Reading bundle from a directory
+  ```shell
+  apigee-go-gen transform sharedflow-to-yaml \
+      --input ./examples/sharedflows/owasp/ \
+      --output ./out/yaml-first/owasp2/sharedflow.yaml
+  ```
+
+
+
+### YAML to Shared Flow Command
+
+**Purpose:** This command takes an existing YAML document and converts it into a ready-to-use shared flow bundle.
+
+**Usage**
+
+The `yaml-to-sharedflow` command takes two parameters `-input` and `-output`
+
+* `--input` is the YAML document that contains the shared flow definitions
+
+* `--output` is either a bundle zip or a bundle directory to be created
+
+* `--output` full path is created if it does not exist (like `mkdir -p`)
+
+Bundle resources are read relative to the location of the `--input`
+
+Below are a couple of examples
+
+* Creating a bundle zip
+  ```shell
+  apigee-go-gen transform yaml-to-sharedflow \
+      --input ./examples/yaml-first/owasp/sharedflow.yaml \
+      --output ./out/sharedflows/owasp.zip 
+  ```
+* Creating a bundle directory
+  ```shell
+  apigee-go-gen transform yaml-to-sharedflow \
+      --input ./examples/yaml-first/owasp/sharedflow.yaml \
+      --output ./out/sharedflows/owasp
+  ```
+
 
 ## Template Rendering Commands
 
-The `apigee-go-gen` includes a set of `render` commands that let you create API Proxy bundles based on popular formats like
+The `apigee-go-gen` includes a set of `render` commands that let you create API proxy bundles based on popular formats like
 OpenAPI, GraphQL, gRPC, and more using templates. Think of these templates as blueprints for your API Proxies.
 
 * `render template` - Renders a [Go-style](https://pkg.go.dev/text/template) template
-* `render bundle` - Combines `render template` and `yaml-to-bundle` into one
+* `render apiproxy` - Combines `render template` and `yaml-to-apiproxy` into one
+* `render sharedflow` - Combines `render template` and `yaml-to-sharedflow` into one
+
 
 **Why use templates?**
 
@@ -403,7 +516,7 @@ OpenAPI, GraphQL, gRPC, and more using templates. Think of these templates as bl
 behavior based on environment variables.
 
 * **Unlock Your Specs:** Don't just describe your API – use the information in your OpenAPI specs (and others) to
-automatically build out parts of your API Proxy configuration.
+automatically build out parts of your API proxy configuration.
 
 Imagine easily adding security rules, setting target URLs based on your setup, or even having your API proxy structure adjust to match your API specifications. These tools make that possible!
 
@@ -413,11 +526,11 @@ The `render` commands are powered by the Go [text/template](https://pkg.go.dev/t
 
 Some popular tool that also use this same engine are [Helm](https://helm.sh/), and [Hugo](https://gohugo.io/).
 
-Below are a few examples of how to use the `render bundle` command for generating API Proxies from OAS, GraphQL, and GRPC.
+Below are a few examples of how to use the `render apiproxy` command for generating API Proxies from OAS, GraphQL, and GRPC.
 
 ### Creating API Proxy from OpenAPI Spec
 
-You can use the `render bundle` command to create a bundle using a template and an OpenAPI spec as input.
+You can use the `render apiproxy` command to create a bundle using a template and an OpenAPI spec as input.
 
 **How it Works:**
 
@@ -429,16 +542,16 @@ You can use the `render bundle` command to create a bundle using a template and 
 
 **See an Example:** Check out the included OAS3 template at [examples/template/oas3](examples/templates/oas3/apiproxy.yaml). 
 
-It demonstrates the basics of how the command creates API Proxy bundles from your OpenAPI 3 spec.
+It demonstrates the basics of how the command creates API proxy bundles from your OpenAPI 3 spec.
 
 Here is how you would call it
 
 ```shell
-apigee-go-gen render bundle \
+apigee-go-gen render apiproxy \
     --template ./examples/templates/oas3/apiproxy.yaml \
     --set-oas spec=./examples/specs/petstore.yaml \
     --include ./examples/templates/oas3/*.tmpl \
-    --output ./out/bundles/petstore.zip
+    --output ./out/apiproxies/petstore.zip
 ```
 
 > [!NOTE]
@@ -451,7 +564,7 @@ apigee-go-gen render bundle \
 For streamlined development, you can view the rendered template output directly in your terminal. This avoids writing to disk during your iterative process. Add the `--dry-run xml` or `--dry-run yaml` flag:
 
 ```shell
-apigee-go-gen render bundle \
+apigee-go-gen render apiproxy \
     --template ./examples/templates/oas3/apiproxy.yaml \
     --set-oas spec=./examples/specs/petstore.yaml \
     --include ./examples/templates/oas3/*.tmpl \
@@ -461,9 +574,9 @@ apigee-go-gen render bundle \
 
 ### Creating API Proxy from GraphQL Schema
 
-You can use the `render bundle` command to create a bundle using a template and a GraphQL schema as input.
+You can use the `render apiproxy` command to create a bundle using a template and a GraphQL schema as input.
 
-While GraphQL schemas might not contain all the necessary details for a complete API Proxy bundle, this command offers flexibility through the `--set` and `--set-string` parameters. 
+While GraphQL schemas might not contain all the necessary details for a complete API proxy bundle, this command offers flexibility through the `--set` and `--set-string` parameters. 
 This works similar to how values are set in Helm charts.
 
 **How it Works:**
@@ -473,27 +586,27 @@ This works similar to how values are set in Helm charts.
 * **Inject Your Values:** Use `--set` and `--set-string` to provide missing values (like target URLs) for your template.
 
 
-**See an Example:** Check out the [examples/templates/graphql](examples/templates/graphql) directory for an example of building the intermediate YAML for a GraphQL API Proxy.
+**See an Example:** Check out the [examples/templates/graphql](examples/templates/graphql) directory for an example of building the intermediate YAML for a GraphQL API proxy.
 
 Here is how you would call it
 
 ```shell
-apigee-go-gen render bundle \
+apigee-go-gen render apiproxy \
      --template ./examples/templates/graphql/apiproxy.yaml \
      --set-graphql schema=./examples/graphql/resorts.graphql \
      --set-string "api_name=resorts-api" \
      --set-string "base_path=/graphql" \
      --set-string "target_url=https://example.com/graphql" \
      --include ./examples/templates/graphql/*.tmpl \
-     --output ./out/bundles/resorts.zip
+     --output ./out/apiproxies/resorts.zip
 ``` 
 
 
 ### Creating API Proxy from gRPC Proto
 
-You can use the `render bundle` command to create bundle using a template and a gRPC proto file as input.
+You can use the `render apiproxy` command to create bundle using a template and a gRPC proto file as input.
 
-When working with gRPC in Apigee, it's crucial to ensure your API Proxy's base path and conditional flows are configured 
+When working with gRPC in Apigee, it's crucial to ensure your API proxy's base path and conditional flows are configured 
 correctly to handle gRPC traffic. This command simplifies the process by letting you build a template that understands 
 these gRPC-specific requirements. 
 
@@ -501,33 +614,33 @@ these gRPC-specific requirements.
 **How it Works:**
 
 * **Start with Your Template:** Input your gRPC proto file, and the template generates the intermediate YAML configuration.
-* **Automate the Details:** The template handles the intricacies of gRPC integration within your API Proxy.
+* **Automate the Details:** The template handles the intricacies of gRPC integration within your API proxy.
 * **Access the Proto:** Use `--set-grpc` to access the gRPC proto text and [descriptor](https://pkg.go.dev/google.golang.org/protobuf/types/descriptorpb#FileDescriptorProto) during template rendering.
 * **Inject Your Values:** Use `--set` and `--set-string` to provide missing values (like target server) for your template.
 
 
-**See an Example:** Check out the [examples/templates/grpc](examples/templates/grpc) directory for an example of building the intermediate YAML for a gRPC API Proxy.
+**See an Example:** Check out the [examples/templates/grpc](examples/templates/grpc) directory for an example of building the intermediate YAML for a gRPC API proxy.
 
 Here is how you would use the command with this example:
 
 ```shell
-apigee-go-gen render bundle \
+apigee-go-gen render apiproxy \
     --template ./examples/templates/grpc/apiproxy.yaml \
     --set-grpc proto=./examples/protos/greeter.proto \
     --set-string "target_server=example-target-server" \
     --include ./examples/templates/grpc/*.tmpl \
-    --output ./out/bundles/greeter.zip
+    --output ./out/apiproxies/greeter.zip
 ```
 
 ### Creating API Proxy from other formats
 
-The `render bundle` command can be used to create a bundle from any template.
+The `render apiproxy` command can be used to create a bundle from any template.
 It's not necessary to start from an OpenAPI spec, GraphQL schema, or gRPC proto. 
 
 You can use flags such as `--set` and `--set-string` to dynamically provide values for the template.
 These values are available during the rendering process using `{{ $.Values.key }}`.
 
-This allows you to create templates, and dynamically generate API Proxy bundles based
+This allows you to create templates, and dynamically generate API proxy bundles based
 on your specific requirements.
 
 

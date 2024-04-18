@@ -28,7 +28,7 @@ func Unzip(destDir string, srcZip string) error {
 	if err != nil {
 		return errors.New(err)
 	}
-	defer r.Close()
+	defer MustClose(r)
 
 	unzipFile := func(zipFile *zip.File) error {
 		path := filepath.Join(destDir, zipFile.Name)
@@ -45,7 +45,7 @@ func Unzip(destDir string, srcZip string) error {
 		if err != nil {
 			return errors.New(err)
 		}
-		defer srcFile.Close()
+		defer MustClose(srcFile)
 
 		//some zip files don't have directory entries, make one
 		dir := filepath.Dir(path)
@@ -58,7 +58,7 @@ func Unzip(destDir string, srcZip string) error {
 		if err != nil {
 			return errors.New(err)
 		}
-		defer destFile.Close()
+		defer MustClose(destFile)
 
 		_, err = io.Copy(destFile, srcFile)
 		if err != nil {
@@ -89,20 +89,23 @@ func Zip(destZip string, srcDir string) error {
 	if err != nil {
 		return errors.New(err)
 	}
-	defer outFile.Close()
+	defer MustClose(outFile)
 
 	writer := zip.NewWriter(outFile)
-	defer writer.Close()
+	defer MustClose(writer)
 
 	fSys := os.DirFS(srcDir)
 
-	fs.WalkDir(fSys, ".", func(name string, dir fs.DirEntry, err error) error {
+	err = fs.WalkDir(fSys, ".", func(name string, dir fs.DirEntry, err error) error {
 		if err != nil || name == "." {
 			return err
 		}
 
 		if dir.IsDir() {
-			writer.Create(name + "/")
+			_, err = writer.Create(name + "/")
+			if err != nil {
+				return errors.New(err)
+			}
 			return nil
 		}
 
@@ -115,7 +118,7 @@ func Zip(destZip string, srcDir string) error {
 		if err != nil {
 			return err
 		}
-		defer srcFile.Close()
+		defer MustClose(srcFile)
 
 		_, err = io.Copy(dstFile, srcFile)
 		return err
@@ -125,7 +128,17 @@ func Zip(destZip string, srcDir string) error {
 		return errors.New(err)
 	}
 
-	writer.Flush()
+	err = writer.Flush()
+	if err != nil {
+		return errors.New(err)
+	}
 
 	return nil
+}
+
+func MustClose(c io.Closer) {
+	err := c.Close()
+	if err != nil {
+		panic(err)
+	}
 }

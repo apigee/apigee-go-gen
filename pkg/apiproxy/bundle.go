@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package bundle
+package apiproxy
 
 import (
 	"bytes"
@@ -27,17 +27,17 @@ import (
 	"path/filepath"
 )
 
-func ProxyBundle2YAMLFile(proxyBundle string, outputFile string, dryRun bool) error {
+func Bundle2YAMLFile(proxyBundle string, outputFile string, dryRun bool) error {
 	extension := filepath.Ext(proxyBundle)
 	if extension == ".zip" {
-		err := ProxyBundleZip2YAMLFile(proxyBundle, outputFile, dryRun)
+		err := BundleZip2YAMLFile(proxyBundle, outputFile, dryRun)
 		if err != nil {
 			return err
 		}
 	} else if extension != "" {
 		return errors.Errorf("input extension %s is not supported", extension)
 	} else {
-		err := ProxyBundleDir2YAMLFile(proxyBundle, outputFile, bool(dryRun))
+		err := BundleDir2YAMLFile(proxyBundle, outputFile, bool(dryRun))
 		if err != nil {
 			return err
 		}
@@ -46,7 +46,7 @@ func ProxyBundle2YAMLFile(proxyBundle string, outputFile string, dryRun bool) er
 	return nil
 }
 
-func ProxyBundleZip2YAMLFile(inputZip string, outputFile string, dryRun bool) error {
+func BundleZip2YAMLFile(inputZip string, outputFile string, dryRun bool) error {
 	tmpDir, err := os.MkdirTemp("", "unzipped-bundle-*")
 	if err != nil {
 		return errors.New(err)
@@ -57,11 +57,11 @@ func ProxyBundleZip2YAMLFile(inputZip string, outputFile string, dryRun bool) er
 		return errors.New(err)
 	}
 
-	return ProxyBundleDir2YAMLFile(tmpDir, outputFile, dryRun)
+	return BundleDir2YAMLFile(tmpDir, outputFile, dryRun)
 
 }
 
-func ProxyBundleDir2YAMLFile(inputDir string, outputFile string, dryRun bool) error {
+func BundleDir2YAMLFile(inputDir string, outputFile string, dryRun bool) error {
 	policyFiles := []string{}
 	proxyEndpointsFiles := []string{}
 	targetEndpointsFiles := []string{}
@@ -152,16 +152,17 @@ func ProxyBundleDir2YAMLFile(inputDir string, outputFile string, dryRun bool) er
 	}
 
 	//copy resource files
-	resourcesNode := createMapEntry(mainNode, "Resources", &yaml.Node{Kind: yaml.MappingNode})
+	resourcesNode := createMapEntry(mainNode, "Resources", &yaml.Node{Kind: yaml.SequenceNode})
 	for _, resourceFile := range resourcesFiles {
 		dirName, fileName := filepath.Split(resourceFile)
 		fileType := filepath.Base(dirName)
 
 		location := path.Join(".", fileName)
-		resourceDataNode := createMapEntry(resourcesNode, "Resource", &yaml.Node{Kind: yaml.MappingNode})
+		resourceNode := &yaml.Node{Kind: yaml.MappingNode}
+		resourceDataNode := createMapEntry(resourceNode, "Resource", &yaml.Node{Kind: yaml.MappingNode})
 		createMapEntry(resourceDataNode, "Type", &yaml.Node{Kind: yaml.ScalarNode, Value: fileType})
 		createMapEntry(resourceDataNode, "Path", &yaml.Node{Kind: yaml.ScalarNode, Value: fmt.Sprintf("./%s", location)})
-
+		resourcesNode.Content = append(resourcesNode.Content, resourceNode)
 		outputDir := filepath.Dir(outputFile)
 		err := utils.CopyFile(filepath.Join(outputDir, fileName), filepath.Join(apiProxyDir, resourceFile))
 		if err != nil {

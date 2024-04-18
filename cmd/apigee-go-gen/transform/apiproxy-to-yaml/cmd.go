@@ -12,11 +12,11 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-package bundle_to_yaml
+package apiproxy_to_yaml
 
 import (
 	"github.com/go-errors/errors"
-	"github.com/micovery/apigee-go-gen/pkg/bundle"
+	"github.com/micovery/apigee-go-gen/pkg/apiproxy"
 	"github.com/micovery/apigee-go-gen/pkg/flags"
 	"github.com/spf13/cobra"
 	"strings"
@@ -27,14 +27,14 @@ var output flags.String
 var dryRun = flags.NewBool(false)
 
 var Cmd = &cobra.Command{
-	Use:   "bundle-to-yaml",
-	Short: "Transforms a bundle into a YAML file",
+	Use:   "apiproxy-to-yaml",
+	Short: "Transforms a apiproxy into a YAML file",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if strings.TrimSpace(string(output)) == "" && dryRun == false {
 			return errors.New("required flag(s) \"output\" not set")
 		}
 
-		return bundle.ProxyBundle2YAMLFile(string(input), string(output), bool(dryRun))
+		return apiproxy.Bundle2YAMLFile(string(input), string(output), bool(dryRun))
 	},
 }
 

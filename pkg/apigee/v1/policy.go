@@ -44,7 +44,7 @@ func (p *Policy) FileName() string {
 }
 
 func (p *Policy) FilePath() string {
-	return filepath.Join("apiproxy", "policies", p.FileName())
+	return filepath.Join("policies", p.FileName())
 }
 
 func (p *Policy) XML() ([]byte, error) {
