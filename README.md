@@ -46,7 +46,11 @@ By using this tool alongside the [Apigee CLI](https://github.com/apigee/apigeecl
   * [Using GraphQL Schema](#creating-api-proxy-from-graphql-schema)
   * [Using gRPC Proto](#creating-api-proxy-from-grpc-proto)
   * [Using Other Formats](#creating-api-proxy-from-other-formats)
-* [Installation](#installation)
+* [Installation Options](#installation)
+  * [Install from releases](#install-from-releases)
+  * [Install from source](#install-from-source)
+
+
 
     
 ## Why use YAML-First
@@ -644,7 +648,57 @@ This allows you to create templates, and dynamically generate API proxy bundles 
 on your specific requirements.
 
 
-## Installation
+## Installation Options
+
+You can install the `apigee-go-gen` binary in several ways. See options below.
+
+## Install manually
+
+The most straightforward way to install the tool is to manually download a release tar ball from the
+available GitHub [releases](https://github.com/micovery/apigee-go-gen/releases).
+
+Once you download the tarball, extract it and move the `apigee-go-gen` binary to somewhere in your `$PATH`
+
+## Install with script
+
+For your convenience, there is an [install](/install) script available at the root fo this repo.
+
+This script downloads and installs the `apigee-go-gen` tool automatically for you.
+
+The script takes version, and install directory as optional parameters
+* If version is omitted, it will download the latest tagged release.
+* If install dir is omitted, it will install to `/usr/local/bin`
+* If the install dir is not writable, it will prompt you for sudo password.
+
+
+
+Below are a few examples of how to execute the `install` script
+
+e.g.
+Install latest version into `/usr/local/bin`
+```shell
+curl https://raw.githubusercontent.com/micovery/apigee-go-gen/main/install | sh
+```
+
+
+Install specific version into `/usr/local/bin`
+```shell
+curl https://raw.githubusercontent.com/micovery/apigee-go-gen/main/install | sh -s v0.1.13
+```
+
+Install latest version into `~/.local/bin`
+```shell
+curl https://raw.githubusercontent.com/micovery/apigee-go-gen/main/install | sh -s latest ~/.local/bin
+```
+
+Install specific version into `~/.local/bin`
+```shell
+curl https://raw.githubusercontent.com/micovery/apigee-go-gen/main/install | sh -s v0.1.13 ~/.local/bin
+```
+
+
+
+## Install from source
 
 If you already have [Go](https://go.dev/doc/install) installed in your machine, run the following command:
 
@@ -652,9 +706,9 @@ If you already have [Go](https://go.dev/doc/install) installed in your machine, 
 go install github.com/micovery/apigee-yaml-toolkit/cmd/...@latest
 ```
 
-This will download, build and install the `apigee-go-gen` into your `$GOPATH/bin` directory
+This will download the source, build it (in your machine) and install the `apigee-go-gen` binary into your `$GOPATH/bin` directory.
 
-You can change the `@latest` tag for any other version that has been tagged. (e.g. `@v0.1.8`)
+You can change the `@latest` tag for any other version that has been tagged. (e.g. `@v0.1.13`)
 
 > [!NOTE]
 > The Go tool (and compiler) is only necessary to build the tools in this repo. 
