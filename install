@@ -15,7 +15,6 @@
 
 # This install script was adapted from the KCL installation script (https://kcl-lang.io/script/install-cli.sh)
 
-HTTP_REQUEST_CLI=curl
 GITHUB_ORG=micovery
 GITHUB_REPO=apigee-go-gen
 BINARY_FILENAME=apigee-go-gen
@@ -75,12 +74,8 @@ checkSystemIsSupported() {
 
 
 checkDownloadTool() {
-  if type "curl" &> /dev/null; then
-    HTTP_REQUEST_CLI=curl
-  elif type "wget" &> /dev/null; then
-    HTTP_REQUEST_CLI=wget
-  else
-    error "Either curl or wget is required ..."
+  if ! type "curl" &> /dev/null; then
+    error "curl is required ..."
     exit 1
   fi
 }
@@ -97,12 +92,7 @@ getLatestRelease() {
   local releaseUrl="https://api.github.com/repos/${GITHUB_ORG}/${GITHUB_REPO}/releases"
   local latest_release=""
 
-  if [ "${HTTP_REQUEST_CLI}" == "curl" ]; then
-    latest_release=$(curl -s $releaseUrl | grep \"tag_name\" | grep -v rc | awk 'NR==1{print $2}' |  sed -n 's/\"\(.*\)\",/\1/p')
-  else
-    latest_release=$(wget -q --header="Accept: application/json" -O - $releaseUrl | grep \"tag_name\" | grep -v rc | awk 'NR==1{print $2}' |  sed -n 's/\"\(.*\)\",/\1/p')
-  fi
-
+  latest_release=$(curl -s $releaseUrl | grep \"tag_name\" | grep -v rc | awk 'NR==1{print $2}' |  sed -n 's/\"\(.*\)\",/\1/p')
   ret_val=$latest_release
 }
 
@@ -130,11 +120,7 @@ downloadReleaseTarball() {
   tmpTarBall="${tmpDir}/release.tar.gz"
 
   info "URL:" "${fullTarballUrl} "
-  if [ "${HTTP_REQUEST_CLI}" == "curl" ]; then
-    curl -SsL "${fullTarballUrl}" -o "${tmpTarBall}"
-  else
-    wget -q -O "${tmpTarBall}" "${fullTarballUrl}"
-  fi
+  curl -s -SL "${fullTarballUrl}" -o "${tmpTarBall}"
 
   if [ ! -f "${tmpTarBall}" ]; then
     error "Failed to download $fullTarballUrl ..."
@@ -149,18 +135,11 @@ isReleaseAvailable() {
 
   fullTarballUrl=$(buildTarballUrl "${tag}")
 
-  if [ "$HTTP_REQUEST_CLI" == "curl" ]; then
-    httpStatus=$(curl -sSLI -o /dev/null -w "%{http_code}" "$fullTarballUrl")
-    if [ "$httpStatus" == "200" ]; then
-        return 0
-    fi
-  else
-    wget -q --spider "$fullTarballUrl"
-    exitStatus=$?
-    if [ $exitStatus -eq 0 ]; then
-        return 0
-    fi
+  httpStatus=$(curl -s -SLI -o /dev/null -w "%{http_code}" "$fullTarballUrl")
+  if [ "$httpStatus" == "200" ]; then
+      return 0
   fi
+
   return 1
 }
 

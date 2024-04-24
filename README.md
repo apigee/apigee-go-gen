@@ -678,23 +678,23 @@ Below are a few examples of how to execute the `install` script
 e.g.
 Install latest version into `/usr/local/bin`
 ```shell
-curl https://raw.githubusercontent.com/micovery/apigee-go-gen/main/install | sh
+curl -s https://raw.githubusercontent.com/micovery/apigee-go-gen/main/install | sh
 ```
 
 
 Install specific version into `/usr/local/bin`
 ```shell
-curl https://raw.githubusercontent.com/micovery/apigee-go-gen/main/install | sh -s v0.1.13
+curl -s https://raw.githubusercontent.com/micovery/apigee-go-gen/main/install | sh -s v0.1.13
 ```
 
 Install latest version into `~/.local/bin`
 ```shell
-curl https://raw.githubusercontent.com/micovery/apigee-go-gen/main/install | sh -s latest ~/.local/bin
+curl -s https://raw.githubusercontent.com/micovery/apigee-go-gen/main/install | sh -s latest ~/.local/bin
 ```
 
 Install specific version into `~/.local/bin`
 ```shell
-curl https://raw.githubusercontent.com/micovery/apigee-go-gen/main/install | sh -s v0.1.13 ~/.local/bin
+curl -s https://raw.githubusercontent.com/micovery/apigee-go-gen/main/install | sh -s v0.1.13 ~/.local/bin
 ```
 
 
