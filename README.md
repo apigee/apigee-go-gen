@@ -46,8 +46,9 @@ By using this tool alongside the [Apigee CLI](https://github.com/apigee/apigeecl
   * [Using GraphQL Schema](#creating-api-proxy-from-graphql-schema)
   * [Using gRPC Proto](#creating-api-proxy-from-grpc-proto)
   * [Using Other Formats](#creating-api-proxy-from-other-formats)
-* [Installation Options](#installation)
-  * [Install from releases](#install-from-releases)
+* [Installation Options](#installation-options)
+  * [Install manually](#install-manually)
+  * [Install with script](#install-with-script)
   * [Install from source](#install-from-source)
 
 
