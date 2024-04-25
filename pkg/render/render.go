@@ -170,56 +170,6 @@ func CreateTemplate(templateFile string, includeList []string, outputFile string
 		return *result
 	}
 
-	osCopyFileFunc := func(args ...any) string {
-		if len(args) < 2 {
-			panic("os_copyfile function requires two arguments")
-		}
-
-		dst := args[0].(string)
-		src := args[1].(string)
-
-		if filepath.IsAbs(dst) {
-			panic("os_copyfile dst must not be absolute")
-		}
-		if strings.Index(dst, "..") >= 0 {
-			panic("os_copyfile dst must not use ..")
-		}
-
-		if filepath.IsAbs(src) {
-			panic("os_copyfile src must not be absolute")
-		}
-		if strings.Index(src, "..") >= 0 {
-			panic("os_copyfile src must not use ..")
-		}
-
-		dstDir := filepath.Dir(dst)
-		if !dryRun {
-			err := os.MkdirAll(dstDir, os.ModePerm)
-			if err != nil {
-				panic(err)
-			}
-		}
-
-		srcPath := filepath.Join(filepath.Dir(templateFile), src)
-		dstPath := filepath.Join(filepath.Dir(outputFile), dst)
-
-		if !dryRun {
-			srcFileContent, err := os.ReadFile(srcPath)
-			if err != nil {
-				panic(err)
-			}
-
-			err = os.WriteFile(dstPath, srcFileContent, os.ModePerm)
-			if err != nil {
-				panic(err)
-			}
-		} else {
-			//fmt.Printf(`os_copyfile("%s", "%s")\n`, dstPath, srcPath)
-		}
-
-		return dst
-	}
-
 	osWritefileFunc := func(args ...any) string {
 		if len(args) < 2 {
 			panic("os_writefile function requires two arguments")
@@ -295,7 +245,7 @@ func CreateTemplate(templateFile string, includeList []string, outputFile string
 	helperFuncs["url_parse"] = urlParseFunc
 	helperFuncs["os_getenv"] = osGetEnvFunc
 	helperFuncs["os_getenvs"] = osGetEnvs
-	helperFuncs["os_copyfile"] = osCopyFileFunc
+	helperFuncs["os_copyfile"] = getOSCopyFileFunc(templateFile, outputFile, dryRun)
 	helperFuncs["blank"] = blankFunc
 	helperFuncs["deref"] = derefFunc
 	helperFuncs["slug_make"] = slugMakeFunc
