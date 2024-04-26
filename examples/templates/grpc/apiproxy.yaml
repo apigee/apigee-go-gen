@@ -18,7 +18,6 @@ APIProxy:
   DisplayName:  {{ include "get_api_name" $.Values.proto }}
   Description: API proxy generated from proto file
 Policies:
-  #{{- os_copyfile "./policies.yaml" "./policies.yaml" | blank }}
   $ref: ./policies.yaml#/
 ProxyEndpoints:
   - ProxyEndpoint:

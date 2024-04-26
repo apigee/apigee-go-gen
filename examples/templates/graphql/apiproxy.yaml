@@ -17,7 +17,6 @@ APIProxy:
   DisplayName: {{ $.Values.api_name }}
   Description: {{ $.Values.schema.Description }}
 Policies:
-  #{{- os_copyfile "./policies.yaml" "./policies.yaml" | blank }}
   $ref: ./policies.yaml#/
 ProxyEndpoints:
   - ProxyEndpoint:
@@ -56,4 +55,5 @@ TargetEndpoints:
 Resources:
   - Resource:
       Type: graphql
-      Path: {{ os_writefile "./schema.graphql" $.Values.schema_string }}
+      #{{ os_writefile "./schema.graphql" $.Values.schema_string }}
+      Path: ./schema.graphql

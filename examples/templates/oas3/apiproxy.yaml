@@ -18,7 +18,6 @@ APIProxy:
   DisplayName: {{ $.Values.spec.info.title }}
   Description: {{ $.Values.spec.info.description }}
 Policies:
-  #{{- os_copyfile "./policies.yaml" "./policies.yaml" | blank }}
   $ref: ./policies.yaml#/
 ProxyEndpoints:
   - ProxyEndpoint:
@@ -65,7 +64,9 @@ TargetEndpoints:
 Resources:
   - Resource:
       Type: oas
-      Path: {{ os_writefile "./spec.yaml" $.Values.spec_string }}
+      #{{ os_writefile "./spec.yaml" $.Values.spec_string }}
+      Path: ./spec.yaml
   - Resource:
       Type: properties
-      Path: {{ os_copyfile "./test.properties" "./resources/test.properties" }}
+      #{{ os_copyfile "./test.properties" "./resources/test.properties" }}
+      Path: ./test.properties
