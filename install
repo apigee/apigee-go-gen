@@ -227,8 +227,8 @@ cleanupTarball() {
 installCompleted() {
   local installDir="${1}"
   echo  "Installation complete! $(bold "${BINARY_FILENAME}") is now in ${installDir}"
-  echo  "Please add ${installDir} into your \$PATH"
-  echo  "To get started with ${BINARY_FILENAME}, please visit https://github.com/${GITHUB_ORG}/${GITHUB_REPO}"
+  echo  "Add it to your \$PATH by running: $(bold "export PATH=\"${installDir}:\$PATH\"")"
+  echo  "To get started with $(bold "${BINARY_FILENAME}"), please visit https://github.com/${GITHUB_ORG}/${GITHUB_REPO}"
 }
 
 # -----------------------------------------------------------------------------
