@@ -153,16 +153,36 @@ There are more resource types such as xsds, wsdls, and others. (see [docs](https
 
 The `apigee-go-gen` offers a powerful set of `transform` commands for your Apigee development workflow.
 
-**XML ↔️ YAML Conversion:** Easily switch between XML and YAML formats
+**YAML ↔️ XML Conversion** 
 
-  * `yaml-to-xml` - Transforms a snippet of XML to YAML snippet
-  * `xml-to-yaml` - Transforms a snippet of XML to YAML snippet
+  * `yaml-to-xml` - Transforms a snippet of XML to YAML 
+  * `xml-to-yaml` - Transforms a snippet of XML to YAML
 
+**YAML ↔️ JSON Conversion** 
 
-**API Proxy Bundles ↔️ YAML-First API Proxies:**  Convert between traditional API proxy bundles and a more user-friendly YAML representation.
+* `yaml-to-json` - Transforms a snippet of YAML to JSON
+* `json-to-yaml` - Transforms a snippet of JSON to YAML
+
+**Apigee API proxy bundle ↔️ YAML-First API proxies** 
 
 * `apiproxy-to-yaml` - Transforms an API proxy bundle to a YAML doc
 * `yaml-to-apiproxy` - Transforms a YAML doc to an API proxy bundle
+
+
+**Apigee shared flow bundle ↔️ YAML-First shared flow**  
+
+* `sharedflow-to-yaml` - Transforms an Apigee API shared flow bundle to a YAML doc
+* `yaml-to-sharedflow` - Transforms a YAML doc to an Apigee shared flow bundle
+
+**OpenAPI 2 ➡️️ Open API 3**
+
+* `oas2-to-oas3` - Transforms an OpenAPI 2 spec (also known as Swagger) into OpenAPI 3
+
+
+**JSON / YAML with $ref ➡️️ JSON / YAML without $ref:**
+
+* `resolve-refs` - Replace external $refs (JSONRefs) in input YAML or JSON doc with actual values
+
 
 ### XML to YAML Command
 
@@ -175,7 +195,18 @@ The command follows a reliable set of rules to transform your XML into clean YAM
 
 **Usage**
 
-The command reads XML form `stdin`, and writes YAML to `stdout`. Below are a couple of examples.
+The `xml-to-yaml` command takes two parameters `-input` and `-output`
+
+* `--input` is the XML document to transform
+
+* `--output` is the YAML document to be created
+
+* `--output` full path is created if it does not exist (like `mkdir -p`)
+
+**Note**: You may omit the `--input` or `--output` flags to read or write from stdin or stdout
+
+
+Below are as few examples
 
   * Reading input redirected from a file
     ```shell
@@ -212,7 +243,17 @@ Here's how it helps:
 
 **Usage**
 
-The command reads YAML form `stdin`, and writes XML to `stdout`. Below are a few examples.
+The `yaml-to-xml` command takes two parameters `-input` and `-output`
+
+* `--input` is the YAML document to transform
+
+* `--output` is the XML document to be created
+
+* `--output` full path is created if it does not exist (like `mkdir -p`)
+
+**Note**: You may omit the `--input` or `--output` flags to read or write from stdin or stdout
+
+Below are as few examples
 
   * Reading input redirected from a file
     ```shell
@@ -505,6 +546,142 @@ Below are a couple of examples
   ```
 
 
+
+### YAML to JSON Command
+
+**Purpose:** This command takes an input YAML doc and transforms it into JSON
+
+**Usage**
+
+The `yaml-to-json` command takes two parameters `-input` and `-output`
+
+* `--input` is the YAML document to transform
+
+* `--output` is the JSON document to be created
+
+* `--output` full path is created if it does not exist (like `mkdir -p`)
+
+**Note**: You may omit the `--input` or `--output` flags to read or write from stdin or stdout
+
+Below are as few examples
+
+* Reading and writing to files explicitly
+  ```shell
+  apigee-go-gen transform yaml-to-json \
+      --input ./examples/snippets/ducks.yaml \
+      --output ./out/snippets/ducks.json 
+  ```
+  
+* Reading from stdin (from a file) and writing to stdout
+  ```shell
+  apigee-go-gen transform yaml-to-json < ./examples/snippets/ducks.yaml
+  ```
+
+* Reading from stdin (piped from another process) and writing to stdout
+  ```shell
+  cat ./examples/snippets/ducks.yaml | apigee-go-gen transform yaml-to-json
+  ```
+
+
+### JSON to YAML Command
+
+**Purpose:** This command takes an input JSON doc and transforms it into YAML
+
+**Usage**
+
+The `json-to-yaml` command takes two parameters `-input` and `-output`
+
+* `--input` is the JSON document to transform
+
+* `--output` is the YAML document to be created
+
+* `--output` full path is created if it does not exist (like `mkdir -p`)
+
+**Note**: You may omit the `--input` or `--output` flags to read or write from stdin or stdout
+
+Below are as few examples
+
+* Reading and writing to files explicitly
+  ```shell
+  apigee-go-gen transform json-to-yaml \
+      --input ./examples/snippets/ducks.json \
+      --output ./out/snippets/ducks.yaml 
+  ```
+
+* Reading from stdin (from a file) and writing to stdout
+  ```shell
+  apigee-go-gen transform json-to-yaml < ./examples/snippets/ducks.json
+  ```
+
+* Reading from stdin (piped from another process) and writing to stdout
+  ```shell
+  cat ./examples/snippets/ducks.json | apigee-go-gen transform json-to-yaml
+  ```
+
+
+
+### OpenAPI 2 to OpenAPI 3 Command
+
+**Purpose:** This command transforms an input OpenAPI 2 spec (also known as Swagger) into an OpenAPI 3 spec
+
+> Under the hood, this command uses the [kin-openapi](https://pkg.go.dev/github.com/getkin/kin-openapi) library to do the conversion
+
+**Usage**
+
+The `oas2-to-oas3` command takes two parameters `-input` and `-output`
+
+* `--input` is the OpenAPI 2 document to transform (either as JSON or YAML)
+
+* `--output` is the OpenAPI 3 document to be created (either as JSON or YAML)
+
+* `--output` full path is created if it does not exist (like `mkdir -p`)
+
+* `--allow-cycles` cyclic JSONRefs are replaced with empty placeholders `{}`
+
+**Note**: You may omit the `--input` or `--output` flags to read or write from stdin or stdout
+
+Below are as few examples
+
+* Reading and writing to files explicitly
+  ```shell
+  apigee-go-gen transform oas2-to-oas3 \
+      --input ./examples/specs/oas2/petstore.yaml \
+      --output ./out/specs/oas3/petstore.yaml 
+  ```
+
+* Reading from stdin (from a file) and writing to stdout
+  ```shell
+  apigee-go-gen transform oas2-to-oas3 < ./examples/specs/oas2/petstore.yaml
+  ```
+
+* Reading from stdin (piped from another process) and writing to stdout
+  ```shell
+  cat ./examples/specs/oas2/petstore.yaml | apigee-go-gen transform oas2-to-oas3
+  ```
+
+
+### Resolve Refs Command
+
+**Purpose:** This command resolves and replaces all external JSONRefs in an input JSON or YAML doc
+
+**Usage**
+
+The `resolve-refs` command takes two parameters `-input` and `-output`
+
+* `--input` is the document to transform (either as JSON or YAML)
+
+* `--output` is the document to be created (either as JSON or YAML)
+
+* `--output` full path is created if it does not exist (like `mkdir -p`)
+
+* `--allow-cycles` cyclic JSONRefs are replaced with empty placeholders `{}`
+
+**Note**: You may omit the `--input` or `--output` flags to read or write from stdin or stdout
+
+> Only JSONRefs pointing to external documents are replaced. If a JSONRef points back within the same document, it is left unchanged.
+
+
+
 ## Template Rendering Commands
 
 The `apigee-go-gen` includes a set of `render` commands that let you create API proxy bundles based on popular formats like
@@ -554,7 +731,7 @@ Here is how you would call it
 ```shell
 apigee-go-gen render apiproxy \
     --template ./examples/templates/oas3/apiproxy.yaml \
-    --set-oas spec=./examples/specs/petstore.yaml \
+    --set-oas spec=./examples/specs/oas3/petstore.yaml \
     --include ./examples/templates/oas3/*.tmpl \
     --output ./out/apiproxies/petstore.zip
 ```
@@ -571,7 +748,7 @@ For streamlined development, you can view the rendered template output directly 
 ```shell
 apigee-go-gen render apiproxy \
     --template ./examples/templates/oas3/apiproxy.yaml \
-    --set-oas spec=./examples/specs/petstore.yaml \
+    --set-oas spec=./examples/specs/oas3/petstore.yaml \
     --include ./examples/templates/oas3/*.tmpl \
     --dry-run xml
 ```
