@@ -12,7 +12,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-name: apigee-go-gen-binary
+name: apigee-go-gen-release
 on:
   workflow_dispatch:
 permissions:
