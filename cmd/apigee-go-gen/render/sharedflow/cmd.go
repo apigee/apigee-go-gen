@@ -22,7 +22,6 @@ import (
 	"github.com/micovery/apigee-go-gen/pkg/flags"
 	"github.com/micovery/apigee-go-gen/pkg/render"
 	"github.com/spf13/cobra"
-	"os"
 	"strings"
 )
 
@@ -51,15 +50,7 @@ var Cmd = &cobra.Command{
 			return v1.NewSharedFlowBundleModel(input)
 		}
 
-		err := render.GenerateBundle(createModelFunc, cFlags, bool(validate), dryRun.Value)
-		//goland:noinspection GoTypeAssertionOnErrors
-		if errs, ok := err.(v1.ValidationErrors); ok {
-			for i := 0; i < len(errs.Errors) && i < 10; i++ {
-				_, _ = fmt.Fprintf(os.Stderr, "error: %s\n", errs.Errors[i].Error())
-			}
-			os.Exit(1)
-		}
-		return err
+		return render.GenerateBundle(createModelFunc, cFlags, bool(validate), dryRun.Value)
 	},
 }
 

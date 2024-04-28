@@ -15,13 +15,11 @@
 package yaml_to_apiproxy
 
 import (
-	"fmt"
 	"github.com/go-errors/errors"
 	v1 "github.com/micovery/apigee-go-gen/pkg/apigee/v1"
 	"github.com/micovery/apigee-go-gen/pkg/flags"
 	"github.com/micovery/apigee-go-gen/pkg/render"
 	"github.com/spf13/cobra"
-	"os"
 	"strings"
 )
 
@@ -45,13 +43,6 @@ var Cmd = &cobra.Command{
 		}
 
 		err = render.CreateBundle(model, string(output), bool(validate), dryRun.Value)
-		//goland:noinspection GoTypeAssertionOnErrors
-		if errs, ok := err.(v1.ValidationErrors); ok {
-			for i := 0; i < len(errs.Errors) && i < 10; i++ {
-				_, _ = fmt.Fprintf(os.Stderr, "Error: %s\n", errs.Errors[i].Error())
-			}
-			os.Exit(1)
-		}
 
 		return err
 

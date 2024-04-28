@@ -30,6 +30,9 @@ var RootCmd = &cobra.Command{
 }
 
 func init() {
+	RootCmd.SilenceErrors = true
+	RootCmd.SilenceUsage = true
+
 	RootCmd.AddCommand(render.Cmd)
 	RootCmd.AddCommand(transform.Cmd)
 	RootCmd.AddCommand(VersionCmd)
