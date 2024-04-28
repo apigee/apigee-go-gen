@@ -12,7 +12,7 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-package yaml_to_xml
+package resolve_refs
 
 import (
 	"github.com/micovery/apigee-go-gen/pkg/flags"
@@ -22,18 +22,20 @@ import (
 
 var input flags.String
 var output flags.String
+var allowCycles = flags.NewBool(false)
 
 var Cmd = &cobra.Command{
-	Use:   "yaml-to-xml",
-	Short: "Transform a YAML snippet into XML",
-	Long:  `This tool reads YAML input and outputs XML`,
+	Use:   "resolve-refs",
+	Short: "Resolves external $refs within the input JSON or YAML",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return utils.YAMLFile2XMLFile(string(input), string(output))
+		return utils.ResolveDollarRefs(string(input), string(output), bool(allowCycles))
 	},
 }
 
 func init() {
+
 	Cmd.Flags().SortFlags = false
-	Cmd.Flags().VarP(&input, "input", "i", "path to input file, or omit to use stdin")
-	Cmd.Flags().VarP(&output, "output", "o", "path to output file, or omit to use stdout")
+	Cmd.Flags().VarP(&input, "input", "i", "path to input file, or omit it to use stdin")
+	Cmd.Flags().VarP(&output, "output", "o", "path to output file, or omit it to use stdout")
+	Cmd.Flags().VarP(&allowCycles, "allow-cycles", "c", "allow cyclic JSONRefs")
 }

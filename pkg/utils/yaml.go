@@ -19,12 +19,14 @@ import (
 	"fmt"
 	"github.com/beevik/etree"
 	"github.com/go-errors/errors"
+	libopenapijson "github.com/pb33f/libopenapi/json"
 	"github.com/vmware-labs/yaml-jsonpath/pkg/yamlpath"
 	"gopkg.in/yaml.v3"
 	"io"
 	"net/url"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 )
 
@@ -75,7 +77,8 @@ func Text2YAML(reader io.Reader) (*yaml.Node, error) {
 		return nil, errors.New(err)
 	}
 
-	resultNode, err := ResolveYAMLRefs(&yamlNode, ".")
+	filePath := "./input.yaml"
+	resultNode, err := ResolveYAMLRefs(&yamlNode, filePath, false)
 	if err != nil {
 		return nil, err
 	}
@@ -165,20 +168,32 @@ func isYAMLRef(node *yaml.Node) bool {
 		return false
 	}
 
-	return node.Kind == yaml.MappingNode &&
-		len(node.Content) == 2 &&
-		node.Content[0].Value == "$ref"
+	return node.Kind == yaml.MappingNode && slices.IndexFunc(node.Content, func(n *yaml.Node) bool {
+		return n.Value == "$ref"
+	}) >= 0
+
+}
+
+func getYAMLRefString(node *yaml.Node) string {
+	index := slices.IndexFunc(node.Content, func(n *yaml.Node) bool {
+		return n.Value == "$ref"
+	})
+	if index < 0 {
+		return ""
+	}
+	return node.Content[index+1].Value
 }
 
 func ParseYAMLFile(filePath string) (*yaml.Node, error) {
 	var err error
 
-	absPath, err := filepath.Abs(filePath)
+	absFilePath, err := filepath.Abs(filePath)
 	if err != nil {
 		return nil, errors.New(err)
 	}
 
-	rootNode, ok := ParsedYAMLFiles[absPath]
+	//check if the file has already been parsed
+	rootNode, ok := ParsedYAMLFiles[absFilePath]
 	if ok {
 		return rootNode, nil
 	}
@@ -194,13 +209,8 @@ func ParseYAMLFile(filePath string) (*yaml.Node, error) {
 		return nil, errors.Errorf("could not parse %s. %s", filePath, err.Error())
 	}
 
-	resolvedNode, err := ResolveYAMLRefs(&yamlNode, filepath.Dir(absPath))
-	if err != nil {
-		return nil, err
-	}
-
-	ParsedYAMLFiles[filePath] = resolvedNode
-	return resolvedNode, nil
+	ParsedYAMLFiles[filePath] = &yamlNode
+	return &yamlNode, nil
 }
 
 func JSONPointer2JSONPath(jsonPointer string) (jsonPath string, err error) {
@@ -238,37 +248,123 @@ func SplitJSONRef(refStr string) (location string, jsonPath string, err error) {
 	return parsedUrl.Path, jsonPath, nil
 }
 
-func ResolveYAMLRef(node *yaml.Node, nodePath string) (*yaml.Node, error) {
+func ResolveYAMLRef(root *yaml.Node, node *yaml.Node, nodePath string, nodePaths []string, filePath string, filePaths []string, allowCycles bool) (*yaml.Node, error) {
 	var err error
 
-	jsonRef := node.Content[1].Value
-	refFilePath, refJSONPath, err := SplitJSONRef(node.Content[1].Value)
+	jsonRef := getYAMLRefString(node)
+	if jsonRef == "" {
+		return nil, errors.Errorf("JSONRef at %s is not valid", nodePath)
+	}
+
+	refFilePath, refJSONPath, err := SplitJSONRef(jsonRef)
 	if err != nil {
 		return nil, err
+	}
+
+	absFilePath, err := filepath.Abs(filePath)
+	if err != nil {
+		return nil, errors.New(err)
 	}
 
 	if refFilePath == "" {
-		return nil, errors.Errorf("self referncing JSONRef '%s' is not supported", jsonRef)
-	}
-	var fileRootNode *yaml.Node
-	if !filepath.IsAbs(refFilePath) {
-		refFilePath = filepath.Join(nodePath, refFilePath)
+		refFilePath = filepath.Base(filePath)
 	}
 
-	if fileRootNode, err = ParseYAMLFile(refFilePath); err != nil {
-		return nil, err
+	var absRefFilePath string
+	if filepath.IsAbs(refFilePath) {
+		absRefFilePath = refFilePath
+	} else {
+		absRefFilePath, err = filepath.Abs(filepath.Join(filepath.Dir(absFilePath), refFilePath))
 	}
+
+	absJSONRef := fmt.Sprintf("%s%s", absRefFilePath, refJSONPath)
+	if _, ok := ResolvedRefs[absJSONRef]; ok {
+		//return cached result
+		return ResolvedRefs[absJSONRef], nil
+	}
+
+	//detect cycles
+	if index := slices.Index(nodePaths, absJSONRef); index >= 0 {
+		if !allowCycles {
+			return nil, errors.Errorf("cyclic JSONRef at %s", nodePaths[len(nodePaths)-1])
+		}
+		ResolvedRefs[absJSONRef] = MakeCyclicRefPlaceholder(refJSONPath)
+		return ResolvedRefs[absJSONRef], nil
+	}
+
+	isSelfRef := absRefFilePath == absFilePath
+
+	if isSelfRef && len(filePaths) == 1 {
+		//self ref at the first level, no need to de-reference it
+		ResolvedRefs[absJSONRef] = node
+		return ResolvedRefs[absJSONRef], nil
+	} else if isSelfRef && len(filePaths) > 1 {
+		//self ref below first level, need to de-reference it
+		yamlNode, err := LocateRef(root, refJSONPath, jsonRef)
+
+		newNodePaths := append([]string{}, nodePaths...)
+		newNodePaths = append(newNodePaths, absJSONRef)
+
+		resolvedNode, err := ResolveYAMLRefsRecursive(root, yamlNode, nodePath, newNodePaths, absRefFilePath, filePaths, allowCycles)
+		if err != nil {
+			return nil, err
+		}
+
+		ResolvedRefs[absJSONRef] = resolvedNode
+		return ResolvedRefs[absJSONRef], nil
+	}
+
+	//ref to a different file, need to de-reference it
+	var refFileNode *yaml.Node
+	refFileNode, err = ParseYAMLFile(absRefFilePath)
 	if err != nil {
 		return nil, err
 	}
 
+	yamlNode, err := LocateRef(refFileNode, refJSONPath, jsonRef)
+	if err != nil {
+		return nil, err
+	}
+
+	newFilePaths := append([]string{}, filePaths...)
+	newFilePaths = append(newFilePaths, absRefFilePath)
+
+	newNodePaths := append([]string{}, nodePaths...)
+	newNodePaths = append(newNodePaths, absJSONRef)
+
+	resolvedNode, err := ResolveYAMLRefsRecursive(refFileNode, yamlNode, nodePath, newNodePaths, absRefFilePath, newFilePaths, allowCycles)
+	if err != nil {
+		return nil, err
+	}
+
+	ResolvedRefs[absJSONRef] = resolvedNode
+	return ResolvedRefs[absJSONRef], nil
+}
+
+func MakeCyclicRefPlaceholder(refJSONPath string) *yaml.Node {
+	cyclicRef := &yaml.Node{Kind: yaml.MappingNode}
+	key := yaml.Node{Kind: yaml.ScalarNode, Style: yaml.DoubleQuotedStyle}
+	key.SetString("description")
+
+	value := yaml.Node{Kind: yaml.ScalarNode, Style: yaml.DoubleQuotedStyle}
+	value.SetString(fmt.Sprintf("cyclic JSONRef to %s", refJSONPath))
+
+	cyclicRef.Content = append(cyclicRef.Content, &key, &value)
+	return cyclicRef
+}
+
+func LocateRef(refFileNode *yaml.Node, refJSONPath string, jsonRef string) (*yaml.Node, error) {
+	var err error
 	var yamlPath *yamlpath.Path
-	if yamlPath, err = yamlpath.NewPath(refJSONPath); err != nil {
+
+	yamlPath, err = yamlpath.NewPath(refJSONPath)
+	if err != nil {
 		return nil, errors.New(err)
 	}
 
 	var yamlNodes []*yaml.Node
-	if yamlNodes, err = yamlPath.Find(fileRootNode); err != nil {
+	yamlNodes, err = yamlPath.Find(refFileNode)
+	if err != nil {
 		return nil, errors.New(err)
 	}
 
@@ -279,34 +375,85 @@ func ResolveYAMLRef(node *yaml.Node, nodePath string) (*yaml.Node, error) {
 	if len(yamlNodes) > 1 {
 		return nil, errors.Errorf("more than one node found at JSONRef '%s'", jsonRef)
 	}
-
 	return yamlNodes[0], nil
 }
 
-func ResolveYAMLRefs(node *yaml.Node, nodePath string) (*yaml.Node, error) {
+func ResolveYAMLRefs(node *yaml.Node, filePath string, allowCycles bool) (*yaml.Node, error) {
+	ResetYAMLRefs()
+	return ResolveYAMLRefsRecursive(node, node, "$", nil, filePath, nil, allowCycles)
+}
+
+func ResolveYAMLRefsRecursive(root *yaml.Node, node *yaml.Node,
+	nodePath string, nodePaths []string,
+	filePath string, filePaths []string,
+	allowCycles bool) (*yaml.Node, error) {
+	var err error
+
+	if !filepath.IsAbs(filePath) {
+		filePath, err = filepath.Abs(filePath)
+		if err != nil {
+			return nil, errors.New(err)
+		}
+	}
+
+	if len(filePaths) == 0 {
+		filePaths = append(filePaths, filePath)
+	}
+
+	if len(nodePaths) == 0 {
+		nodePaths = append(nodePaths, nodePath)
+	}
+
 	if node == nil {
 		return nil, nil
 	}
 
 	var resolvedNode *yaml.Node
-	var err error
 
 	if node.Kind == yaml.MappingNode && isYAMLRef(node) {
-		if resolvedNode, err = ResolveYAMLRef(node, nodePath); err != nil {
+		if resolvedNode, err = ResolveYAMLRef(root, node, nodePath, nodePaths, filePath, filePaths, allowCycles); err != nil {
 			return nil, err
 		}
 		return resolvedNode, nil
 	} else if node.Kind == yaml.MappingNode {
 		for i := 0; i+1 < len(node.Content); i += 2 {
-			if resolvedNode, err = ResolveYAMLRefs(node.Content[i+1], nodePath); err != nil {
+			subPath := fmt.Sprintf("%s.%s", nodePath, node.Content[i].Value)
+			subContent := node.Content[i+1]
+
+			if slices.Index(nodePaths, subPath) >= 0 {
+				return nil, errors.Errorf("cycle detected at %v", nodePaths)
+			}
+
+			newNodePaths := append([]string{}, nodePaths...)
+			newNodePaths = append(newNodePaths, subPath)
+			if resolvedNode, err = ResolveYAMLRefsRecursive(root, subContent, subPath, newNodePaths, filePath, filePaths, allowCycles); err != nil {
 				return nil, err
 			}
 			node.Content[i+1] = resolvedNode
 		}
 		return node, nil
-	} else if node.Kind == yaml.SequenceNode || node.Kind == yaml.DocumentNode {
+	} else if node.Kind == yaml.DocumentNode {
+		subPath := nodePath
+		subContent := node.Content[0]
+		newNodePaths := nodePaths
+		if resolvedNode, err = ResolveYAMLRefsRecursive(root, subContent, subPath, newNodePaths, filePath, filePaths, allowCycles); err != nil {
+			return nil, err
+		}
+		node.Content[0] = resolvedNode
+		return node, nil
+
+	} else if node.Kind == yaml.SequenceNode {
 		for i := 0; i < len(node.Content); i += 1 {
-			if resolvedNode, err = ResolveYAMLRefs(node.Content[i], nodePath); err != nil {
+			subPath := fmt.Sprintf("%s.%v", nodePath, i)
+			subContent := node.Content[i]
+
+			if slices.Index(nodePaths, subPath) >= 0 {
+				return nil, errors.Errorf("cycle detected at %v", nodePaths)
+			}
+
+			newNodePaths := append([]string{}, nodePaths...)
+			newNodePaths = append(newNodePaths, subPath)
+			if resolvedNode, err = ResolveYAMLRefsRecursive(root, subContent, subPath, newNodePaths, filePath, filePaths, allowCycles); err != nil {
 				return nil, err
 			}
 			node.Content[i] = resolvedNode
@@ -337,10 +484,16 @@ func YAMLDoc2File(docNode *yaml.Node, outputFile string) error {
 	return nil
 }
 
+var ResolvedRefs map[string]*yaml.Node
 var ParsedYAMLFiles map[string]*yaml.Node
 
 func init() {
+	ResetYAMLRefs()
+}
+
+func ResetYAMLRefs() {
 	ParsedYAMLFiles = make(map[string]*yaml.Node)
+	ResolvedRefs = make(map[string]*yaml.Node)
 }
 
 func YAMLFile2YAML(filePath string) (*yaml.Node, error) {
@@ -369,4 +522,74 @@ func YAMLFile2YAML(filePath string) (*yaml.Node, error) {
 	}
 
 	return dataNode, nil
+}
+
+func UnFlowYAMLNode(node *yaml.Node) *yaml.Node {
+	switch node.Kind {
+	case yaml.DocumentNode:
+		fallthrough
+	case yaml.SequenceNode:
+		fallthrough
+	case yaml.MappingNode:
+		node.Style = 0
+		for _, v := range node.Content {
+			v.Style = 0
+			UnFlowYAMLNode(v)
+		}
+	case yaml.ScalarNode:
+		node.Style = 0
+	}
+
+	return node
+}
+
+func YAMLFile2XMLFile(input string, output string) error {
+	text, err := ReadInputText(input)
+	if err != nil {
+		return err
+	}
+
+	outputText, err := YAMLText2XMLText(bytes.NewReader(text))
+	if err != nil {
+		return errors.New(err)
+	}
+
+	return WriteOutputText(output, outputText)
+}
+
+func YAMLText2JSONText(reader io.Reader) ([]byte, error) {
+	text, err := io.ReadAll(reader)
+	if err != nil {
+		return nil, err
+	}
+
+	//unmarshall input as YAML
+	var yamlNode *yaml.Node
+	yamlNode = &yaml.Node{}
+	err = yaml.Unmarshal(text, yamlNode)
+	if err != nil {
+		return nil, errors.New(err)
+	}
+
+	//convert back to JSON text
+	outputText, err := libopenapijson.YAMLNodeToJSON(yamlNode, "  ")
+	if err != nil {
+		return nil, errors.New(err)
+	}
+
+	return outputText, nil
+}
+
+func YAMLFile2JSONFile(input string, output string) error {
+	text, err := ReadInputText(input)
+	if err != nil {
+		return err
+	}
+
+	outputText, err := YAMLText2JSONText(bytes.NewReader(text))
+	if err != nil {
+		return err
+	}
+
+	return WriteOutputText(output, outputText)
 }

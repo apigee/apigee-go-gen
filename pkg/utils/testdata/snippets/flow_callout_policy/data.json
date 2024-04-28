@@ -1,0 +1,24 @@
+{
+  "FlowCallout": {
+    ".async": false,
+    ".continueOnError": true,
+    ".enabled": true,
+    ".name": "FC-Callout",
+    "DisplayName": "FC-Callout",
+    "Parameters": [
+      {
+        "Parameter": {
+          ".name": "param1",
+          ".value": "Literal"
+        }
+      },
+      {
+        "Parameter": {
+          ".name": "param2",
+          ".ref": "request.content"
+        }
+      }
+    ],
+    "SharedFlowBundle": "SharedFlowName"
+  }
+}

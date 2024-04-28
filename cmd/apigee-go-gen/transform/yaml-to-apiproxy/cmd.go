@@ -32,7 +32,7 @@ var validate = flags.NewBool(true)
 
 var Cmd = &cobra.Command{
 	Use:   "yaml-to-apiproxy",
-	Short: "Transforms a YAML file into a apiproxy",
+	Short: "Transforms a YAML file into an apiproxy",
 	RunE: func(cmd *cobra.Command, args []string) error {
 
 		if strings.TrimSpace(string(output)) == "" && dryRun.IsUnset() {

@@ -15,7 +15,9 @@
 package utils
 
 import (
+	"fmt"
 	"github.com/go-errors/errors"
+	"gopkg.in/yaml.v3"
 	"io"
 	"os"
 	"path/filepath"
@@ -63,4 +65,57 @@ func Must(err error) {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func WriteOutputText(output string, outputText []byte) error {
+	var err error
+
+	if output == "-" || len(output) == 0 {
+		fmt.Printf("%s", string(outputText))
+		return nil
+	}
+
+	dir := filepath.Dir(output)
+	err = os.MkdirAll(dir, os.ModePerm)
+	if err != nil {
+		return errors.New(err)
+	}
+
+	err = os.WriteFile(output, outputText, os.ModePerm)
+	if err != nil {
+		return errors.New(err)
+	}
+	return nil
+}
+
+func ReadInputText(input string) ([]byte, error) {
+	var text []byte
+	var err error
+	if input == "-" || len(input) == 0 {
+		text, err = io.ReadAll(os.Stdin)
+		if err != nil {
+			return nil, errors.New(err)
+		}
+	} else {
+		text, err = os.ReadFile(input)
+		if err != nil {
+			return nil, errors.New(err)
+		}
+	}
+	return text, nil
+}
+
+func RunWithinDirectory[ResultType *yaml.Node](dir string, operation func() (ResultType, error)) (ResultType, error) {
+	wd, err := os.Getwd()
+	if err != nil {
+		return nil, errors.New(err)
+	}
+	defer func() { Must(os.Chdir(wd)) }()
+
+	err = os.Chdir(dir)
+	if err != nil {
+		return nil, errors.New(err)
+	}
+
+	return operation()
 }

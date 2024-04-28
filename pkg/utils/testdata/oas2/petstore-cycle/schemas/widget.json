@@ -1,0 +1,11 @@
+{
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "subWidgets": {
+      "$ref": "./definitions.json#/definitions/Widgets"
+    }
+  }
+}

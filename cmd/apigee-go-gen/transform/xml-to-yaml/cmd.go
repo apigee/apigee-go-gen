@@ -15,25 +15,27 @@
 package xml_to_yaml
 
 import (
-	"bufio"
-	"fmt"
+	"github.com/micovery/apigee-go-gen/pkg/flags"
 	"github.com/micovery/apigee-go-gen/pkg/utils"
 	"github.com/spf13/cobra"
-	"os"
 )
+
+var input flags.String
+var output flags.String
 
 var Cmd = &cobra.Command{
 	Use:   "xml-to-yaml",
-	Short: "Transform XML snippet to YAML",
+	Short: "Transform an XML snippet into YAML",
 	Long:  `This command reads XML (form stdin) and outputs YAML (to stdout)`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		var err error
-		yamlText, err := utils.XMLText2YAMLText(bufio.NewReader(os.Stdin))
-		if err != nil {
-			return err
-		}
-
-		fmt.Printf("%s\n", string(yamlText))
-		return nil
+		return utils.XMLFile2YAMLFile(string(input), string(output))
 	},
+}
+
+func init() {
+
+	Cmd.Flags().SortFlags = false
+	Cmd.Flags().VarP(&input, "input", "i", "path to input file, or omit to use stdin")
+	Cmd.Flags().VarP(&output, "output", "o", "path to output file, or omit to use stdout")
+
 }

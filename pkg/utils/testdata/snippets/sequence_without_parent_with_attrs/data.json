@@ -1,0 +1,18 @@
+{
+  "Root": {
+    ".attr1": "val1",
+    ".attr2": "val2",
+    "-Data": [
+      {
+        "Child": {
+          ".name": "foo"
+        }
+      },
+      {
+        "Child": {
+          ".name": "bar"
+        }
+      }
+    ]
+  }
+}

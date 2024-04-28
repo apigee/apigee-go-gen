@@ -1,0 +1,40 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "description": "This is a sample OAS2 that contains a cycle",
+    "version": "1.0.7",
+    "title": "Cycle OAS2"
+  },
+  "host": "petstore.swagger.io",
+  "basePath": "/v2",
+  "schemes": [
+    "https"
+  ],
+  "paths": {},
+  "definitions": {
+    "Widgets": {
+      "$ref": "./schemas/definitions.json#/definitions/Widgets"
+    },
+    "Errors": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Error"
+      }
+    },
+    "Error": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string"
+        },
+        "errors": {
+          "$ref": "#/definitions/Errors"
+        }
+      }
+    }
+  },
+  "externalDocs": {
+    "description": "Find out more about Swagger",
+    "url": "https://swagger.io"
+  }
+}

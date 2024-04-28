@@ -1,0 +1,6 @@
+{
+  "Parent": {
+    ".foo": "bar",
+    "-Data": "Content"
+  }
+}

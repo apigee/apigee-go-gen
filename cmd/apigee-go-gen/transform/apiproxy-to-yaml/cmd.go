@@ -28,7 +28,7 @@ var dryRun = flags.NewBool(false)
 
 var Cmd = &cobra.Command{
 	Use:   "apiproxy-to-yaml",
-	Short: "Transforms a apiproxy into a YAML file",
+	Short: "Transforms an apiproxy into a YAML file",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if strings.TrimSpace(string(output)) == "" && dryRun == false {
 			return errors.New("required flag(s) \"output\" not set")

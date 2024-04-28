@@ -14,11 +14,16 @@
 
 package transform
 
+//goland:noinspection GoSnakeCaseUsage
 import (
 	apiproxy_to_yaml "github.com/micovery/apigee-go-gen/cmd/apigee-go-gen/transform/apiproxy-to-yaml"
+	json_to_yaml "github.com/micovery/apigee-go-gen/cmd/apigee-go-gen/transform/json-to-yaml"
+	oas2_to_oas3 "github.com/micovery/apigee-go-gen/cmd/apigee-go-gen/transform/oas2-to-oas3"
+	resolve_refs "github.com/micovery/apigee-go-gen/cmd/apigee-go-gen/transform/resolve-refs"
 	sharedflow_to_yaml "github.com/micovery/apigee-go-gen/cmd/apigee-go-gen/transform/sharedflow-to-yaml"
 	xml_to_yaml "github.com/micovery/apigee-go-gen/cmd/apigee-go-gen/transform/xml-to-yaml"
 	yaml_to_apiproxy "github.com/micovery/apigee-go-gen/cmd/apigee-go-gen/transform/yaml-to-apiproxy"
+	yaml_to_json "github.com/micovery/apigee-go-gen/cmd/apigee-go-gen/transform/yaml-to-json"
 	yaml_to_sharedflow "github.com/micovery/apigee-go-gen/cmd/apigee-go-gen/transform/yaml-to-sharedflow"
 	yaml_to_xml "github.com/micovery/apigee-go-gen/cmd/apigee-go-gen/transform/yaml-to-xml"
 	"github.com/spf13/cobra"
@@ -26,7 +31,7 @@ import (
 
 var Cmd = &cobra.Command{
 	Use:   "transform",
-	Short: "Transform between shared flow, API proxy, xml, and yaml",
+	Short: "Transform between shared flow, API proxy, xml, yaml, and others",
 }
 
 func init() {
@@ -36,4 +41,8 @@ func init() {
 	Cmd.AddCommand(yaml_to_apiproxy.Cmd)
 	Cmd.AddCommand(sharedflow_to_yaml.Cmd)
 	Cmd.AddCommand(yaml_to_sharedflow.Cmd)
+	Cmd.AddCommand(oas2_to_oas3.Cmd)
+	Cmd.AddCommand(resolve_refs.Cmd)
+	Cmd.AddCommand(json_to_yaml.Cmd)
+	Cmd.AddCommand(yaml_to_json.Cmd)
 }

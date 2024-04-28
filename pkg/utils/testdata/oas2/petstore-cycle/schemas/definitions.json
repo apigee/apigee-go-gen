@@ -1,0 +1,15 @@
+{
+  "definitions": {
+    "Widgets": {
+      "type": "object",
+      "properties": {
+        "widgets": {
+          "type": "array",
+          "items": {
+            "$ref": "./widget.json"
+          }
+        }
+      }
+    }
+  }
+}

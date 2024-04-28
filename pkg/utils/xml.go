@@ -268,3 +268,17 @@ func XML2YAMLRecursive(ele *etree.Element) (key *yaml.Node, value *yaml.Node, er
 	return nodeKey, nodeVal, nil
 
 }
+
+func XMLFile2YAMLFile(input string, output string) error {
+	text, err := ReadInputText(input)
+	if err != nil {
+		return err
+	}
+
+	outputText, err := XMLText2YAMLText(bytes.NewReader(text))
+	if err != nil {
+		return errors.New(err)
+	}
+
+	return WriteOutputText(output, outputText)
+}

@@ -16,7 +16,10 @@ package utils
 
 import (
 	"bytes"
+	"fmt"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"os"
 	"path/filepath"
 	"regexp"
 	"testing"
@@ -196,6 +199,72 @@ func TestSplitJSONRef(t *testing.T) {
 			if gotJsonPath != tt.wantJsonPath {
 				t.Errorf("SplitJSONRef() gotJsonPath = %v, want %v", gotJsonPath, tt.wantJsonPath)
 			}
+		})
+	}
+}
+
+func TestYAMLFile2JSONFile(t *testing.T) {
+	tests := []struct {
+		dir string
+	}{
+		{
+			"simple_nested",
+		},
+		{
+			"scalar_without_attrs",
+		},
+		{
+			"element_with_attr",
+		},
+		{
+			"scalar_with_attrs",
+		},
+		{
+			"sequence_parent_without_attrs",
+		},
+		{
+			"sequence_parent_with_attrs",
+		},
+		{
+			"sequence_without_parent",
+		},
+		{
+			"sequence_without_parent_with_attrs",
+		},
+		{
+			"unique_children_with_attrs_parent_without_attrs",
+		},
+		{
+			"unique_children_without_attrs_parent_without_attrs",
+		},
+		{
+			"repeated_children_without_attrs_parent_without_attrs",
+		},
+		{
+			"complex_raise_fault_policy",
+		},
+		{
+			"flow_callout_policy",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.dir, func(t *testing.T) {
+			dir := filepath.Join("testdata", "snippets", tt.dir)
+			inFile := filepath.Join(dir, "data.yaml")
+			outFile := filepath.Join(dir, fmt.Sprintf("out-%s", "data.json"))
+			wantFile := filepath.Join(dir, "data.json")
+
+			err := os.RemoveAll(outFile)
+			require.NoError(t, err)
+
+			err = YAMLFile2JSONFile(inFile, outFile)
+			require.NoError(t, err)
+
+			outBytes := MustReadFileBytes(outFile)
+			wantBytes := MustReadFileBytes(wantFile)
+			require.JSONEq(t, string(wantBytes), string(outBytes))
+
 		})
 	}
 }

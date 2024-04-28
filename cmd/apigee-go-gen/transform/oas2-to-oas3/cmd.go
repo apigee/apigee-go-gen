@@ -12,7 +12,7 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-package yaml_to_xml
+package oas2_to_oas3
 
 import (
 	"github.com/micovery/apigee-go-gen/pkg/flags"
@@ -22,18 +22,21 @@ import (
 
 var input flags.String
 var output flags.String
+var allowCycles = flags.NewBool(false)
 
 var Cmd = &cobra.Command{
-	Use:   "yaml-to-xml",
-	Short: "Transform a YAML snippet into XML",
-	Long:  `This tool reads YAML input and outputs XML`,
+	Use:   "oas2-to-oas3",
+	Short: "Transforms the input OpenAPI 2 spec into OpenAPI 3 spec",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return utils.YAMLFile2XMLFile(string(input), string(output))
+		return utils.OAS2FileToOAS3File(string(input), string(output), bool(allowCycles))
 	},
 }
 
 func init() {
+
 	Cmd.Flags().SortFlags = false
 	Cmd.Flags().VarP(&input, "input", "i", "path to input file, or omit to use stdin")
 	Cmd.Flags().VarP(&output, "output", "o", "path to output file, or omit to use stdout")
+	Cmd.Flags().VarP(&allowCycles, "allow-cycles", "c", "allow cyclic JSONRefs")
+
 }

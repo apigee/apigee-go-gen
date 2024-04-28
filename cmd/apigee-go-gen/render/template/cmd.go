@@ -48,7 +48,6 @@ var Cmd = &cobra.Command{
 }
 
 func init() {
-	Cmd.Hidden = true
 	Cmd.Flags().SortFlags = false
 	Cmd.Flags().VarP(&cFlags.TemplateFile, "template", "t", `path to main template"`)
 	Cmd.Flags().VarP(&cFlags.IncludeList, "include", "i", `path to helper templates (globs allowed)`)
