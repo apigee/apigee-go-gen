@@ -94,10 +94,12 @@ func TestOpenAPI2FileToOpenAPI3File(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ttDir := filepath.Join("testdata", "oas2-to-oas3", tt.dir)
-			inputFile := filepath.Join(ttDir, tt.inputFile)
-			outputFile := filepath.Join(ttDir, fmt.Sprint("out-", tt.expectedFile))
-			expectedFile := filepath.Join(ttDir, fmt.Sprint(tt.expectedFile))
+			ttSrcDir := filepath.Join("testdata", "specs", "oas2", tt.dir)
+			ttDstDir := filepath.Join("testdata", "oas2-to-oas3", tt.dir)
+
+			inputFile := filepath.Join(ttSrcDir, tt.inputFile)
+			outputFile := filepath.Join(ttDstDir, fmt.Sprintf("out-%s", tt.expectedFile))
+			expFile := filepath.Join(ttDstDir, fmt.Sprintf("exp-%s", tt.expectedFile))
 
 			var err error
 			err = os.RemoveAll(outputFile)
@@ -112,11 +114,11 @@ func TestOpenAPI2FileToOpenAPI3File(t *testing.T) {
 			require.NoError(t, err)
 
 			outputBytes := MustReadFileBytes(outputFile)
-			expectedBytes := MustReadFileBytes(expectedFile)
+			expectedBytes := MustReadFileBytes(expFile)
 
-			if filepath.Ext(expectedFile) == ".json" {
+			if filepath.Ext(expFile) == ".json" {
 				require.JSONEq(t, string(expectedBytes), string(outputBytes))
-			} else if filepath.Ext(expectedFile) == ".yaml" {
+			} else if filepath.Ext(expFile) == ".yaml" {
 				outputBytes = RemoveYAMLComments(outputBytes)
 				expectedBytes = RemoveYAMLComments(expectedBytes)
 				require.YAMLEq(t, string(expectedBytes), string(outputBytes))

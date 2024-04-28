@@ -16,13 +16,14 @@ package utils
 
 import (
 	"fmt"
+	"github.com/go-errors/errors"
 	"github.com/stretchr/testify/require"
 	"os"
 	"path/filepath"
 	"testing"
 )
 
-func TestOpenAPI3FileToOpenAPI2File(t *testing.T) {
+func TestResolveDollarRefs(t *testing.T) {
 
 	tests := []struct {
 		name         string
@@ -34,42 +35,34 @@ func TestOpenAPI3FileToOpenAPI2File(t *testing.T) {
 	}{
 		{
 
-			"npr OAS3(JSON) to OAS2(JSON)",
-			"npr",
-			"oas3.json",
+			"petstore-refs",
+			"petstore-refs",
+			"oas2.json",
 			"oas2.json",
 			false,
 			nil,
 		},
 		{
-			"npr OAS3(JSON) to OAS2(YAML)",
-			"npr",
-			"oas3.json",
-			"oas2.yaml",
-			false,
+			"petstore-cycle",
+			"petstore-cycle",
+			"oas2.json",
+			"oas2.json",
+			true,
 			nil,
 		},
 		{
-			"npr OAS3(YAML) to OAS2(YAML)",
-			"npr",
-			"oas3.yaml",
-			"oas2.yaml",
-			false,
-			nil,
-		},
-		{
-			"npr OAS3(YAML) to OAS2(JSON)",
-			"npr",
-			"oas3.yaml",
+			"petstore-cycle",
+			"petstore-cycle",
+			"oas2.json",
 			"oas2.json",
 			false,
-			nil,
+			errors.New("cyclic JSONRef at $.definitions.Widgets.properties.widgets.items.properties.subWidgets"),
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ttSrcDir := filepath.Join("testdata", "specs", "oas3", tt.dir)
-			ttDstDir := filepath.Join("testdata", "oas3-to-oas2", tt.dir)
+			ttSrcDir := filepath.Join("testdata", "specs", "oas2", tt.dir)
+			ttDstDir := filepath.Join("testdata", "resolve-refs", tt.dir)
 
 			inputFile := filepath.Join(ttSrcDir, tt.inputFile)
 			outputFile := filepath.Join(ttDstDir, fmt.Sprintf("out-%s", tt.expectedFile))
@@ -79,7 +72,7 @@ func TestOpenAPI3FileToOpenAPI2File(t *testing.T) {
 			err = os.RemoveAll(outputFile)
 			require.NoError(t, err)
 
-			err = OAS3FileToOAS2File(inputFile, outputFile, tt.allowCycles)
+			err = ResolveDollarRefs(inputFile, outputFile, tt.allowCycles)
 			if tt.wantErr != nil {
 				require.EqualError(t, tt.wantErr, err.Error())
 				return
