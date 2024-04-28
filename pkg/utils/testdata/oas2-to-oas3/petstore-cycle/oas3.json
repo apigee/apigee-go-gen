@@ -14,8 +14,6 @@
     "description": "Find out more about Swagger",
     "url": "https://swagger.io"
   },
-  "tags": [],
-  "security": [],
   "paths": {},
   "components": {
     "schemas": {

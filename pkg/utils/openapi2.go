@@ -124,79 +124,130 @@ func OAS2FileToOAS3File(input string, output string, allowCycles bool) error {
 	return WriteOutputText(output, outputText)
 }
 
-func OAS3ToYAML(doc *openapi3.T) (*yaml.Node, error) {
-	addYAMLEntry := func(mappingNode *yaml.Node, key string, value any, defaultVal *yaml.Node) (*yaml.Node, error) {
-		mappingNode.Content = append(mappingNode.Content, &yaml.Node{Kind: yaml.ScalarNode, Value: key})
-
-		yamlText, err := yaml.Marshal(value)
-		if err != nil {
-			return nil, errors.New(err)
-		}
-
-		yamlNode := yaml.Node{}
-		err = yaml.Unmarshal(yamlText, &yamlNode)
-		if err != nil {
-			return nil, errors.New(err)
-		}
-
-		content := yamlNode.Content[0]
-		if content.Kind == yaml.ScalarNode && content.Value == "null" && defaultVal != nil {
-			content = defaultVal
-		}
-		mappingNode.Content = append(mappingNode.Content, content)
-		return &yamlNode, nil
-	}
-
-	rootNode := &yaml.Node{Kind: yaml.MappingNode}
-
+func OAS2ToYAML(doc *openapi2.T) (*yaml.Node, error) {
 	var err error
+	oas := &yaml.Node{Kind: yaml.MappingNode}
 
-	_, err = addYAMLEntry(rootNode, "openapi", doc.OpenAPI, nil)
+	//required
+	_, err = AddEntryToOASYAML(oas, "swagger", doc.Swagger, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	_, err = addYAMLEntry(rootNode, "info", doc.Info, &yaml.Node{Kind: yaml.MappingNode})
+	//required
+	_, err = AddEntryToOASYAML(oas, "info", doc.Info, &yaml.Node{Kind: yaml.MappingNode})
 	if err != nil {
 		return nil, err
 	}
 
+	//optional
 	for k, v := range doc.Extensions {
-		_, err = addYAMLEntry(rootNode, k, v, &yaml.Node{Kind: yaml.MappingNode})
+		_, err = AddEntryToOASYAML(oas, k, v, &yaml.Node{Kind: yaml.MappingNode})
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	_, err = addYAMLEntry(rootNode, "servers", doc.Servers, &yaml.Node{Kind: yaml.SequenceNode})
+	//optional
+	if doc.BasePath != "" {
+		_, err = AddEntryToOASYAML(oas, "basePath", doc.BasePath, nil)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	//optional
+	if doc.Host != "" {
+		_, err = AddEntryToOASYAML(oas, "host", doc.Host, nil)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	//optional
+	if len(doc.Schemes) > 0 {
+		_, err = AddEntryToOASYAML(oas, "schemes", doc.Schemes, &yaml.Node{Kind: yaml.SequenceNode})
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	//optional
+	if doc.ExternalDocs != nil {
+		_, err = AddEntryToOASYAML(oas, "externalDocs", doc.ExternalDocs, &yaml.Node{Kind: yaml.MappingNode})
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	//optional
+	if len(doc.Tags) > 0 {
+		_, err = AddEntryToOASYAML(oas, "tags", doc.Tags, &yaml.Node{Kind: yaml.SequenceNode})
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	//optional
+	if len(doc.Security) > 0 {
+		_, err = AddEntryToOASYAML(oas, "security", doc.Security, &yaml.Node{Kind: yaml.SequenceNode})
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	_, err = AddEntryToOASYAML(oas, "paths", doc.Paths, &yaml.Node{Kind: yaml.MappingNode})
 	if err != nil {
 		return nil, err
 	}
 
-	_, err = addYAMLEntry(rootNode, "externalDocs", doc.ExternalDocs, &yaml.Node{Kind: yaml.MappingNode})
-	if err != nil {
-		return nil, err
+	//optional
+	if len(doc.Consumes) > 0 {
+		_, err = AddEntryToOASYAML(oas, "consumes", doc.Consumes, &yaml.Node{Kind: yaml.SequenceNode})
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	_, err = addYAMLEntry(rootNode, "tags", doc.Tags, &yaml.Node{Kind: yaml.SequenceNode})
-	if err != nil {
-		return nil, err
+	//optional
+	if len(doc.Produces) > 0 {
+		_, err = AddEntryToOASYAML(oas, "produces", doc.Produces, &yaml.Node{Kind: yaml.SequenceNode})
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	_, err = addYAMLEntry(rootNode, "security", doc.Security, &yaml.Node{Kind: yaml.SequenceNode})
-	if err != nil {
-		return nil, err
+	//optional
+	if len(doc.SecurityDefinitions) > 0 {
+		_, err = AddEntryToOASYAML(oas, "securityDefinitions", doc.SecurityDefinitions, &yaml.Node{Kind: yaml.MappingNode})
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	_, err = addYAMLEntry(rootNode, "paths", doc.Paths, &yaml.Node{Kind: yaml.MappingNode})
-	if err != nil {
-		return nil, err
+	//optional
+	if len(doc.Parameters) > 0 {
+		_, err = AddEntryToOASYAML(oas, "parameters", doc.Parameters, &yaml.Node{Kind: yaml.MappingNode})
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	_, err = addYAMLEntry(rootNode, "components", doc.Components, &yaml.Node{Kind: yaml.MappingNode})
-	if err != nil {
-		return nil, err
+	//optional
+	if len(doc.Responses) > 0 {
+		_, err = AddEntryToOASYAML(oas, "responses", doc.Responses, &yaml.Node{Kind: yaml.MappingNode})
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	return rootNode, nil
+	//optional
+	if len(doc.Definitions) > 0 {
+		_, err = AddEntryToOASYAML(oas, "definitions", doc.Definitions, &yaml.Node{Kind: yaml.MappingNode})
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return oas, nil
 }

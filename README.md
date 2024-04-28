@@ -44,6 +44,7 @@ By using this tool alongside the [Apigee CLI](https://github.com/apigee/apigeecl
   * [yaml-to-json](#yaml-to-json-command)
   * [json-to-yaml](#json-to-yaml-command)
   * [oas2-to-oas3](#openapi-2-to-openapi-3-command)
+  * [oas3-to-oas2](#openapi-3-to-openapi-2-command)
   * [resolve-refs](#resolve-refs-command)
 * [Template Rendering Commands](#template-rendering-commands)
   * [Using OpenAPI Spec](#creating-api-proxy-from-openapi-spec)
@@ -178,9 +179,10 @@ The `apigee-go-gen` offers a powerful set of `transform` commands for your Apige
 * `sharedflow-to-yaml` - Transforms an Apigee API shared flow bundle to a YAML doc
 * `yaml-to-sharedflow` - Transforms a YAML doc to an Apigee shared flow bundle
 
-**OpenAPI 2 ➡️️ Open API 3**
+**OpenAPI 2 ↔️ Open API 3**
 
 * `oas2-to-oas3` - Transforms an OpenAPI 2 spec (also known as Swagger) into OpenAPI 3
+* `oas3-to-oas2` - Transforms an OpenAPI 3 spec into OpenAPI 2 (also known as Swagger)
 
 
 **JSON / YAML with $ref ➡️️ JSON / YAML without $ref:**
@@ -662,6 +664,47 @@ Below are as few examples
 * Reading from stdin (piped from another process) and writing to stdout
   ```shell
   cat ./examples/specs/oas2/petstore.yaml | apigee-go-gen transform oas2-to-oas3
+  ```
+
+
+### OpenAPI 3 to OpenAPI 2 Command
+
+**Purpose:** This command transforms an input OpenAPI 3 spec into an OpenAPI 2 spec (also known as Swagger)
+
+> Under the hood, this command uses the [kin-openapi](https://pkg.go.dev/github.com/getkin/kin-openapi) library to do the conversion
+
+**Usage**
+
+The `oas3-to-oas2` command takes two parameters `-input` and `-output`
+
+* `--input` is the OpenAPI 3 document to transform (either as JSON or YAML)
+
+* `--output` is the OpenAPI 2 document to be created (either as JSON or YAML)
+
+* `--output` full path is created if it does not exist (like `mkdir -p`)
+
+* `--allow-cycles` external cyclic JSONRefs are replaced with empty placeholders `{}`
+
+**Note**: You may omit the `--input` or `--output` flags to read or write from stdin or stdout
+
+
+Below are as few examples
+
+* Reading and writing to files explicitly
+  ```shell
+  apigee-go-gen transform oas3-to-oas2 \
+      --input ./examples/specs/oas3/npr.yaml \
+      --output ./out/specs/oas2/npr.yaml 
+  ```
+
+* Reading from stdin (from a file) and writing to stdout
+  ```shell
+  apigee-go-gen transform oas3-to-oas2 < ./examples/specs/oas3/npr.yaml
+  ```
+
+* Reading from stdin (piped from another process) and writing to stdout
+  ```shell
+  cat ./examples/specs/oas3/npr.yaml | apigee-go-gen transform oas3-to-oas2
   ```
 
 

@@ -94,7 +94,7 @@ func TestOpenAPI2FileToOpenAPI3File(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ttDir := filepath.Join("testdata", "oas2", tt.dir)
+			ttDir := filepath.Join("testdata", "oas2-to-oas3", tt.dir)
 			inputFile := filepath.Join(ttDir, tt.inputFile)
 			outputFile := filepath.Join(ttDir, fmt.Sprint("out-", tt.expectedFile))
 			expectedFile := filepath.Join(ttDir, fmt.Sprint(tt.expectedFile))

@@ -15,6 +15,10 @@
 package utils
 
 import (
+	"bytes"
+	"encoding/json"
+	"github.com/go-errors/errors"
+	"gopkg.in/yaml.v3"
 	"os"
 )
 
@@ -25,4 +29,32 @@ func MustReadFileBytes(path string) []byte {
 	}
 
 	return data
+}
+
+func AddEntryToOASYAML(oas *yaml.Node, key string, value any, defaultVal *yaml.Node) (*yaml.Node, error) {
+	oas.Content = append(oas.Content, &yaml.Node{Kind: yaml.ScalarNode, Value: key})
+
+	//the kin-openapi library only uses JSON tags, so we must marshall to JSON first
+	jsonText, err := json.Marshal(value)
+	if err != nil {
+		return nil, errors.New(err)
+	}
+
+	yamlText, err := JSONText2YAMLText(bytes.NewReader(jsonText))
+	if err != nil {
+		return nil, err
+	}
+
+	yamlNode := yaml.Node{}
+	err = yaml.Unmarshal(yamlText, &yamlNode)
+	if err != nil {
+		return nil, errors.New(err)
+	}
+
+	content := yamlNode.Content[0]
+	if content.Kind == yaml.ScalarNode && content.Value == "null" && defaultVal != nil {
+		content = defaultVal
+	}
+	oas.Content = append(oas.Content, content)
+	return &yamlNode, nil
 }
