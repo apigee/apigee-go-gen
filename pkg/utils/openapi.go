@@ -54,6 +54,9 @@ func OAS2YAMLtoOAS3YAML(oasNode *yaml.Node) (*yaml.Node, error) {
 
 func OAS2FileToOAS3File(input string, output string, allowCycles bool) error {
 	text, err := ReadInputText(input)
+	if err != nil {
+		return err
+	}
 
 	//first, use the YAML library to parse it (regardless if it's JSON or YAML)
 	var oas2node *yaml.Node
