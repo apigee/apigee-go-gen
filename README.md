@@ -878,14 +878,14 @@ on your specific requirements.
 
 You can install the `apigee-go-gen` binary in several ways. See options below.
 
-## Install manually
+### Install manually
 
 The most straightforward way to install the tool is to manually download a release tar ball from the
 available GitHub [releases](https://github.com/micovery/apigee-go-gen/releases).
 
 Once you download the tarball, extract it and move the `apigee-go-gen` binary to somewhere in your `$PATH`
 
-## Install with script
+### Install with script
 
 For your convenience, there is an [install](/install) script available at the root fo this repo.
 
@@ -924,7 +924,7 @@ curl -s https://raw.githubusercontent.com/micovery/apigee-go-gen/main/install | 
 
 
 
-## Install from source
+### Install from source
 
 If you already have [Go](https://go.dev/doc/install) installed in your machine, run the following command:
 
