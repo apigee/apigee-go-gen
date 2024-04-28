@@ -41,6 +41,15 @@ func OAS2YAMLtoOAS3YAML(oasNode *yaml.Node) (*yaml.Node, error) {
 	}
 
 	//finally, convert it to the OAS3 data model
+	openapi3.CircularReferenceCounter = 5
+	openapi3.DisableSchemaDefaultsValidation()
+	openapi3.DisablePatternValidation()
+	openapi3.DisableExamplesValidation()
+	openapi3.DisableSchemaPatternValidation()
+	openapi3.DisableSchemaFormatValidation()
+	openapi3.DisableReadOnlyValidation()
+	openapi3.DisableWriteOnlyValidation()
+
 	loader := openapi3.NewLoader()
 	loader.IsExternalRefsAllowed = true
 	oas3doc, err := openapi2conv.ToV3WithLoader(&oas2doc, loader, nil)
@@ -73,10 +82,17 @@ func OAS2FileToOAS3File(input string, output string, allowCycles bool) error {
 		return errors.Errorf("input %s is not an OpenAPI 2.0 spec", input)
 	}
 
-	//resolve all external JSONRefs
-	oas2node, err = ResolveYAMLRefs(oas2node, input, allowCycles)
+	//detect JSONRef cycles
+	_, err = DetectCycle(oas2node, input)
 	if err != nil {
-		return err
+		var cyclicError CyclicJSONRefError
+		isCyclicError := errors.As(err, &cyclicError)
+
+		if isCyclicError && allowCycles == true {
+			oas2node, err = ResolveCycles(oas2node, input)
+		} else {
+			return err
+		}
 	}
 
 	oas3node, err := RunWithinDirectory(filepath.Dir(input), func() (*yaml.Node, error) {

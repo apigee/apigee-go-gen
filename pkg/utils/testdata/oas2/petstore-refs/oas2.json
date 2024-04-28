@@ -881,7 +881,7 @@
       "$ref": "./schemas/definitions.json#/definitions/Category"
     },
     "Pet": {
-      "$ref": "./schemas/definitions.json/#/definitions/Pet"
+      "$ref": "./schemas/definitions.json#/definitions/Pet"
     },
     "Order": {
       "$ref": "./schemas/order.json#/Order"

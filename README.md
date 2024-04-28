@@ -640,9 +640,10 @@ The `oas2-to-oas3` command takes two parameters `-input` and `-output`
 
 * `--output` full path is created if it does not exist (like `mkdir -p`)
 
-* `--allow-cycles` cyclic JSONRefs are replaced with empty placeholders `{}`
+* `--allow-cycles` external cyclic JSONRefs are replaced with empty placeholders `{}`
 
 **Note**: You may omit the `--input` or `--output` flags to read or write from stdin or stdout
+
 
 Below are as few examples
 
@@ -678,7 +679,7 @@ The `resolve-refs` command takes two parameters `-input` and `-output`
 
 * `--output` full path is created if it does not exist (like `mkdir -p`)
 
-* `--allow-cycles` cyclic JSONRefs are replaced with empty placeholders `{}`
+* `--allow-cycles` external cyclic JSONRefs are replaced with empty placeholders `{}`
 
 **Note**: You may omit the `--input` or `--output` flags to read or write from stdin or stdout
 
