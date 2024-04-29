@@ -58,3 +58,7 @@ theme:
     - search.share
     - search.highlight
     - content.action.edit
+plugins:
+  - mkdocs-simple-hooks:
+      hooks:
+        on_pre_build: "docs.hooks:copy_install"
