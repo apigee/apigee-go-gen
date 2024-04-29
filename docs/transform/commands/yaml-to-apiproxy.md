@@ -21,9 +21,12 @@ This command takes a YAML document and converts it into a ready-to-use Apigee AP
 
 This command plays a crucial part in streamlining your Apigee development process.
 
-1. **Design:** Craft your API proxy configuration using the more readable and manageable YAML format.
-2. **Convert:** Feed your YAML document into the command to get a fully compliant API proxy bundle.
-3. **Deploy:** Use the Apigee CLI to deploy the bundle
+- [x] **Design** 
+> Craft your API proxy configuration using the more readable and manageable YAML format.
+- [x] **Convert** 
+> Feed your YAML document into the command to get a fully compliant API proxy bundle.
+- [x] **Deploy** 
+> Use the Apigee CLI to deploy the bundle
 
 ## Usage
 
@@ -38,14 +41,18 @@ The `yaml-to-apiproxy` command takes two parameters `-input` and `-output`
 Bundle resources are read relative to the location of the `--input`
 
 ### Examples
+Below are a few examples for using the `yaml-to-apiproxy` command.
 
-* Creating a bundle zip
+#### Create bundle zip
+Creating a bundle zip
 ```shell
 apigee-go-gen transform yaml-to-apiproxy \
   --input ./examples/yaml-first/petstore/apiproxy.yaml \
   --output ./out/apiproxies/petstore.zip 
 ```
-* Creating a bundle directory
+
+#### Create bundle dir
+Creating a bundle directory
 ```shell
 apigee-go-gen transform yaml-to-apiproxy \
   --input ./examples/yaml-first/petstore/apiproxy.yaml \

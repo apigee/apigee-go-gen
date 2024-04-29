@@ -21,13 +21,13 @@ Under the hood, this command combines the [render template](./render-template.md
 
 Using a template based workflow offers several advantages over working directly with the traditional Apigee API proxy bundle. e.g.
 
-> **Enhanced Customization**  
+- [x] **Enhanced Customization**  
 > Tweak your API proxy configurations with the readability of YAML.
 
-> **Seamless Spec Synchronization**  
+- [x] **Seamless Spec Synchronization**  
 > Template-generated API proxy bundles can be easily synced with your specs by re-generating them when changes occur.
 
->**Streamline Your Development**  
+- [x] **Streamline Your Development**  
 > YAML's versatility allows for easy version control, automation, and integration into CI/CD pipelines.
 
 ## Usage

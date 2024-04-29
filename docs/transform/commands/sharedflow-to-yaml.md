@@ -30,14 +30,18 @@ The `sharedflow-to-yaml` command takes two parameters `-input` and `-output`.
 Bundle resources are created in the same location as the `--output`
 
 ### Examples
+Below are a few examples for using the `sharedflow-to-yaml` command.
 
-* Reading bundle from a zip file
+#### From zip
+Reading bundle from a zip file
 ```shell
 apigee-go-gen transform sharedflow-to-yaml \
   --input ./examples/sharedflows/owasp/owasp.zip \
   --output ./out/yaml-first/owasp/sharedflow.yaml
 ```
-* Reading bundle from a directory
+
+#### From dir
+Reading bundle from a directory
 ```shell
 apigee-go-gen transform sharedflow-to-yaml \
   --input ./examples/sharedflows/owasp/ \

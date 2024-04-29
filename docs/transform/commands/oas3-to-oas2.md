@@ -36,20 +36,24 @@ The `oas3-to-oas2` command takes two parameters `-input` and `-output`
 
 
 ### Examples
+Below are a few examples for using the `oas3-to-oas2` command.
 
-* Reading and writing to files explicitly
+#### From files
+Reading and writing to files explicitly
 ```shell
 apigee-go-gen transform oas3-to-oas2 \
   --input ./examples/specs/oas3/npr.yaml \
   --output ./out/specs/oas2/npr.yaml 
 ```
 
+#### From stdin / stdout
 * Reading from stdin (from a file) and writing to stdout
 ```shell
 apigee-go-gen transform oas3-to-oas2 < ./examples/specs/oas3/npr.yaml
 ```
 
-* Reading from stdin (piped from another process) and writing to stdout
+#### From a process
+Reading from stdin (piped from another process) and writing to stdout
 ```shell
 cat ./examples/specs/oas3/npr.yaml | apigee-go-gen transform oas3-to-oas2
 ```

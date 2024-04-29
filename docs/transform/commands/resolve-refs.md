@@ -31,5 +31,6 @@ The `resolve-refs` command takes two parameters `-input` and `-output`
 
 > You may omit the `--input` or `--output` flags to read or write from stdin or stdout
 
-> Only JSONRefs pointing to external documents are replaced. If a JSONRef points back within the same document, it is left unchanged.
+!!! Note
+    Only JSONRefs pointing to external documents are replaced. If a JSONRef points back within the same document, it is left unchanged.
 

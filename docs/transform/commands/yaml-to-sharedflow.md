@@ -31,14 +31,18 @@ The `yaml-to-sharedflow` command takes two parameters `-input` and `-output`
 
 
 ### Examples
+Below are a few examples for using the `yaml-to-sharedflow` command.
 
-* Creating a bundle zip
+#### Create bundle zip
+Creating a bundle zip
 ```shell
 apigee-go-gen transform yaml-to-sharedflow \
   --input ./examples/yaml-first/owasp/sharedflow.yaml \
   --output ./out/sharedflows/owasp.zip 
 ```
-* Creating a bundle directory
+
+#### Create bundle dir
+Creating a bundle directory
 ```shell
 apigee-go-gen transform yaml-to-sharedflow \
   --input ./examples/yaml-first/owasp/sharedflow.yaml \

@@ -30,20 +30,24 @@ The `yaml-to-json` command takes two parameters `-input` and `-output`
 > You may omit the `--input` or `--output` flags to read or write from stdin or stdout
 
 ### Examples
+Below are a few examples for using the `yaml-to-json` command.
 
-* Reading and writing to files explicitly
+#### From files
+Reading and writing to files explicitly
 ```shell
 apigee-go-gen transform yaml-to-json \
   --input ./examples/snippets/ducks.yaml \
   --output ./out/snippets/ducks.json 
 ```
 
-* Reading from stdin (from a file) and writing to stdout
+#### From stdin / stdout
+Reading from stdin (from a file) and writing to stdout
 ```shell
 apigee-go-gen transform yaml-to-json < ./examples/snippets/ducks.yaml
 ```
 
-* Reading from stdin (piped from another process) and writing to stdout
+#### From a process
+Reading from stdin (piped from another process) and writing to stdout
 ```shell
 cat ./examples/snippets/ducks.yaml | apigee-go-gen transform yaml-to-json
 ```
