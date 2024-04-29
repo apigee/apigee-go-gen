@@ -43,23 +43,23 @@ e.g.
 
 Install latest **version** into `/usr/local/bin` **directory**
 ```shell
-curl -s https://raw.githubusercontent.com/micovery/apigee-go-gen/main/install | sh
+curl -s https://micovery.github.io/apigee-go-gen/install | sh
 ```
 
 
 Install specific **version** into `/usr/local/bin` **directory**
 ```shell
-curl -s https://raw.githubusercontent.com/micovery/apigee-go-gen/main/install | sh -s v0.1.13
+curl -s https://micovery.github.io/apigee-go-gen/install | sh -s v0.1.13
 ```
 
 Install **latest** version into `~/.local/bin` **directory**
 ```shell
-curl -s https://raw.githubusercontent.com/micovery/apigee-go-gen/main/install | sh -s latest ~/.local/bin
+curl -s https://micovery.github.io/apigee-go-gen/install | sh -s latest ~/.local/bin
 ```
 
 Install specific **version** into `~/.local/bin` **directory**
 ```shell
-curl -s https://raw.githubusercontent.com/micovery/apigee-go-gen/main/install | sh -s v0.1.13 ~/.local/bin
+curl -s https://micovery.github.io/apigee-go-gen/install | sh -s v0.1.13 ~/.local/bin
 ```
 
 
