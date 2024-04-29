@@ -69,7 +69,7 @@ curl -s https://raw.githubusercontent.com/micovery/apigee-go-gen/main/install | 
 If you already have [Go](https://go.dev/doc/install) installed in your machine, run the following command:
 
 ```shell
-go install github.com/micovery/apigee-yaml-toolkit/cmd/...@latest
+go install github.com/micovery/apigee-go-gen/cmd/...@latest
 ```
 
 This will download the source, build it (in your machine) and install the `apigee-go-gen` binary into your `$GOPATH/bin` directory.

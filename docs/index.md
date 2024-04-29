@@ -15,8 +15,8 @@
   limitations under the License.
 -->
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/micovery/apigee-yaml-toolkit)](https://goreportcard.com/report/github.com/micovery/apigee-yaml-toolkit)
-[![GitHub release](https://img.shields.io/github/v/release/micovery/apigee-yaml-toolkit)](https://github.com/micovery/apigee-yaml-toolkit/releases)
+[![Go Report Card](https://goreportcard.com/badge/github.com/micovery/apigee-go-gen)](https://goreportcard.com/report/github.com/micovery/apigee-go-gen)
+[![GitHub release](https://img.shields.io/github/v/release/micovery/apigee-go-gen)](https://github.com/micovery/apigee-go-gen/releases)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 The `apigee-go-gen` tool streamlines your Apigee development experience using [Go style](https://developer.hashicorp.com/nomad/tutorials/templates/go-template-syntax) templates with a [YAML-First](#why-use-yaml-first) approach.

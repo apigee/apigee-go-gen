@@ -26,9 +26,9 @@ RUN ./build.sh
 
 FROM golang:1.21
 
-LABEL org.opencontainers.image.url='https://github.com/micovery/apigee-yaml-toolkit' \
-      org.opencontainers.image.documentation='https://github.com/micovery/apigee-yaml-toolkit' \
-      org.opencontainers.image.source='https://github.com/micovery/apigee-yaml-toolkit' \
+LABEL org.opencontainers.image.url='https://github.com/micovery/apigee-go-gen' \
+      org.opencontainers.image.documentation='https://github.com/micovery/apigee-go-gen' \
+      org.opencontainers.image.source='https://github.com/micovery/apigee-go-gen' \
       org.opencontainers.image.vendor='Google LLC' \
       org.opencontainers.image.licenses='Apache-2.0' \
       org.opencontainers.image.description='This is a tool for generating Apigee bundles and shared flows'
