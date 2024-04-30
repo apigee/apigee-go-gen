@@ -19,7 +19,7 @@
 [![GitHub release](https://img.shields.io/github/v/release/micovery/apigee-go-gen)](https://github.com/micovery/apigee-go-gen/releases)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-The `apigee-go-gen` tool streamlines your Apigee development experience using [Go style](https://developer.hashicorp.com/nomad/tutorials/templates/go-template-syntax) templates with a YAML-First approach.
+The `apigee-go-gen` CLI tool streamlines your Apigee development experience using [Go style](https://developer.hashicorp.com/nomad/tutorials/templates/go-template-syntax) templates with a YAML centric workflow.
 
 **Here's what you'll find:**
 

@@ -52,6 +52,8 @@ apigee-go-gen transform apiproxy-to-yaml \
 ## API Proxy Bundle Structure
 In the Apigee world, API proxy bundles are like the packages that hold all the instructions your API needs to work.
 
+**How are API proxy bundles used?** ...
+
 - [x] **Creating APIs**
 > When you design an API using the Apigee X UI and download the zip file, you're actually getting an API proxy bundle.
 - [x] **Deploying APIs**

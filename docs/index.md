@@ -19,7 +19,7 @@
 [![GitHub release](https://img.shields.io/github/v/release/micovery/apigee-go-gen)](https://github.com/micovery/apigee-go-gen/releases)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-The `apigee-go-gen` tool streamlines your Apigee development experience using [Go style](https://developer.hashicorp.com/nomad/tutorials/templates/go-template-syntax) templates with a [YAML-First](#why-use-yaml-first) approach.
+The `apigee-go-gen` CLI tool streamlines your Apigee development experience using [Go style](https://developer.hashicorp.com/nomad/tutorials/templates/go-template-syntax) templates with a YAML centric workflow.
 
 **Here's what you'll find:**
 
@@ -29,9 +29,9 @@ The `apigee-go-gen` tool streamlines your Apigee development experience using [G
 By using this tool alongside the [Apigee CLI](https://github.com/apigee/apigeecli), you'll unlock a highly customizable workflow. This is perfect for both streamlined local development and robust CI/CD pipelines.
 
 
-## Why use YAML-First
+## Why use YAML 
 
-The API proxy bundle format has certain characteristics that can present challenges:
+The traditional Apigee API proxy bundle format has certain characteristics that can present challenges:
 
 * **XML Format**: XML is a polarizing format. While it offers advantages like legacy tooling
   support and well-defined schema validation, its verbosity can make it less  ideal for smaller configuration files.
@@ -40,9 +40,9 @@ The API proxy bundle format has certain characteristics that can present challen
   limiting flexibility in terms of re-use and customization. This often leads Apigee customers to develop their
   own systems to manage, adapt, and deploy these bundles across environments.
 
-What if there was a better way? ...
+**What if there was a better way?** ...
 
-I propose using YAML to represent API Proxies in combination with a powerful Go style templating engine.
+You can define Apigee API Proxies using YAML configuration files and customize them with a flexible templating system.
 
 This approach has the potential to address the current challenges, offering:
 
