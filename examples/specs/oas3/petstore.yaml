@@ -19,7 +19,12 @@ info:
   license:
     name: MIT
 servers:
-  - url: http://petstore.swagger.io/v1
+  - url: https://petstore.swagger.io/v1
+    description: prod
+  - url: https://stage-petstore.swagger.io:8443/v1
+    description: stage
+  - url: http://dev-petstore.swagger.io/v1
+    description: dev
 paths:
   /pets:
     get:

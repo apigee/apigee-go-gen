@@ -1,0 +1,68 @@
+#  Copyright 2024 Google LLC
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#       http:#www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#{{- $api_name := slug_make ($.Values.spec | dig "info" "x-serviceName" $.Values.spec.info.title) }}
+APIProxy:
+  .revision: 1
+  .name: {{ $api_name }}
+  DisplayName: {{ $.Values.spec.info.title }}
+  Description: {{ $.Values.spec.info.description }}
+Policies:
+  $ref: ./policies.yaml#/
+ProxyEndpoints:
+  - ProxyEndpoint:
+      .name: default
+      PreFlow:
+        .name: PreFlow
+        Request:
+          - Step:
+              Name: OAS-Validate
+      Flows:
+      #{{- range $path, $pathItem := $.Values.spec.paths }}
+        #{{- range $verb, $opItem := $pathItem }}
+          #{{- if eq (include "get_visibility" $opItem) "INTERNAL" }}
+              #{{- fmt_printf "Skipping internal operation '%s' (%s %s)\n" $opItem.operationId $verb $path }}
+              #{{-  continue }}
+          #{{-  end  }}
+        - Flow:
+            .name: {{ $opItem.operationId }}
+            Condition: (proxy.pathsuffix MatchesPath "{{  regexReplaceAll "{[^}]*}" $path "*" }}") and (request.verb = "{{ $verb | upper }}")
+        #{{- end }}
+      #{{- end }}
+        - Flow:
+            .name: CatchAll
+            Request:
+              - Step:
+                  Name: RF-CatchAll
+      HTTPProxyConnection:
+        BasePath: {{ include "get_basepath" (index $.Values.spec.servers 0 "url") }}
+      RouteRule:
+        .name: default
+        TargetEndpoint: default
+TargetEndpoints:
+  - TargetEndpoint:
+      .name: default
+      HTTPTargetConnection:
+        LoadBalancer:
+          Servers:
+            Server:
+              .name: TS-{{ $api_name }}
+Resources:
+  - Resource:
+      Type: oas
+      #{{ os_writefile "./spec.yaml" $.Values.spec_string }}
+      Path: ./spec.yaml
+  - Resource:
+      Type: properties
+      #{{ os_copyfile "./test.properties" "./resources/test.properties" }}
+      Path: ./test.properties

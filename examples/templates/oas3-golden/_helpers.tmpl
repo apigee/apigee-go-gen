@@ -1,0 +1,58 @@
+
+{{/*
+ Copyright 2024 Google LLC
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+      http:#www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+*/}}
+
+{{- define "get_visibility" -}}
+  {{- dig "x-visibility" "extent" "UNKNOWN" . }}
+{{- end -}}
+
+{{- define "get_basepath" -}}
+  {{- $url := url_parse . -}}
+  {{- $url.Path | default "/" -}}
+{{- end -}}
+
+{{- define "get_scheme" -}}
+  {{- $url := url_parse . -}}
+  {{- $url.Scheme -}}
+{{- end -}}
+
+{{- define "get_target_url" -}}
+  {{- $servers := . -}}
+  {{- index $servers 0 | dig "url" "https://mocktarget.apigee.net" -}}
+{{- end -}}
+
+
+{{- define "get_target_scheme_host_port" -}}
+  {{- $servers := $.spec.servers -}}
+  {{- $env := $.env -}}
+  {{- range $index, $server := $servers -}}
+    {{- $desc := $server.description -}}
+    {{- if eq $desc $env -}}
+      {{- $parsedUrl := url_parse $server.url  -}}
+      {{- if contains ":" $parsedUrl.Host -}}
+        {{- $parts := regexSplit ":" $parsedUrl.Host -1 -}}
+        {{- list $parsedUrl.Scheme (index $parts 0) (index $parts 1) | toJson }}
+      {{- else if eq $parsedUrl.Scheme "http" -}}
+        {{- list $parsedUrl.Scheme $parsedUrl.Host 80 | toJson }}
+      {{- else -}}
+        {{- list $parsedUrl.Scheme $parsedUrl.Host 443 | toJson}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+
+{{- define "blank" -}}{{- end -}}
