@@ -17,9 +17,9 @@ package apiproxy
 import (
 	"archive/zip"
 	"fmt"
-	v1 "github.com/micovery/apigee-go-gen/pkg/apigee/v1"
-	"github.com/micovery/apigee-go-gen/pkg/render"
-	"github.com/micovery/apigee-go-gen/pkg/utils"
+	v1 "github.com/apigee/apigee-go-gen/pkg/apigee/v1"
+	"github.com/apigee/apigee-go-gen/pkg/render"
+	"github.com/apigee/apigee-go-gen/pkg/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"io"

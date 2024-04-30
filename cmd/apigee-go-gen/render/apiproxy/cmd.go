@@ -16,11 +16,11 @@ package apiproxy
 
 import (
 	"fmt"
+	v1 "github.com/apigee/apigee-go-gen/pkg/apigee/v1"
+	"github.com/apigee/apigee-go-gen/pkg/common/resources"
+	"github.com/apigee/apigee-go-gen/pkg/flags"
+	"github.com/apigee/apigee-go-gen/pkg/render"
 	"github.com/go-errors/errors"
-	v1 "github.com/micovery/apigee-go-gen/pkg/apigee/v1"
-	"github.com/micovery/apigee-go-gen/pkg/common/resources"
-	"github.com/micovery/apigee-go-gen/pkg/flags"
-	"github.com/micovery/apigee-go-gen/pkg/render"
 	"github.com/spf13/cobra"
 	"strings"
 )

@@ -15,8 +15,8 @@
 package render
 
 import (
-	"github.com/micovery/apigee-go-gen/pkg/flags"
-	"github.com/micovery/apigee-go-gen/pkg/values"
+	"github.com/apigee/apigee-go-gen/pkg/flags"
+	"github.com/apigee/apigee-go-gen/pkg/values"
 )
 
 func NewCommonFlags() *CommonFlags {

@@ -20,13 +20,13 @@ You can install the `apigee-go-gen` binary in several ways.
 ### Manual download
 
 The most straightforward way to install the tool is to download a release tar ball from the
-available GitHub [releases](https://github.com/micovery/apigee-go-gen/releases).
+available GitHub [releases](https://github.com/apigee/apigee-go-gen/releases).
 
 Once you download the tarball, extract it and move the `apigee-go-gen` binary to somewhere in your `$PATH`
 
 ### Automated install
 
-For your convenience, there is an [install](https://github.com/micovery/apigee-go-gen/blob/main/install) script available.
+For your convenience, there is an [install](https://github.com/apigee/apigee-go-gen/blob/main/install) script available.
 
 This script downloads and installs the `apigee-go-gen` tool automatically for you.
 
@@ -43,23 +43,23 @@ e.g.
 
 Install latest **version** into `/usr/local/bin` **directory**
 ```shell
-curl -s https://micovery.github.io/apigee-go-gen/install | sh
+curl -s https://apigee.github.io/apigee-go-gen/install | sh
 ```
 
 
 Install specific **version** into `/usr/local/bin` **directory**
 ```shell
-curl -s https://micovery.github.io/apigee-go-gen/install | sh -s v0.1.13
+curl -s https://apigee.github.io/apigee-go-gen/install | sh -s v0.1.13
 ```
 
 Install **latest** version into `~/.local/bin` **directory**
 ```shell
-curl -s https://micovery.github.io/apigee-go-gen/install | sh -s latest ~/.local/bin
+curl -s https://apigee.github.io/apigee-go-gen/install | sh -s latest ~/.local/bin
 ```
 
 Install specific **version** into `~/.local/bin` **directory**
 ```shell
-curl -s https://micovery.github.io/apigee-go-gen/install | sh -s v0.1.13 ~/.local/bin
+curl -s https://apigee.github.io/apigee-go-gen/install | sh -s v0.1.13 ~/.local/bin
 ```
 
 
@@ -69,7 +69,7 @@ curl -s https://micovery.github.io/apigee-go-gen/install | sh -s v0.1.13 ~/.loca
 If you already have [Go](https://go.dev/doc/install) installed in your machine, run the following command:
 
 ```shell
-go install github.com/micovery/apigee-go-gen/cmd/...@latest
+go install github.com/apigee/apigee-go-gen/cmd/...@latest
 ```
 
 This will download the source, build it (in your machine) and install the `apigee-go-gen` binary into your `$GOPATH/bin` directory.

@@ -17,8 +17,8 @@ package flags
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/apigee/apigee-go-gen/pkg/values"
 	"github.com/go-errors/errors"
-	"github.com/micovery/apigee-go-gen/pkg/values"
 	"strings"
 )
 

@@ -15,9 +15,9 @@
 package v1
 
 import (
+	"github.com/apigee/apigee-go-gen/pkg/utils"
+	"github.com/apigee/apigee-go-gen/pkg/zip"
 	"github.com/go-errors/errors"
-	"github.com/micovery/apigee-go-gen/pkg/utils"
-	"github.com/micovery/apigee-go-gen/pkg/zip"
 	"net/url"
 	"os"
 	"path/filepath"

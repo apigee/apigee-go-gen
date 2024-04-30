@@ -32,7 +32,7 @@ This works similar to how values are set in Helm charts.
 
 ## Examples
 
-Check out the [examples/templates/graphql](https://github.com/micovery/apigee-go-gen/blob/main/examples/templates/graphql/apiproxy.yaml) directory for an example of building the intermediate YAML for a GraphQL API proxy.
+Check out the [examples/templates/graphql](https://github.com/apigee/apigee-go-gen/blob/main/examples/templates/graphql/apiproxy.yaml) directory for an example of building the intermediate YAML for a GraphQL API proxy.
 
 Here is how you would use the [render apiproxy](./commands/render-apiproxy.md) command with this example:
 

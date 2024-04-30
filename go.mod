@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-module github.com/micovery/apigee-go-gen
+module github.com/apigee/apigee-go-gen
 
 go 1.21
 

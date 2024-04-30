@@ -16,8 +16,8 @@ package main
 
 import (
 	"fmt"
+	v1 "github.com/apigee/apigee-go-gen/pkg/apigee/v1"
 	"github.com/go-errors/errors"
-	v1 "github.com/micovery/apigee-go-gen/pkg/apigee/v1"
 	"os"
 )
 

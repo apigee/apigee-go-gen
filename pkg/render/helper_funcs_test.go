@@ -15,7 +15,7 @@
 package render
 
 import (
-	"github.com/micovery/apigee-go-gen/pkg/utils"
+	"github.com/apigee/apigee-go-gen/pkg/utils"
 	"github.com/stretchr/testify/require"
 	"os"
 	"path/filepath"

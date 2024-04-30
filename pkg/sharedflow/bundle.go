@@ -17,9 +17,9 @@ package sharedflow
 import (
 	"bytes"
 	"fmt"
+	"github.com/apigee/apigee-go-gen/pkg/utils"
+	"github.com/apigee/apigee-go-gen/pkg/zip"
 	"github.com/go-errors/errors"
-	"github.com/micovery/apigee-go-gen/pkg/utils"
-	"github.com/micovery/apigee-go-gen/pkg/zip"
 	"gopkg.in/yaml.v3"
 	"io/fs"
 	"os"

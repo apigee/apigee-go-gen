@@ -16,7 +16,7 @@ package v1
 
 import (
 	"fmt"
-	"github.com/micovery/apigee-go-gen/pkg/utils"
+	"github.com/apigee/apigee-go-gen/pkg/utils"
 	"path/filepath"
 )
 

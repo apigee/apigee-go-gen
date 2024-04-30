@@ -16,8 +16,8 @@ package v1
 
 import (
 	"encoding/xml"
+	"github.com/apigee/apigee-go-gen/pkg/utils"
 	"github.com/go-errors/errors"
-	"github.com/micovery/apigee-go-gen/pkg/utils"
 	"gopkg.in/yaml.v3"
 	"path/filepath"
 )

@@ -15,9 +15,9 @@
 package sharedflow_to_yaml
 
 import (
+	"github.com/apigee/apigee-go-gen/pkg/flags"
+	"github.com/apigee/apigee-go-gen/pkg/sharedflow"
 	"github.com/go-errors/errors"
-	"github.com/micovery/apigee-go-gen/pkg/flags"
-	"github.com/micovery/apigee-go-gen/pkg/sharedflow"
 	"github.com/spf13/cobra"
 	"strings"
 )

@@ -16,10 +16,10 @@ package template
 
 import (
 	"fmt"
+	"github.com/apigee/apigee-go-gen/pkg/common/resources"
+	"github.com/apigee/apigee-go-gen/pkg/flags"
+	"github.com/apigee/apigee-go-gen/pkg/render"
 	"github.com/go-errors/errors"
-	"github.com/micovery/apigee-go-gen/pkg/common/resources"
-	"github.com/micovery/apigee-go-gen/pkg/flags"
-	"github.com/micovery/apigee-go-gen/pkg/render"
 	"github.com/spf13/cobra"
 	"strings"
 )

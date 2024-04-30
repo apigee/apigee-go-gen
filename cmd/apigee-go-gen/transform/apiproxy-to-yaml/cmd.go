@@ -15,9 +15,9 @@
 package apiproxy_to_yaml
 
 import (
+	"github.com/apigee/apigee-go-gen/pkg/apiproxy"
+	"github.com/apigee/apigee-go-gen/pkg/flags"
 	"github.com/go-errors/errors"
-	"github.com/micovery/apigee-go-gen/pkg/apiproxy"
-	"github.com/micovery/apigee-go-gen/pkg/flags"
 	"github.com/spf13/cobra"
 	"strings"
 )

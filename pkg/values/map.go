@@ -15,8 +15,8 @@
 package values
 
 import (
+	"github.com/apigee/apigee-go-gen/pkg/utils"
 	"github.com/go-errors/errors"
-	"github.com/micovery/apigee-go-gen/pkg/utils"
 	"regexp"
 	"strconv"
 	"strings"

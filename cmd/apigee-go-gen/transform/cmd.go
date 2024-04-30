@@ -16,17 +16,17 @@ package transform
 
 //goland:noinspection GoSnakeCaseUsage
 import (
-	apiproxy_to_yaml "github.com/micovery/apigee-go-gen/cmd/apigee-go-gen/transform/apiproxy-to-yaml"
-	json_to_yaml "github.com/micovery/apigee-go-gen/cmd/apigee-go-gen/transform/json-to-yaml"
-	oas2_to_oas3 "github.com/micovery/apigee-go-gen/cmd/apigee-go-gen/transform/oas2-to-oas3"
-	oas3_to_oas2 "github.com/micovery/apigee-go-gen/cmd/apigee-go-gen/transform/oas3-to-oas2"
-	resolve_refs "github.com/micovery/apigee-go-gen/cmd/apigee-go-gen/transform/resolve-refs"
-	sharedflow_to_yaml "github.com/micovery/apigee-go-gen/cmd/apigee-go-gen/transform/sharedflow-to-yaml"
-	xml_to_yaml "github.com/micovery/apigee-go-gen/cmd/apigee-go-gen/transform/xml-to-yaml"
-	yaml_to_apiproxy "github.com/micovery/apigee-go-gen/cmd/apigee-go-gen/transform/yaml-to-apiproxy"
-	yaml_to_json "github.com/micovery/apigee-go-gen/cmd/apigee-go-gen/transform/yaml-to-json"
-	yaml_to_sharedflow "github.com/micovery/apigee-go-gen/cmd/apigee-go-gen/transform/yaml-to-sharedflow"
-	yaml_to_xml "github.com/micovery/apigee-go-gen/cmd/apigee-go-gen/transform/yaml-to-xml"
+	apiproxy_to_yaml "github.com/apigee/apigee-go-gen/cmd/apigee-go-gen/transform/apiproxy-to-yaml"
+	json_to_yaml "github.com/apigee/apigee-go-gen/cmd/apigee-go-gen/transform/json-to-yaml"
+	oas2_to_oas3 "github.com/apigee/apigee-go-gen/cmd/apigee-go-gen/transform/oas2-to-oas3"
+	oas3_to_oas2 "github.com/apigee/apigee-go-gen/cmd/apigee-go-gen/transform/oas3-to-oas2"
+	resolve_refs "github.com/apigee/apigee-go-gen/cmd/apigee-go-gen/transform/resolve-refs"
+	sharedflow_to_yaml "github.com/apigee/apigee-go-gen/cmd/apigee-go-gen/transform/sharedflow-to-yaml"
+	xml_to_yaml "github.com/apigee/apigee-go-gen/cmd/apigee-go-gen/transform/xml-to-yaml"
+	yaml_to_apiproxy "github.com/apigee/apigee-go-gen/cmd/apigee-go-gen/transform/yaml-to-apiproxy"
+	yaml_to_json "github.com/apigee/apigee-go-gen/cmd/apigee-go-gen/transform/yaml-to-json"
+	yaml_to_sharedflow "github.com/apigee/apigee-go-gen/cmd/apigee-go-gen/transform/yaml-to-sharedflow"
+	yaml_to_xml "github.com/apigee/apigee-go-gen/cmd/apigee-go-gen/transform/yaml-to-xml"
 	"github.com/spf13/cobra"
 )
 

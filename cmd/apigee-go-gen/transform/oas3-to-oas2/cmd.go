@@ -15,8 +15,8 @@
 package oas3_to_oas2
 
 import (
-	"github.com/micovery/apigee-go-gen/pkg/flags"
-	"github.com/micovery/apigee-go-gen/pkg/utils"
+	"github.com/apigee/apigee-go-gen/pkg/flags"
+	"github.com/apigee/apigee-go-gen/pkg/utils"
 	"github.com/spf13/cobra"
 )
 

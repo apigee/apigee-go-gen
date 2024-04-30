@@ -36,7 +36,7 @@ these gRPC-specific requirements.
 
 ## Example
 
-Check out the [examples/templates/grpc](https://github.com/micovery/apigee-go-gen/blob/main/examples/templates/grpc/apiproxy.yaml) directory for an example of building the intermediate YAML for a gRPC API proxy.
+Check out the [examples/templates/grpc](https://github.com/apigee/apigee-go-gen/blob/main/examples/templates/grpc/apiproxy.yaml) directory for an example of building the intermediate YAML for a gRPC API proxy.
 
 Here is how you would use the [render apiproxy](./commands/render-apiproxy.md) command with this example:
 

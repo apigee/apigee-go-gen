@@ -16,7 +16,7 @@ package flags
 
 import (
 	"fmt"
-	"github.com/micovery/apigee-go-gen/pkg/values"
+	"github.com/apigee/apigee-go-gen/pkg/values"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"testing"

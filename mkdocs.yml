@@ -1,6 +1,6 @@
 site_name: Apigee Go Gen
-site_url: https://micovery.github.io/apigee-go-gen
-repo_url: https://github.com/micovery/apigee-go-gen
+site_url: https://apigee.github.io/apigee-go-gen
+repo_url: https://github.com/apigee/apigee-go-gen
 edit_uri: edit/main/docs/
 markdown_extensions:
   - admonition

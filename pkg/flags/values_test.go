@@ -15,8 +15,8 @@
 package flags
 
 import (
-	"github.com/micovery/apigee-go-gen/pkg/utils"
-	"github.com/micovery/apigee-go-gen/pkg/values"
+	"github.com/apigee/apigee-go-gen/pkg/utils"
+	"github.com/apigee/apigee-go-gen/pkg/values"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"os"

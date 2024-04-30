@@ -15,7 +15,7 @@
 
 # This install script was adapted from the KCL installation script (https://kcl-lang.io/script/install-cli.sh)
 
-GITHUB_ORG=micovery
+GITHUB_ORG=apigee
 GITHUB_REPO=apigee-go-gen
 BINARY_FILENAME=apigee-go-gen
 

@@ -15,8 +15,8 @@
   limitations under the License.
 -->
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/micovery/apigee-go-gen)](https://goreportcard.com/report/github.com/micovery/apigee-go-gen)
-[![GitHub release](https://img.shields.io/github/v/release/micovery/apigee-go-gen)](https://github.com/micovery/apigee-go-gen/releases)
+[![Go Report Card](https://goreportcard.com/badge/github.com/apigee/apigee-go-gen)](https://goreportcard.com/report/github.com/apigee/apigee-go-gen)
+[![GitHub release](https://img.shields.io/github/v/release/apigee/apigee-go-gen)](https://github.com/apigee/apigee-go-gen/releases)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 The `apigee-go-gen` CLI tool streamlines your Apigee development experience using [Go style](https://developer.hashicorp.com/nomad/tutorials/templates/go-template-syntax) templates with a YAML centric workflow.
@@ -30,5 +30,5 @@ By using this tool alongside the [Apigee CLI](https://github.com/apigee/apigeecl
 
 ## Read the docs
 
-Hop over to the [docs](https://micovery.github.io/apigee-go-gen/) site, to learn how to install and use `apigee-go-gen` tool.
+Hop over to the [docs](https://apigee.github.io/apigee-go-gen/) site, to learn how to install and use `apigee-go-gen` tool.
 

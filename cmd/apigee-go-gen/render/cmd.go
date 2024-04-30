@@ -15,9 +15,9 @@
 package render
 
 import (
-	"github.com/micovery/apigee-go-gen/cmd/apigee-go-gen/render/apiproxy"
-	sharedflow "github.com/micovery/apigee-go-gen/cmd/apigee-go-gen/render/sharedflow"
-	"github.com/micovery/apigee-go-gen/cmd/apigee-go-gen/render/template"
+	"github.com/apigee/apigee-go-gen/cmd/apigee-go-gen/render/apiproxy"
+	sharedflow "github.com/apigee/apigee-go-gen/cmd/apigee-go-gen/render/sharedflow"
+	"github.com/apigee/apigee-go-gen/cmd/apigee-go-gen/render/template"
 	"github.com/spf13/cobra"
 )
 

@@ -15,8 +15,8 @@
 package flags
 
 import (
+	"github.com/apigee/apigee-go-gen/pkg/values"
 	"github.com/go-errors/errors"
-	"github.com/micovery/apigee-go-gen/pkg/values"
 	"strconv"
 	"strings"
 )

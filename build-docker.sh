@@ -16,4 +16,4 @@
 #
 
 
-docker build -t micovery/apigee-go-gen .
+docker build -t apigee/apigee-go-gen .

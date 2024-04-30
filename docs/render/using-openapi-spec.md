@@ -33,7 +33,7 @@ You can use the [render apiproxy](./commands/render-apiproxy.md) command to crea
 
 ## Examples
 
-Check out the included OAS3 template at [examples/templates/oas3](https://github.com/micovery/apigee-go-gen/blob/main/examples/templates/oas3/apiproxy.yaml).
+Check out the included OAS3 template at [examples/templates/oas3](https://github.com/apigee/apigee-go-gen/blob/main/examples/templates/oas3/apiproxy.yaml).
 
 Here is how you would use the [render apiproxy](./commands/render-apiproxy.md) command with this example:
 
