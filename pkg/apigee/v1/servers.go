@@ -18,24 +18,13 @@ import "fmt"
 
 type ServerList []*Server
 
-type Servers struct {
-	List ServerList `xml:"Server,omitempty"`
-
-	UnknownNode AnyList `xml:",any"`
-}
-
-func ValidateServers(v *Servers, path string) []error {
+func ValidateServers(v *ServerList, path string) []error {
 	if v == nil {
 		return nil
 	}
 
-	subPath := fmt.Sprintf("%s.Servers", path)
-	if len(v.UnknownNode) > 0 {
-		return []error{&UnknownNodeError{subPath, v.UnknownNode[0]}}
-	}
-
-	for index, vv := range v.List {
-		errs := ValidateServer(vv, fmt.Sprintf("%s.%v", subPath, index))
+	for i, vv := range *v {
+		errs := ValidateServer(vv, fmt.Sprintf("%s.Servers.%v", path, i))
 		if len(errs) > 0 {
 			return errs
 		}

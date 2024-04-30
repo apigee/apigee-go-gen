@@ -17,8 +17,8 @@ package v1
 import "fmt"
 
 type LoadBalancer struct {
-	Algorithm string   `xml:"Algorithm,omitempty"`
-	Servers   *Servers `xml:"Servers"`
+	Algorithm string      `xml:"Algorithm,omitempty"`
+	Servers   *ServerList `xml:"Server,omitempty"`
 
 	UnknownNode AnyList `xml:",any"`
 }
