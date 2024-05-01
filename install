@@ -88,14 +88,43 @@ checkCurrentVersion() {
   fi
 }
 
+
+sortSemver() {
+  local lines=""
+  while read version; do
+    if [[ -z "${lines}" ]] ; then
+      lines=$(printf '%s' "${version}")
+    else
+      lines=$(printf '%s\n%s' "${lines}" "${version}")
+    fi
+  done
+  echo "$lines" | sed -r 's:^v::' | sed -r 's:-:~:' | sort -r -V | sed -r 's:^:v:' | sed -r 's:~:-:'
+}
+
+pickLatestRelease() {
+  local first=""
+  while read version; do
+    first="${version}"
+    if [[ "${version}" != *"-"* ]] ; then
+      echo "${version}"
+      return
+    fi
+  done
+  echo "${first}"
+}
+
+getReleasedTags() {
+  local releaseUrl="${1}"
+  curl -s "${releaseUrl}" | grep "tag_name" | sed -r 's;^[^:]+:[^"]*"([^"]+)".*;\1;'
+}
+
 getLatestRelease() {
   local releaseUrl="https://api.github.com/repos/${GITHUB_ORG}/${GITHUB_REPO}/releases"
   local latest_release=""
 
-  latest_release=$(curl -s $releaseUrl | grep \"tag_name\" | grep -v rc | awk 'NR==1{print $2}' |  sed -n 's/\"\(.*\)\",/\1/p')
+  latest_release=$(getReleasedTags $releaseUrl | sortSemver | pickLatestRelease)
   ret_val=$latest_release
 }
-
 
 createTmpDir() {
    ret_val=$(mktemp -dt ${BINARY_FILENAME}-tmp)
