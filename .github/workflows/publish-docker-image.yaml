@@ -1,0 +1,21 @@
+name: publish-docker-image
+on:
+  workflow_dispatch:
+jobs:
+  build-and-push-image:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: docker login
+        run: docker login ghcr.io -u "${{ github.actor }}" -p "${{ secrets.GITHUB_TOKEN }}"
+      - name: checkout source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+      - name: docker build and push
+        env:
+          GIT_REPO: ${{ github.repository }}
+        run: ./build-docker.sh push
