@@ -54,9 +54,8 @@ TargetEndpoints:
       .name: default
       HTTPTargetConnection:
         LoadBalancer:
-          Servers:
-            Server:
-              .name: TS-{{ $api_name }}
+          Server:
+            .name: TS-{{ $api_name }}
 Resources:
   - Resource:
       Type: oas
