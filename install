@@ -104,7 +104,9 @@ sortSemver() {
 pickLatestRelease() {
   local first=""
   while read version; do
-    first="${version}"
+    if [[ -z "${first}" ]] ; then
+      first="${version}"
+    fi
     if [[ "${version}" != *"-"* ]] ; then
       echo "${version}"
       return
