@@ -31,7 +31,9 @@ sortSemver() {
 pickLatestRelease() {
   local first=""
   while read version; do
-    first="${version}"
+    if [[ -z "${first}" ]] ; then
+      first="${version}"
+    fi
     if [[ "${version}" != *"-"* ]] ; then
       echo "${version}"
       return
@@ -48,37 +50,38 @@ getLatestRelease() {
   echo "$(getReleasedTags | sortSemver | pickLatestRelease)"
 }
 
-
 REGISTRY="${REGISTRY:-ghcr.io}"
 GIT_REPO="${GIT_REPO:-apigee/apigee-go-gen}"
-BUILD_TIMESTAMP=$(date "+%s")
 GIT_COMMIT=$(git rev-parse --short HEAD)
 GIT_TAG=$(git describe --tags --abbrev=0)
-LATEST_TAG="$(getLatestRelease)"
 
-if [[ "${LATEST_TAG}" == "${GIT_TAG}" ]] ; then
+if [[ "$(getLatestRelease)" == "${GIT_TAG}" ]] ; then
   BUILD_TAG="latest"
 else
   BUILD_TAG="${GIT_TAG}"
 fi
 
-
-echo "LATEST_TAG=${LATEST_TAG}"
 echo "BUILD_TAG=${BUILD_TAG}"
 echo "GIT_TAG=${GIT_TAG}"
-echo "GIT_COMMIT=${GIT_COMMIT}"
 
-docker build -t "${REGISTRY}/${GIT_REPO}:${BUILD_TAG}" \
-       -t "${REGISTRY}/${GIT_REPO}:${GIT_TAG}" \
-       -t "${REGISTRY}/${GIT_REPO}:${GIT_COMMIT}" \
-       --build-arg "GIT_REPO=${GIT_REPO}" \
-       --build-arg="GIT_TAG=${GIT_TAG}" \
-       --build-arg="GIT_COMMIT=${GIT_COMMIT}" \
-       --build-arg="BUILD_TIMESTAMP=${BUILD_TIMESTAMP}" \
+docker buildx create --name builder --use
+
+OCI="index:org.opencontainers.image"
+docker buildx build  \
+       --platform=linux/amd64,linux/arm64  \
+       --tag "${REGISTRY}/${GIT_REPO}:${GIT_TAG}" \
+       --tag "${REGISTRY}/${GIT_REPO}:${BUILD_TAG}" \
+       --provenance false \
+       --output type=registry \
+       --annotation "${OCI}.url=https://github.com/${GIT_REPO}" \
+       --annotation "${OCI}.documentation=https://github.com/${GIT_REPO}" \
+       --annotation "${OCI}.source=https://github.com/${GIT_REPO}" \
+       --annotation "${OCI}.version=${GIT_TAG}" \
+       --annotation "${OCI}.revision=${GIT_COMMIT}" \
+       --annotation "${OCI}.vendor=Google LLC" \
+       --annotation "${OCI}.licenses=Apache-2.0" \
+       --annotation "${OCI}.description=This is a tool for generating Apigee bundles and shared flows" \
+       --push \
        .
 
-if [ "${1}" == "push" ] ; then
-  docker push "${REGISTRY}/${GIT_REPO}:${BUILD_TAG}"
-  docker push "${REGISTRY}/${GIT_REPO}:${GIT_TAG}"
-  docker push "${REGISTRY}/${GIT_REPO}:${GIT_COMMIT}"
-fi
+docker buildx rm builder

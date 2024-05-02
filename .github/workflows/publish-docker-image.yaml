@@ -18,4 +18,4 @@ jobs:
       - name: docker build and push
         env:
           GIT_REPO: ${{ github.repository }}
-        run: ./build-docker.sh push
+        run: ./docker-build-push.sh
