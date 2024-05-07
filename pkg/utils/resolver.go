@@ -36,7 +36,7 @@ func ResolveDollarRefs(input string, output string, allowCycles bool) error {
 	}
 
 	//resolve references
-	yamlNode, err = ResolveYAMLRefs(yamlNode, input, allowCycles)
+	yamlNode, err = YAMLResolveRefs(yamlNode, input, allowCycles)
 	if err != nil {
 		return err
 	}

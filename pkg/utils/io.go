@@ -17,7 +17,6 @@ package utils
 import (
 	"fmt"
 	"github.com/go-errors/errors"
-	"gopkg.in/yaml.v3"
 	"io"
 	"os"
 	"path/filepath"
@@ -103,19 +102,4 @@ func ReadInputText(input string) ([]byte, error) {
 		}
 	}
 	return text, nil
-}
-
-func RunWithinDirectory[ResultType *yaml.Node](dir string, operation func() (ResultType, error)) (ResultType, error) {
-	wd, err := os.Getwd()
-	if err != nil {
-		return nil, errors.New(err)
-	}
-	defer func() { Must(os.Chdir(wd)) }()
-
-	err = os.Chdir(dir)
-	if err != nil {
-		return nil, errors.New(err)
-	}
-
-	return operation()
 }

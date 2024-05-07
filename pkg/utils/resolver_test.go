@@ -56,7 +56,7 @@ func TestResolveDollarRefs(t *testing.T) {
 			"oas2.json",
 			"oas2.json",
 			false,
-			errors.New("cyclic JSONRef at $.definitions.Widgets.properties.widgets.items.properties.subWidgets"),
+			errors.New("cyclic ref at schemas/widget.json:$.properties.subWidgets"),
 		},
 	}
 	for _, tt := range tests {

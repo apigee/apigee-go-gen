@@ -1,8 +1,8 @@
 {
   "openapi": "3.0.3",
   "info": {
-    "title": "Cycle OAS2",
     "description": "This is a sample OAS2 that contains a cycle",
+    "title": "Cycle OAS2",
     "version": "1.0.7"
   },
   "servers": [
@@ -18,7 +18,6 @@
   "components": {
     "schemas": {
       "Error": {
-        "type": "object",
         "properties": {
           "errors": {
             "$ref": "#/components/schemas/Errors"
@@ -26,32 +25,17 @@
           "message": {
             "type": "string"
           }
-        }
+        },
+        "type": "object"
       },
       "Errors": {
-        "type": "array",
         "items": {
           "$ref": "#/components/schemas/Error"
-        }
+        },
+        "type": "array"
       },
       "Widgets": {
-        "type": "object",
-        "properties": {
-          "widgets": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "name": {
-                  "type": "string"
-                },
-                "subWidgets": {
-                  "description": "cyclic JSONRef to $.definitions.Widgets"
-                }
-              }
-            }
-          }
-        }
+        "$ref": "./schemas/definitions.json#/definitions/Widgets"
       }
     }
   }
