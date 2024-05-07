@@ -38,11 +38,3 @@ type UnknownNodeError struct {
 func (e *UnknownNodeError) Error() string {
 	return fmt.Sprintf(`unknown node "%s" found at "%s"`, e.Node.XMLName.Local, e.Location)
 }
-
-type ValidationErrors struct {
-	Errors []error
-}
-
-func (e ValidationErrors) Error() string {
-	return e.Errors[0].Error()
-}

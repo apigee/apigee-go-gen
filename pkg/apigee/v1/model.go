@@ -109,16 +109,8 @@ func Model2BundleZip(model Model, outputZip string) error {
 
 func HydrateResources(model Model, fromDir string) error {
 	// switch to directory relative to the YAML file so that resource paths are valid
-	wd, err := os.Getwd()
-	if err != nil {
-		return errors.New(err)
-	}
-	defer func() { utils.Must(os.Chdir(wd)) }()
-
-	err = os.Chdir(fromDir)
-	if err != nil {
-		return errors.New(err)
-	}
+	popd := utils.PushDir(fromDir)
+	defer popd()
 
 	for _, resource := range model.GetResources().List {
 		parsedUrl, err := url.Parse(resource.Path)

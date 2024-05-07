@@ -16,7 +16,7 @@ package main
 
 import (
 	"fmt"
-	v1 "github.com/apigee/apigee-go-gen/pkg/apigee/v1"
+	"github.com/apigee/apigee-go-gen/pkg/utils"
 	"github.com/go-errors/errors"
 	"os"
 )
@@ -25,11 +25,12 @@ func main() {
 	err := RootCmd.Execute()
 
 	if err != nil {
-		var validationErrors v1.ValidationErrors
-		isValidationErrors := errors.As(err, &validationErrors)
-		if isValidationErrors {
-			for i := 0; i < len(validationErrors.Errors) && i < 10; i++ {
-				_, _ = fmt.Fprintf(os.Stderr, "Error: %s\n", validationErrors.Errors[i].Error())
+		var multiErrors utils.MultiError
+		isMultiErrors := errors.As(err, &multiErrors)
+
+		if isMultiErrors {
+			for i := 0; i < len(multiErrors.Errors) && i < 10; i++ {
+				_, _ = fmt.Fprintf(os.Stderr, "Error: %s\n", multiErrors.Errors[i].Error())
 			}
 		} else {
 			_, _ = fmt.Fprintf(os.Stderr, "Error: %s\n", err.Error())

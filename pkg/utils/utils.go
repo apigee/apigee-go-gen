@@ -58,3 +58,29 @@ func AddEntryToOASYAML(oas *yaml.Node, key string, value any, defaultVal *yaml.N
 	oas.Content = append(oas.Content, content)
 	return &yamlNode, nil
 }
+
+type MultiError struct {
+	Errors []error
+}
+
+func (e MultiError) Error() string {
+	return errors.Join(e.Errors...).Error()
+}
+
+func PushDir(dir string) func() {
+	wd, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+
+	err = os.Chdir(dir)
+	if err != nil {
+		panic(err)
+	}
+
+	popDir := func() {
+		Must(os.Chdir(wd))
+	}
+
+	return popDir
+}

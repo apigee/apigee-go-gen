@@ -24,7 +24,7 @@ require (
 	github.com/getkin/kin-openapi v0.124.0
 	github.com/go-errors/errors v1.5.1
 	github.com/gosimple/slug v1.14.0
-	github.com/pb33f/libopenapi v0.16.2
+	github.com/pb33f/libopenapi v0.16.5
 	github.com/spf13/cobra v1.8.0
 	github.com/stretchr/testify v1.9.0
 	github.com/vektah/gqlparser/v2 v2.5.11

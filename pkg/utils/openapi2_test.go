@@ -89,7 +89,11 @@ func TestOpenAPI2FileToOpenAPI3File(t *testing.T) {
 			"oas2.json",
 			"oas3.json",
 			false,
-			errors.New("cyclic JSONRef at $.definitions.Widgets.properties.widgets.items.properties.subWidgets"),
+			MultiError{Errors: []error{
+				errors.New("cyclic ref at schemas/widget.json:$.properties.subWidgets"),
+				errors.New("cyclic ref at oas2.json:$.definitions.Error.properties.errors"),
+				errors.New("cyclic ref at oas2.json:$.definitions.Errors.items"),
+			}},
 		},
 	}
 	for _, tt := range tests {
@@ -107,7 +111,7 @@ func TestOpenAPI2FileToOpenAPI3File(t *testing.T) {
 
 			err = OAS2FileToOAS3File(inputFile, outputFile, tt.allowCycles)
 			if tt.wantErr != nil {
-				require.EqualError(t, tt.wantErr, err.Error())
+				require.EqualError(t, err, tt.wantErr.Error())
 				return
 			}
 

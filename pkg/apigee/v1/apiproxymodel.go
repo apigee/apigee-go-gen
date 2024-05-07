@@ -64,7 +64,7 @@ func (a *APIProxyModel) Validate() error {
 		return nil
 	}
 
-	err := ValidationErrors{Errors: []error{}}
+	err := utils.MultiError{Errors: []error{}}
 	path := "Root"
 	if len(a.UnknownNode) > 0 {
 		err.Errors = append(err.Errors, &UnknownNodeError{path, a.UnknownNode[0]})

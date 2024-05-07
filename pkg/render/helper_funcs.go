@@ -15,6 +15,7 @@
 package render
 
 import (
+	"github.com/apigee/apigee-go-gen/pkg/utils"
 	"os"
 	"path/filepath"
 	"strings"
@@ -75,4 +76,40 @@ func getOSCopyFileFunc(templateFile string, outputFile string, dryRun bool) Help
 	}
 
 	return _osCopyFileFunc
+}
+
+func getRemoveOASExtensions(templateFile string, outputFile string, dryRun bool) HelperFunc {
+	_removeOASExtensionsFunc := func(args ...any) string {
+		if len(args) < 1 {
+			panic("remove_oas_extensions function requires one argument")
+		}
+
+		//both destination and source are the same
+		dst := args[0].(string)
+		src := args[0].(string)
+
+		if filepath.IsAbs(src) {
+			panic("remove_oas_extensions src must not be absolute")
+		}
+		if strings.Index(src, "..") >= 0 {
+			panic("remove_oas_extensions src must not use ..")
+		}
+
+		//both destination and source are relative to the output file
+		dstPath := filepath.Join(filepath.Dir(outputFile), dst)
+		srcPath := filepath.Join(filepath.Dir(outputFile), src)
+
+		if !dryRun {
+			err := utils.RemoveExtensions(srcPath, dstPath)
+			if err != nil {
+				panic(err)
+			}
+		} else {
+			//fmt.Printf(`remove_oas_extensions("%s", "%s")\n`, dstPath, srcPath)
+		}
+
+		return dst
+	}
+
+	return _removeOASExtensionsFunc
 }

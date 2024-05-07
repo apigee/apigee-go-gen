@@ -108,16 +108,8 @@ func CreateBundle(model v1.Model, output string, validate bool, dryRun string) (
 }
 
 func ResolveYAML(text []byte, filePath string) ([]byte, error) {
-	wd, err := os.Getwd()
-	if err != nil {
-		return nil, errors.New(err)
-	}
-	defer func() { utils.Must(os.Chdir(wd)) }()
-
-	err = os.Chdir(filepath.Dir(filePath))
-	if err != nil {
-		return nil, errors.New(err)
-	}
+	popd := utils.PushDir(filepath.Dir(filePath))
+	defer popd()
 
 	yaml, err := utils.Text2YAML(bytes.NewReader(text))
 	if err != nil {

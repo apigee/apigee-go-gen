@@ -19,7 +19,6 @@ import (
 	apiproxy_to_yaml "github.com/apigee/apigee-go-gen/cmd/apigee-go-gen/transform/apiproxy-to-yaml"
 	json_to_yaml "github.com/apigee/apigee-go-gen/cmd/apigee-go-gen/transform/json-to-yaml"
 	oas2_to_oas3 "github.com/apigee/apigee-go-gen/cmd/apigee-go-gen/transform/oas2-to-oas3"
-	oas3_to_oas2 "github.com/apigee/apigee-go-gen/cmd/apigee-go-gen/transform/oas3-to-oas2"
 	resolve_refs "github.com/apigee/apigee-go-gen/cmd/apigee-go-gen/transform/resolve-refs"
 	sharedflow_to_yaml "github.com/apigee/apigee-go-gen/cmd/apigee-go-gen/transform/sharedflow-to-yaml"
 	xml_to_yaml "github.com/apigee/apigee-go-gen/cmd/apigee-go-gen/transform/xml-to-yaml"
@@ -43,7 +42,6 @@ func init() {
 	Cmd.AddCommand(sharedflow_to_yaml.Cmd)
 	Cmd.AddCommand(yaml_to_sharedflow.Cmd)
 	Cmd.AddCommand(oas2_to_oas3.Cmd)
-	Cmd.AddCommand(oas3_to_oas2.Cmd)
 	Cmd.AddCommand(resolve_refs.Cmd)
 	Cmd.AddCommand(json_to_yaml.Cmd)
 	Cmd.AddCommand(yaml_to_json.Cmd)
