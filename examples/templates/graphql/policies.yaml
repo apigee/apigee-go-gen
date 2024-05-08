@@ -12,12 +12,25 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 ---
+- CORS:
+    .continueOnError: false
+    .enabled: true
+    .name: CORS-Allow
+    DisplayName: CORS-Allow
+    AllowOrigins: '{request.header.origin}'
+    AllowMethods: GET, PUT, POST, DELETE, OPTIONS
+    AllowHeaders: '*'
+    ExposeHeaders: '*'
+    MaxAge: 3628800
+    AllowCredentials: true
+    GeneratePreflightResponse: true
+    IgnoreUnresolvedVariables: true
 - GraphQL:
     .name: GQL-Verify
     Source: request
     OperationType: query_mutation
-    MaxDepth: 4
-    MaxCount: 4
+    MaxDepth: 10
+    MaxCount: 10
     Action: parse_verify
     ResourceURL: graphql://schema.graphql
 - RaiseFault:
