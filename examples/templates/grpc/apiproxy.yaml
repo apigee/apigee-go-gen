@@ -46,6 +46,5 @@ TargetEndpoints:
       HTTPTargetConnection:
         Path: {{ include "get_basepath" $.Values.proto }}
         LoadBalancer:
-          Servers:
-            - Server:
-                .name: {{ $.Values.target_server }}
+          - Server:
+              .name: {{ $.Values.target_server }}
