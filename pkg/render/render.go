@@ -65,15 +65,18 @@ func RenderGeneric(context any, cFlags *CommonFlags, dryRun bool) error {
 	}
 
 	//write rendered template to output
-	if !dryRun {
+	useStdout := false
+	if cFlags.OutputFile == "-" || dryRun == true {
+		useStdout = true
+	}
+
+	if useStdout {
+		fmt.Print(string(rendered))
+	} else {
 		err = os.WriteFile(string(cFlags.OutputFile), rendered, os.ModePerm)
 		if err != nil {
 			return errors.New(err)
 		}
-	}
-
-	if dryRun {
-		fmt.Print(string(rendered))
 	}
 
 	return nil
