@@ -27,7 +27,7 @@ require (
 	github.com/pb33f/libopenapi v0.16.5
 	github.com/spf13/cobra v1.8.0
 	github.com/stretchr/testify v1.9.0
-	github.com/vektah/gqlparser/v2 v2.5.11
+	github.com/vektah/gqlparser/v2 v2.5.14
 	github.com/vmware-labs/yaml-jsonpath v0.3.2
 	google.golang.org/protobuf v1.33.0
 	gopkg.in/yaml.v3 v3.0.1
