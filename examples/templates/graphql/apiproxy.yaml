@@ -25,14 +25,16 @@ ProxyEndpoints:
         .name: PreFlow
         Request:
           - Step:
-              Name: GraphQL-Verify
+              Name: CORS-Allow
+          - Step:
+              Name: GQL-Verify
       Flows:
         - Flow:
             .name: graphQLPost
-            Condition: (proxy.pathsuffix MatchesPath "{{ $.Values.base_path }}") and (request.verb = "POST")
+            Condition: (proxy.pathsuffix MatchesPath "/graphql") and (request.verb = "POST")
         - Flow:
             .name: graphQLGet
-            Condition: (proxy.pathsuffix MatchesPath "{{ $.Values.base_path }}") and (request.verb = "GET")
+            Condition: (proxy.pathsuffix MatchesPath "/graphql") and (request.verb = "GET")
         - Flow:
             .name: CatchAll
             Request:

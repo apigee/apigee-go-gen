@@ -16,7 +16,8 @@ APIProxy:
   .revision: 1
   .name: {{ slug_make ($.Values.spec | dig "info" "x-serviceName" $.Values.spec.info.title) }}
   DisplayName: {{ $.Values.spec.info.title }}
-  Description: {{ $.Values.spec.info.description }}
+  Description: |- 
+    {{ $.Values.spec.info.description | nindent 4 }}
 Policies:
   $ref: ./policies.yaml#/
 ProxyEndpoints:
@@ -30,6 +31,10 @@ ProxyEndpoints:
       Flows:
       #{{- range $path, $pathItem := $.Values.spec.paths }}
         #{{- range $verb, $opItem := $pathItem }}
+          #{{- if not (regexMatch "^(post|get|put|delete|trace|options|head|patch)$" $verb) }}
+            #{{- continue }}
+          #{{- end }}
+
           #{{- if eq (include "get_visibility" $opItem) "INTERNAL" }}
               #{{- fmt_printf "Skipping internal operation '%s' (%s %s)\n" $opItem.operationId $verb $path }}
               #{{-  continue }}

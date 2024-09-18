@@ -26,7 +26,7 @@ directive @visibility(
 
 directive @pattern(
     regexp: String!
-) on INPUT_FIELD_DEFINITION
+) on INPUT_FIELD_DEFINITION | ARGUMENT_DEFINITION
 
 
 scalar Inches

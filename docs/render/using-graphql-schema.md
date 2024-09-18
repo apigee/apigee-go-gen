@@ -42,7 +42,7 @@ apigee-go-gen render apiproxy \
      --template ./examples/templates/graphql/apiproxy.yaml \
      --set-graphql schema=./examples/graphql/resorts.graphql \
      --set-string "api_name=resorts-api" \
-     --set-string "base_path=/graphql" \
+     --set-string "base_path=/resorts/graphql" \
      --set-string "target_url=https://example.com/graphql" \
      --include ./examples/templates/graphql/*.tmpl \
      --output ./out/apiproxies/resorts.zip
@@ -54,7 +54,7 @@ apigee-go-gen render apiproxy \
      --template ./examples/templates/graphql/apiproxy.yaml \
      --set-graphql schema=./examples/graphql/resorts.graphql \
      --set-string "api_name=resorts-api" \
-     --set-string "base_path=/graphql" \
+     --set-string "base_path=/resorts/graphql" \
      --set-string "target_url=https://example.com/graphql" \
      --include ./examples/templates/graphql/*.tmpl \
      --output ./out/apiproxies/resorts.zip
