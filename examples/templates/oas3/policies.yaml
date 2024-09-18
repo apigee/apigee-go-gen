@@ -37,3 +37,13 @@
         StatusCode: 404
         ReasonPhrase: Not found
     IgnoreUnresolvedVariables: true
+- MessageLogging:
+    .name: ML-Logging-OK
+    Syslog:
+      Message: '[3f509b58 tag="{organization.name}.{apiproxy.name}.{environment.name}"] Weather request for WOEID {request.queryparam.w}.'
+      Host: example.loggly.com
+      Port: 514
+      Protocol: TCP
+      FormatMessage: true
+      DateFormat: yyMMdd-HH:mm:ss.SSS
+    logLevel: ALERT
