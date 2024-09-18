@@ -35,6 +35,9 @@ func TestNewAPIProxyModel(t *testing.T) {
 		{
 			"simple",
 		},
+		{
+			"postclient",
+		},
 	}
 	for _, tt := range tests {
 		ttDir := filepath.Join("testdata", "yaml-first", tt.name)
@@ -50,6 +53,9 @@ func TestNewAPIProxyModel(t *testing.T) {
 			outFile := filepath.Join(ttDir, "out-apiproxy.yaml")
 
 			model, err := NewAPIProxyModel(inputFile)
+			require.NoError(t, err)
+
+			err = model.Validate()
 			require.NoError(t, err)
 
 			outData, err := model.YAML()

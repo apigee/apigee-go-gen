@@ -49,6 +49,12 @@ ProxyEndpoints:
             Request:
               - Step:
                   Name: RF-CatchAll
+      PostClientFlow:
+        .name: SamplePostClientFlow
+        Description: Processed after the response is sent back to the client.
+        Response:
+          Step:
+            Name: ML-Logging-OK
       HTTPProxyConnection:
         BasePath: {{ include "get_basepath" (index $.Values.spec.servers 0 "url") }}
       RouteRule:
