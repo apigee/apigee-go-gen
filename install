@@ -129,7 +129,7 @@ getLatestRelease() {
 }
 
 createTmpDir() {
-   ret_val=$(mktemp -dt ${BINARY_FILENAME}-tmp)
+   ret_val=$(mktemp -dt ${BINARY_FILENAME}-XXXXXXX)
 }
 
 
