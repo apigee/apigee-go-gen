@@ -13,33 +13,14 @@
 #  limitations under the License.
 APIProxy:
   .revision: 1
-  .name: Swagger Petstore
-  DisplayName: Swagger Petstore
-  Description: <no value>
-Policies:
-  $ref: ./policies.yaml#/
+  .name: httpbin
+Policies: []
 ProxyEndpoints:
   - ProxyEndpoint:
       .name: default
-      PreFlow:
-        .name: PreFlow
-        Request:
-          - Step:
-              Name: OAS-Validate
-      Flows:
-        - Flow:
-            .name: listPets
-            Condition: (proxy.pathsuffix MatchesPath "/pets") and (request.verb = "GET")
-        - Flow:
-            .name: showPetById
-            Condition: (proxy.pathsuffix MatchesPath "/pets/*") and (request.verb = "GET")
-        - Flow:
-            .name: CatchAll
-            Request:
-              - Step:
-                  Name: RF-CatchAll
+      Flows: []
       HTTPProxyConnection:
-          BasePath: /v1
+        BasePath: /httpbin
       RouteRule:
         .name: default
         TargetEndpoint: default
@@ -47,11 +28,24 @@ TargetEndpoints:
   - TargetEndpoint:
       .name: default
       HTTPTargetConnection:
-        URL: https://petstore.swagger.io/v2
-Resources:
-  - Resource:
-      Type: oas
-      Path: ./spec.yaml
-  - Resource:
-      Type: properties
-      Path: ./test.properties
+        URL: https://httpbin.org
+        HealthMonitor:
+          IsEnabled: true
+          IntervalInSec: 5
+          HTTPMonitor:
+            Request:
+              UseTargetServerSSLInfo: true
+              ConnectTimeoutInSec: 10
+              SocketReadTimeoutInSec: 30
+              Port: 80
+              Verb: GET
+              Path: /json
+              Header:
+                .name: Authorization
+                -Data: Basic 12e98yfw87etf
+              IncludeHealthCheckIdHeader: true
+            SuccessResponse:
+              ResponseCode: 200
+              Header:
+                .name: ImOK
+                -Data: YourOK

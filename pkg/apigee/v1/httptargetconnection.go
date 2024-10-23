@@ -23,6 +23,7 @@ type HTTPTargetConnection struct {
 	LoadBalancer   *LoadBalancer   `xml:"LoadBalancer,omitempty"`
 	SSLInfo        *SSLInfo        `xml:"SSLInfo,omitempty"`
 	Properties     *Properties     `xml:"Properties"`
+	HealthMonitor  *HealthMonitor  `xml:"HealthMonitor,omitempty"`
 
 	UnknownNode AnyList `xml:",any"`
 }

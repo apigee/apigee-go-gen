@@ -32,6 +32,7 @@ type APIProxy struct {
 	Spec                 *Deprecated `xml:"Spec"`
 	ConfigurationVersion *Deprecated `xml:"ConfigurationVersion"`
 	BasePaths            *Deprecated `xml:"BasePaths"`
+	Basepaths            *Deprecated `xml:"Basepaths"`
 	Policies             *Deprecated `xml:"Policies"`
 	Resources            *Deprecated `xml:"Resources"`
 	ProxyEndpoints       *Deprecated `xml:"ProxyEndpoints"`
