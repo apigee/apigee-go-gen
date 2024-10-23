@@ -103,3 +103,13 @@ func ReadInputText(input string) ([]byte, error) {
 	}
 	return text, nil
 }
+
+func ReadInputTextFile(input string) ([]byte, error) {
+	var text []byte
+	var err error
+	text, err = os.ReadFile(input)
+	if err != nil {
+		return nil, errors.New(err)
+	}
+	return text, nil
+}

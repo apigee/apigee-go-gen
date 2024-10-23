@@ -1,0 +1,14 @@
+overlay: 1.0.0
+info:
+  title: Update many objects at once
+  version: 1.0.0
+actions:
+  - target: $.paths.*.get.parameters
+    update:
+      name: newParam
+      in: query
+      description: New parameter
+      schema:
+        type: string
+  - target: $.paths.*.*.parameters[?(@.name=='additionalMetadata')]
+    remove: true

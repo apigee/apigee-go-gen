@@ -1,0 +1,23 @@
+overlay: 1.0.0
+info:
+  title: Targeted Overlay
+  version: 1.0.0
+extends: ../specs/oas3/petstore.yaml
+actions:
+  - target: $.info.contact
+    remove: true
+  - target: $.info
+    update:
+      description: This is a new description
+  - target: $.tags[?(@.name=='pet')]
+    update:
+      externalDocs:
+        url: https://example.com/pet
+  - target: $.paths['/pet/{petId}/uploadImage'].post
+    update:
+      description: This is the new description for uploadImage operation
+  - target: $.paths['/pet/{petId}']
+    update:
+      get:
+        description: This is an updated description of a child object
+        x-safe: false
