@@ -11,4 +11,27 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-**/out-*.yaml
+APIProxy:
+  .revision: 1
+  .name: httpbin
+Policies: []
+ProxyEndpoints:
+  - ProxyEndpoint:
+      .name: default
+      Flows: []
+      HTTPProxyConnection:
+        BasePath: /httpbin
+      RouteRule:
+        .name: default
+        TargetEndpoint: default
+TargetEndpoints:
+  - TargetEndpoint:
+      .name: default
+      HTTPTargetConnection:
+        URL: https://httpbin.org
+        HealthMonitor:
+          IsEnabled: true
+          IntervalInSec: 5
+          TCPMonitor:
+            ConnectTimeoutInSec: 10
+            Port: 80
