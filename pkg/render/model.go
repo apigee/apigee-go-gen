@@ -25,7 +25,7 @@ import (
 	"path/filepath"
 )
 
-func GenerateBundle(createModelFunc func(string) (v1.Model, error), cFlags *CommonFlags, validate bool, dryRun string) error {
+func GenerateBundle(createModelFunc func(string) (v1.Model, error), cFlags *CommonFlags, validate bool, dryRun string, debug bool) error {
 	var err error
 
 	bundleOutputFile := cFlags.OutputFile
@@ -51,9 +51,17 @@ func GenerateBundle(createModelFunc func(string) (v1.Model, error), cFlags *Comm
 		return errors.New(err)
 	}
 
+	if debug {
+		fmt.Println(string(rendered))
+		return nil
+	}
+
 	rendered, err = ResolveYAML(rendered, templateFile)
 	if err != nil {
-		return err
+		return utils.MultiError{
+			Errors: []error{
+				err,
+				errors.New("rendered template appears to not be valid YAML. Use --debug=true flag to inspect rendered output")}}
 	}
 
 	err = os.WriteFile(string(cFlags.OutputFile), rendered, os.ModePerm)

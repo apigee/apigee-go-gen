@@ -37,6 +37,9 @@ func main() {
 		}
 
 		if showStack {
+			if isMultiErrors {
+				err = multiErrors.Errors[0]
+			}
 			_, _ = fmt.Fprintf(os.Stderr, "%s\n", errors.Wrap(err, 0).Stack())
 		}
 		os.Exit(1)

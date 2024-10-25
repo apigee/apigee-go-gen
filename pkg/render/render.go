@@ -19,7 +19,6 @@ import (
 	"fmt"
 	"github.com/Masterminds/sprig/v3"
 	"github.com/apigee/apigee-go-gen/pkg/flags"
-	"github.com/apigee/apigee-go-gen/pkg/utils"
 	"github.com/bmatcuk/doublestar/v4"
 	"github.com/go-errors/errors"
 	"github.com/gosimple/slug"
@@ -29,6 +28,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"regexp"
+	"slices"
 	"strings"
 	"text/template"
 )
@@ -99,20 +99,6 @@ func CreateTemplate(templateFile string, includeList []string, outputFile string
 	if err != nil {
 		return nil, err
 	}
-
-	//make a copy of the template to create a unique temporary main file
-	tmpFile, err := os.CreateTemp("", "tpl_*_"+filepath.Base(templateFile))
-	if err != nil {
-		return nil, errors.New(err)
-	}
-	defer func() { utils.MustClose(tmpFile) }()
-
-	err = utils.CopyFile(tmpFile.Name(), templateFile)
-	if err != nil {
-		return nil, err
-	}
-
-	includeMatches = append([]string{tmpFile.Name()}, includeMatches...)
 
 	helperFuncs := map[string]any{}
 
@@ -209,21 +195,53 @@ func CreateTemplate(templateFile string, includeList []string, outputFile string
 		return ""
 	}
 
+	includeStack := []string{fmt.Sprintf("file:%s", templateFile)}
+
 	includeFunc := func(args ...any) string {
 		if len(args) < 0 {
 			panic("include function requires at least one argument")
 		}
 
-		templateName := args[0].(string)
-		templateText := fmt.Sprintf(`{{- template "%s" . }}`, templateName)
+		arg0 := args[0].(string)
 
-		tpl, _ := template.New(templateName + ".tpl").
+		var err error
+		var templateBytes []byte
+		var templateName string
+
+		parentTemplateIndex := slices.IndexFunc(includeStack, func(elem string) bool {
+			return strings.Index(elem, "file:") == 0
+		})
+
+		parentTemplateFile := strings.TrimPrefix(includeStack[parentTemplateIndex], "file:")
+		targetTemplateFile := filepath.Join(filepath.Dir(parentTemplateFile), arg0)
+
+		if templateBytes, err = os.ReadFile(targetTemplateFile); err == nil {
+			// file was found, use its contents as template
+			templateName = arg0
+			includeStack = slices.Insert(includeStack, 0, fmt.Sprintf("file:%s", targetTemplateFile))
+
+		} else {
+			//no such file, assume it's a named template
+			templateBytes = []byte(fmt.Sprintf(`{{- template "%s" . }}`, arg0))
+			templateName = fmt.Sprintf("%s.tpl", arg0)
+			includeStack = slices.Insert(includeStack, 0, fmt.Sprintf("template:%s", templateName))
+		}
+
+		templateText := string(templateBytes)
+
+		tpl, err := template.New(templateName).
 			Funcs(helperFuncs).
 			Funcs(sprig.FuncMap()).
 			Parse(templateText)
-		tpl, err := tpl.ParseFiles(includeMatches...)
 		if err != nil {
 			panic(err)
+		}
+
+		if len(includeMatches) > 0 {
+			tpl, err = tpl.ParseFiles(includeMatches...)
+			if err != nil {
+				panic(err)
+			}
 		}
 
 		var arg any
@@ -239,6 +257,9 @@ func CreateTemplate(templateFile string, includeList []string, outputFile string
 		if err != nil {
 			panic(err)
 		}
+
+		includeStack = slices.Delete(includeStack, 0, 1)
+
 		return tplOut.String()
 	}
 
@@ -254,12 +275,24 @@ func CreateTemplate(templateFile string, includeList []string, outputFile string
 	helperFuncs["deref"] = derefFunc
 	helperFuncs["slug_make"] = slugMakeFunc
 
-	tmpl, err := template.New(filepath.Base(tmpFile.Name())).
+	var templateText []byte
+	if templateText, err = os.ReadFile(templateFile); err != nil {
+		return nil, errors.New(err)
+	}
+
+	tmpl, err := template.New(templateFile).
 		Funcs(helperFuncs).
 		Funcs(sprig.FuncMap()).
-		ParseFiles(includeMatches...)
+		Parse(string(templateText))
 	if err != nil {
 		return nil, errors.New(err)
+	}
+
+	if len(includeMatches) > 0 {
+		tmpl, err = tmpl.ParseFiles(includeMatches...)
+		if err != nil {
+			return nil, errors.New(err)
+		}
 	}
 
 	return tmpl, nil

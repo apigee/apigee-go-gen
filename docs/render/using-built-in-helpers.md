@@ -24,13 +24,23 @@ The template rendering commands include a set of built-in helper functions to as
  func include(template string, data any) string
 ```
 
-This function allows you to invoke your own [custom helper functions](./using-custom-helpers.md)
+This function allows you to invoke your own [custom helper functions](./using-custom-helpers.md).
 
 e.g.
 
 ```gotemplate
 {{ include "sayHello" $data }}
 ```
+
+This function can also be used to render a file.
+
+e.g.
+
+```shell
+{{ include "./path/to/file.yaml" . }}
+```
+
+> The path to template file to render is relative to the parent template file.
 
 
 ### **os_writefile**

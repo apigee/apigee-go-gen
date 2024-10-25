@@ -18,14 +18,15 @@ APIProxy:
   DisplayName: {{ $.Values.spec.info.title }}
   Description: |- 
     {{ $.Values.spec.info.description | nindent 4 }}
-Policies:
-  $ref: ./policies.yaml#/
+Policies: {{ include "./policies.yaml" . | nindent 2 }}
 ProxyEndpoints:
   - ProxyEndpoint:
       .name: default
       PreFlow:
         .name: PreFlow
         Request:
+          - Step:
+              Name: Spike-Arrest
           - Step:
               Name: OAS-Validate
       Flows:

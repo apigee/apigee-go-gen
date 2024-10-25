@@ -20,6 +20,7 @@ import (
 	"github.com/go-errors/errors"
 	"gopkg.in/yaml.v3"
 	"os"
+	"regexp"
 )
 
 func MustReadFileBytes(path string) []byte {
@@ -83,4 +84,10 @@ func PushDir(dir string) func() {
 	}
 
 	return popDir
+}
+
+func RemoveYAMLComments(data []byte) []byte {
+	regex := regexp.MustCompile(`(?ms)^\s*#[^\n\r]*$[\r\n]*`)
+	replaced := regex.ReplaceAll(data, []byte{})
+	return replaced
 }
