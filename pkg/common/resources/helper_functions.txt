@@ -1,5 +1,18 @@
     include(template string, data any)
-        Invoke an existing template e.g {{ include "sayHello" $data }}
+        Render a pre-defined template, e.g.
+
+          {{ include "greet" "Miguel" }}
+
+        The template must be defined ahead of time with a "define" block, e.g.
+
+          {{- define "greet" -}}
+            {{- $name := . -}}
+            Hello {{ $name }} !
+          {{- end -}}
+
+        You can also use this function to render an existing file. e.g.
+
+          {{ include "./path/to/file.yaml" . }}
 
     os_writefile(dest string, content string)
         Write a file to the output directory

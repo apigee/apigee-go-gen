@@ -18,7 +18,6 @@ import (
 	"bytes"
 	"github.com/stretchr/testify/assert"
 	"path/filepath"
-	"regexp"
 	"testing"
 )
 
@@ -82,10 +81,4 @@ func TestXMLText2YAMLText(t *testing.T) {
 			assert.Equal(t, string(wantBytes), string(gotBytes))
 		})
 	}
-}
-
-func RemoveYAMLComments(data []byte) []byte {
-	regex := regexp.MustCompile(`(?ms)^\s*#[^\n\r]*$[\r\n]*`)
-	replaced := regex.ReplaceAll(data, []byte{})
-	return replaced
 }

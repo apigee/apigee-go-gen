@@ -26,6 +26,7 @@ import (
 )
 
 var cFlags = render.NewCommonFlags()
+var debug = flags.NewBool(false)
 var dryRun = flags.NewEnum([]string{"xml", "yaml"})
 var validate = flags.NewBool(true)
 var setValue = flags.NewSetAny(cFlags.Values)
@@ -42,7 +43,7 @@ var Cmd = &cobra.Command{
 	Short: "Generate an API proxy bundle from a template",
 	Long:  Usage(),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		if strings.TrimSpace(string(cFlags.OutputFile)) == "" && dryRun.IsUnset() {
+		if strings.TrimSpace(string(cFlags.OutputFile)) == "" && dryRun.IsUnset() && bool(debug) == false {
 			return errors.New("required flag(s) \"output\" not set")
 		}
 
@@ -50,7 +51,7 @@ var Cmd = &cobra.Command{
 			return v1.NewAPIProxyModel(input)
 		}
 
-		return render.GenerateBundle(createModelFunc, cFlags, bool(validate), dryRun.Value)
+		return render.GenerateBundle(createModelFunc, cFlags, bool(validate), dryRun.Value, bool(debug))
 	},
 }
 
@@ -59,7 +60,8 @@ func init() {
 	Cmd.Flags().VarP(&cFlags.TemplateFile, "template", "t", `path to main template"`)
 	Cmd.Flags().VarP(&cFlags.IncludeList, "include", "i", `path to helper templates (globs allowed)`)
 	Cmd.Flags().VarP(&cFlags.OutputFile, "output", "o", `output directory or file`)
-	Cmd.Flags().VarP(&dryRun, "dry-run", "d", `prints rendered API proxy template to stdout"`)
+	Cmd.Flags().VarP(&debug, "debug", "", `prints rendered template before transforming into API proxy"`)
+	Cmd.Flags().VarP(&dryRun, "dry-run", "d", `prints rendered template after transforming into API Proxy"`)
 	Cmd.Flags().VarP(&validate, "validate", "v", "check for unknown elements")
 	Cmd.Flags().Var(&setValue, "set", `sets a key=value (bool,float,string), e.g. "use_ssl=true"`)
 	Cmd.Flags().Var(&setValueStr, "set-string", `sets key=value (string), e.g. "base_path=/v1/hello" `)

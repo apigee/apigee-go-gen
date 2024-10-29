@@ -56,11 +56,18 @@ apigee-go-gen render apiproxy \
     --output ./out/apiproxies/petstore
 ```
 
-## Dry run
+## Dry run / Debug
 
 For rapid development, you can print the rendered template directly to stdout in your terminal. 
 
-Add the `--dry-run xml` or `--dry-run yaml` flag. e.g.
+Add the `--dry-run xml` or `--dry-run yaml` flag. 
+
+Note that dry-run is only useful when the rendered template produces valid YAML. 
+
+If your template has issues, and it does not produce valid YAML, you can use the `--debug true` flag.
+
+This will print out the rendered template before even attempting to parse it as YAML.
+
 
 === "XML output"
 ```shell

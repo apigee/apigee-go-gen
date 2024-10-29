@@ -31,7 +31,8 @@ The `render sharedflow` command takes the following parameters:
   -t, --template string          path to main template"
   -i, --include string           path to helper templates (globs allowed)
   -o, --output string            output directory or file
-  -d, --dry-run enum(xml|yaml)   prints rendered template to stdout"
+      --debug boolean            prints rendered template before transforming into shared flow"
+  -d, --dry-run enum(xml|yaml)   prints rendered template after transforming into shared flow"
   -v, --validate boolean         check for unknown elements
       --set string               sets a key=value (bool,float,string), e.g. "use_ssl=true"
       --set-string string        sets key=value (string), e.g. "base_path=/v1/hello" 
