@@ -1,0 +1,104 @@
+#  Copyright 2024 Google LLC
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#       http:#www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+
+APIProxy:
+  .revision: 1
+  .name: {{ slug_make ($.Values.spec | dig "info" "x-serviceName" $.Values.spec.info.title) }}
+  DisplayName: {{ $.Values.spec.info.title }}
+  Description: |-
+    {{ $.Values.spec.info.description | nindent 4 }}
+Policies:
+  - Javascript:
+      .async: false
+      .continueOnError: false
+      .enabled: true
+      .timeLimit: 5000
+      .name: JS-MockResponse
+      DisplayName: JS-MockResponse
+      ResourceURL: jsc://response-mocker.cjs
+  - OASValidation:
+      .continueOnError: false
+      .enabled: true
+      .name: OAS-Validate
+      DisplayName: OAS-Validate
+      Source: request
+      OASResource: oas://spec.json
+  - AssignMessage:
+      .name: AM-LoadSpec
+      AssignVariable:
+        Name: spec_json
+        ResourceURL: oas://spec.json
+  - AssignMessage:
+      .continueOnError: false
+      .enabled: true
+      .name: AM-SetError
+      DisplayName: AM-SetError
+      Properties: {}
+      Set:
+        Payload:
+          .contentType: application/json
+          -Data: |-
+            {
+              "error": "{escapeJSON(error.message)}"
+            }
+        StatusCode: '{error.status.code}'
+        ReasonPhrase: '{error.reason.phrase}'
+  - CORS:
+      .continueOnError: false
+      .enabled: true
+      .name: CORS-Allow
+      DisplayName: CORS-Allow
+      AllowOrigins: '{request.header.origin}'
+      AllowMethods: GET, PUT, POST, DELETE, OPTIONS
+      AllowHeaders: '*'
+      ExposeHeaders: '*'
+      MaxAge: 3628800
+      AllowCredentials: true
+      GeneratePreflightResponse: true
+      IgnoreUnresolvedVariables: true
+ProxyEndpoints:
+  - ProxyEndpoint:
+      .name: default
+      DefaultFaultRule:
+        .name: default-fault
+        Step:
+          Name: AM-SetError
+      PreFlow:
+        .name: PreFlow
+        Request:
+          - Step:
+              Name: CORS-Allow
+          - Step:
+              Condition: request.header.mock-validate-request != "false"
+              Name: OAS-Validate
+          - Step:
+              Name: AM-LoadSpec
+        Response:
+          - Step:
+              Name: JS-MockResponse
+      Flows: []
+      HTTPProxyConnection:
+        BasePath: {{ include "get_basepath" (index $.Values.spec.servers 0 "url") }}
+      RouteRule:
+        .name: no-route
+TargetEndpoints: []
+Resources:
+  #{{ os_writefile "./spec.json" ($.Values.spec | toPrettyJson) }}
+  - Resource:
+      Type: oas
+      Path: ./spec.json
+  #{{ os_copyfile "./response-mocker.cjs" "./response-mocker.cjs" }}
+  - Resource:
+      Type: jsc
+      Path: ./response-mocker.cjs

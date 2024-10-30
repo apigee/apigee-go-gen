@@ -1,0 +1,70 @@
+
+  1. Request validation
+
+     The mock API proxy includes an OpenAPI spec validation policy.
+     This is used to validate the request body, headers, and query parameters.
+
+     You can pass the 'Mock-Validate-Request: false' header to skip this policy.
+
+  2. Dynamic Response Status Code
+
+     The mock API proxy chooses the response status code using the following logic:
+
+     a. If HTTP 200 is available, then it uses it
+
+     b. If HTTP 200 is not available, then it chooses a random status code from the available ones.
+
+     You can use the 'Mock-Status' header to request a specific status code.
+
+     You can use the 'Mock-Fuzz: true' header to request a random status code from the available ones.
+
+     If both 'Mock-Status' and 'Mock-Fuzz' headers are present, then 'Mock-Status' takes precedence.
+
+  3. Content-Type negotiation (media)
+
+     The mock API proxy chooses the response Content-Type (media) using the following logic:
+
+     a. If 'application/json' is available, then it uses it.
+
+     b. If 'application/json' is not available then it chooses a random media type form the available ones.
+
+     You can use the 'Accept' header to request a specific media type.
+
+     You can use the 'Mock-Fuzz: true' header to request a random media type form the available ones
+
+     If both 'Accept' and 'Mock-Fuzz' headers are present, then 'Accept' takes precedence.
+
+
+  4. Dynamic Response Body
+
+     The mock API proxy builds the HTTP response body using the following logic (in order):
+
+     a. If the response 'example' field exist, it uses it.
+
+     b. If the response 'examples' field exists, it picks a random example from the list.
+        You can pass the 'Mock-Example' request header to choose a specific one.
+
+     d. If the response has schema with an 'example', it uses the example from the schema.
+
+     e. If the response has schema, then it uses it to generate a random example
+        (JSON, YAML, and XML are supported)
+
+     You can pass the 'Mock-Fuzz: true' to always generate a random example form the schema.
+
+  5. Random Seeding
+
+     Internally, the mock API proxy uses a pseudo-random number generator (PRNG) to make those "random"
+     decisions like choosing a status code, a content-type, and for generating "random" response content.
+
+     Each time a request is processed, the PRNG is seeded (initialized) with a different seed value.
+     This makes it so that the responses appear random, but they are really not. They are only pseudo-random.
+
+     On every HTTP response, the mock API proxy includes a header called 'Mock-Seed'.
+     This has the seed value that was used to build the response.
+
+     You can pass this seed value in a new request using the same 'Mock-Seed' header.
+     This makes it so that the mock API proxy will go through the same set of "random" decisions, and produce
+     the same response as before.
+
+     This is useful for repeatability, specially when creating test cases, or troubleshooting client code.
+

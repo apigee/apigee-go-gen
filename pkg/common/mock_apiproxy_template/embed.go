@@ -12,37 +12,9 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-package flags
+package mock_apiproxy_template
 
-import (
-	"regexp"
-	"strings"
-)
+import "embed"
 
-type IncludeList []string
-
-func NewIncludeList(list []string) IncludeList {
-	return list
-}
-
-func (i *IncludeList) Type() string {
-	return "string"
-}
-
-func (i *IncludeList) String() string {
-	return ""
-}
-
-func (i *IncludeList) Set(input string) error {
-	zp := regexp.MustCompile(`(\s+|,+)`) // spaces and one comma
-
-	split := zp.Split(input, -1)
-	for _, s := range split {
-		if len(strings.TrimSpace(s)) == 0 {
-			continue
-		}
-		*i = append(*i, s)
-	}
-
-	return nil
-}
+//go:embed *.tmpl *.yaml *.cjs
+var FS embed.FS

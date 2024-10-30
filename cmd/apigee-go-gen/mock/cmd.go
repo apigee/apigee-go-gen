@@ -12,32 +12,18 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-package main
+package mock
 
 import (
-	"github.com/apigee/apigee-go-gen/cmd/apigee-go-gen/mock"
-	"github.com/apigee/apigee-go-gen/cmd/apigee-go-gen/render"
-	"github.com/apigee/apigee-go-gen/cmd/apigee-go-gen/transform"
-	"github.com/apigee/apigee-go-gen/pkg/flags"
+	"github.com/apigee/apigee-go-gen/cmd/apigee-go-gen/mock/oas"
 	"github.com/spf13/cobra"
-	"os"
-	"path/filepath"
 )
 
-var showStack = flags.NewBool(false)
-
-var RootCmd = &cobra.Command{
-	Use: filepath.Base(os.Args[0]),
+var Cmd = &cobra.Command{
+	Use:   "mock",
+	Short: "Generate a mock API proxy",
 }
 
 func init() {
-	RootCmd.SilenceErrors = true
-	RootCmd.SilenceUsage = true
-
-	RootCmd.AddCommand(render.Cmd)
-	RootCmd.AddCommand(transform.Cmd)
-	RootCmd.AddCommand(mock.Cmd)
-	RootCmd.AddCommand(VersionCmd)
-
-	RootCmd.PersistentFlags().Var(&showStack, "show-stack", "show stack trace for errors")
+	Cmd.AddCommand(oas.Cmd)
 }
