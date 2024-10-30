@@ -27,3 +27,5 @@ The `mock oas` command takes the following parameters:
   -h, --help            help for oas
 ```
 
+> See how the mock API proxy bundle works over at the [Mock OpenAPI Spec](../mock-openapi-spec.md) doc page
+
