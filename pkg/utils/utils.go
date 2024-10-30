@@ -15,12 +15,20 @@
 package utils
 
 import (
+	"archive/zip"
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"github.com/go-errors/errors"
+	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v3"
+	"io"
 	"os"
+	"path/filepath"
 	"regexp"
+	"slices"
+	"strings"
+	"testing"
 )
 
 func MustReadFileBytes(path string) []byte {
@@ -90,4 +98,75 @@ func RemoveYAMLComments(data []byte) []byte {
 	regex := regexp.MustCompile(`(?ms)^\s*#[^\n\r]*$[\r\n]*`)
 	replaced := regex.ReplaceAll(data, []byte{})
 	return replaced
+}
+
+func RequireBundleZipEquals(t *testing.T, expectedBundleZip string, actualBundleZip string) {
+	expectedReader, err := zip.OpenReader(expectedBundleZip)
+	require.NoError(t, err)
+	defer MustClose(expectedReader)
+
+	actualReader, err := zip.OpenReader(actualBundleZip)
+	require.NoError(t, err)
+	defer MustClose(actualReader)
+
+	getFilesSorted := func(reader *zip.ReadCloser) []*zip.File {
+		zipFiles := []*zip.File{}
+		for _, f := range reader.File {
+			if f.FileInfo().IsDir() {
+				continue
+			}
+			zipFiles = append(zipFiles, f)
+		}
+
+		slices.SortFunc(zipFiles, func(a, b *zip.File) int {
+			return strings.Compare(a.Name, b.Name)
+		})
+
+		return zipFiles
+	}
+
+	expectedFiles := getFilesSorted(expectedReader)
+	actualFiles := getFilesSorted(actualReader)
+
+	getFileNames := func(files []*zip.File) []string {
+		result := []string{}
+		for _, file := range files {
+			result = append(result, file.Name)
+		}
+
+		return result
+	}
+
+	expectedFileNames := getFileNames(expectedFiles)
+	actualFileNames := getFileNames(actualFiles)
+
+	require.Equal(t, expectedFileNames, actualFileNames, "API proxy structures do not match")
+	for index, expectedFile := range expectedFiles {
+		actualFile := actualFiles[index]
+
+		expectedFileReader, err := expectedFile.Open()
+		require.NoError(t, err)
+
+		actualFileReader, err := actualFile.Open()
+		require.NoError(t, err)
+
+		extension := filepath.Ext(actualFile.Name)
+		if extension == ".xml" {
+			expected, err := XMLText2YAMLText(expectedFileReader)
+			require.NoError(t, err)
+
+			expected = RemoveYAMLComments(expected)
+			actual, err := XMLText2YAMLText(actualFileReader)
+			require.NoError(t, err)
+
+			require.YAMLEq(t, string(expected), string(actual), fmt.Sprintf("%s XML contents do not match", expectedFile.Name))
+		} else {
+			expectedContents, err := io.ReadAll(expectedFileReader)
+			require.NoError(t, err)
+
+			expectedContents = RemoveYAMLComments(expectedContents)
+			actualContents, err := io.ReadAll(actualFileReader)
+			require.Equal(t, string(expectedContents), string(actualContents), fmt.Sprintf("%s contents do not match", expectedFile.Name))
+		}
+	}
 }
