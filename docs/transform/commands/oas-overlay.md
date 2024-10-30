@@ -24,16 +24,17 @@ The `oas-overlay` command takes the following parameters:
 * `--overlay` is the path to the OpenAPI Overlay (either as JSON or YAML)
 
 * `--spec` (*optional*)  is the path to the OpenAPI Spec  to transform (either as JSON or YAML)
+  
+* `--output` is the document to be created (either as JSON or YAML)
+
 
 > The `--spec` parameter is optional. If omitted, the OAS path is read form the `extends` property of the overlay.
 > In this case, the path is relative to the location of the overlay file itself.
 
-* `--output` is the document to be created (either as JSON or YAML)
-
->  Full path is created if it does not exist (like `mkdir -p`)
 
 
-> You may omit the `--output` flags to write to stdout
+> You may omit the `--output` flags to write to stdout  
+>  Full path is created if the `--output` does not exist (like `mkdir -p`)
 
 
 

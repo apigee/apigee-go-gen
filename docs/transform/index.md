@@ -34,5 +34,8 @@ The `apigee-go-gen` includes the following set of `transform` commands to help y
 
 * [oas2-to-oas3](./commands/oas2-to-oas3.md) - Transforms an OpenAPI 2 spec (also known as Swagger) into OpenAPI 3
 
-* [resolve-refs](./commands/resolve-refs.md) - Replace external $refs (JSONRefs) in input YAML or JSON doc with actual values
+* [resolve-refs](./commands/resolve-refs.md) - Replace external $refs (JSONRefs) in a YAML or JSON doc with actual values
+
+* [oas-overlay](./commands/oas-overlay.md) - Transforms an Open API spec by applying an [overlay](https://github.com/OAI/Overlay-Specification/blob/main/versions/1.0.0.md) file
+
 
