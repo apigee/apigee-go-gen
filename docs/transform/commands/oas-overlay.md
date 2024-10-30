@@ -15,7 +15,7 @@
   limitations under the License.
 -->
 
-This command applies an OpenAPI Overlay to an OpenAPI spec.
+This command applies an [OpenAPI Overlay 1.0](https://github.com/OAI/Overlay-Specification/blob/main/versions/1.0.0.md) to an OpenAPI spec.
 
 ## Usage
 
