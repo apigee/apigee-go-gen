@@ -1,0 +1,19 @@
+overlay: 1.0.0
+info:
+  title: Add example response JSON for GET /get/findByStatus
+  version: 1.0.0
+actions:
+  - target: $.paths./pet/findByStatus.get.responses.200
+    update:
+      content:
+        'application/json':
+          example:
+            {
+              "id": 1,
+              "photoUrls": [],
+              "name": "Rin Tin Tin",
+              "category": {
+                "id": 1,
+                "name": "Dog"
+              }
+            }
