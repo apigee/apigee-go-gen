@@ -200,7 +200,7 @@ Sometimes, your OpenAPI specification might be missing response examples or sche
 
 **What is an overlay?**
 
-An overlay is a separate file that allows you to add or modify information in your existing OpenAPI spec. This is useful for adding examples, schemas, or any other data that you want to keep separate from your main specification file. To learn more about how overlays work, you can refer to the [overlay specification](https://www.google.com/url?sa=E&source=gmail&q=link-to-overlay-spec).
+An overlay is a separate file that allows you to add or modify information in your existing OpenAPI spec. This is useful for adding examples, schemas, or any other data that you want to keep separate from your main specification file. To learn more about how overlays work, you can refer to the [overlay specification](https://spec.openapis.org/overlay/latest.html).
 
 **How to use an overlay**
 
