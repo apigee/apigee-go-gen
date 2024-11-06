@@ -192,3 +192,60 @@ The following fields are supported when generating examples from a JSON schema:
     * `exclusiveMinimuim` field (boolean, JSON-Schema 4)
     * `exclusiveMaximum` field  (boolean, JSON-Schema 4)
     * `multipleOf` field
+
+Markdown
+## Enriching your OpenAPI Spec with Examples
+
+Sometimes, your OpenAPI specification might be missing response examples or schemas. In other cases, the examples might be very large and difficult to include directly in the spec.  Overlays provide a solution for these situations.
+
+**What is an overlay?**
+
+An overlay is a separate file that allows you to add or modify information in your existing OpenAPI spec. This is useful for adding examples, schemas, or any other data that you want to keep separate from your main specification file. To learn more about how overlays work, you can refer to the [overlay specification](https://www.google.com/url?sa=E&source=gmail&q=link-to-overlay-spec).
+
+**How to use an overlay**
+
+Here's how you can use an overlay to add a static example to an API operation:
+
+1.  **Create an overlay file:** This file defines the changes you want to make to your OpenAPI spec. Here's an example that adds a sample response for the `/pet/findByStatus` operation:
+
+    ```yaml
+    overlay: 1.0.0
+    info:
+      title: Add example response JSON for GET /get/findByStatus
+      version: 1.0.0
+    actions:
+      - target: $.paths./pet/findByStatus.get.responses.200
+        update:
+          content:
+            'application/json':
+              example:
+                {
+                  "id": 1,
+                  "photoUrls": [],
+                  "name": "Rin Tin Tin",
+                  "category": {
+                    "id": 1,
+                    "name": "Dog"
+                  }
+                }
+    ```
+    
+
+2.  **Apply the overlay to your OpenAPI spec:** Use the `apigee-go-gen` tool to combine your overlay file with your OpenAPI spec:
+
+    ```bash
+    apigee-go-gen transform oas-overlay \
+      --spec ./examples/specs/oas3/petstore.yaml \
+      --overlay ./examples/overlays/petstore-dog-example.yaml \
+      --output ./out/specs/petstore-overlaid.yaml
+    ```
+
+3.  **Generate a mock API proxy:** You can now use the updated OpenAPI spec to generate a mock API proxy in Apigee:
+
+    ```bash
+    apigee-go-gen mock oas \
+        --input ./out/specs/petstore-overlaid.yaml \
+        --output ./out/mock-apiproxies/petstore.zip
+    ```
+
+This process allows you to manage your OpenAPI spec more effectively by keeping your examples and other supplementary data in separate files.
