@@ -17,8 +17,11 @@ package v1
 import "fmt"
 
 type LoadBalancer struct {
-	Algorithm string      `xml:"Algorithm,omitempty"`
-	Servers   *ServerList `xml:"Server,omitempty"`
+	Algorithm               string                   `xml:"Algorithm,omitempty"`
+	Servers                 *ServerList              `xml:"Server,omitempty"`
+	ServerUnhealthyResponse *ServerUnhealthyResponse `xml:"ServerUnhealthyResponse,omitempty"`
+	MaxFailures             int                      `xml:"MaxFailures,omitempty"`
+	RetryEnabled            bool                     `xml:"RetryEnabled,omitempty"`
 
 	UnknownNode AnyList `xml:",any"`
 }
@@ -35,6 +38,7 @@ func ValidateLoadBalancer(v *LoadBalancer, path string) []error {
 
 	var subErrors []error
 	subErrors = append(subErrors, ValidateServers(v.Servers, subPath)...)
+	subErrors = append(subErrors, ValidateServerUnhealthyResponse(v.ServerUnhealthyResponse, subPath)...)
 
 	return subErrors
 }
