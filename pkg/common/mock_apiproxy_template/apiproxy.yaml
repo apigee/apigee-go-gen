@@ -33,12 +33,12 @@ Policies:
       .name: OAS-Validate
       DisplayName: OAS-Validate
       Source: request
-      OASResource: oas://spec.json
+      OASResource: oas://openapi.json
   - AssignMessage:
       .name: AM-LoadSpec
       AssignVariable:
         Name: spec_json
-        ResourceURL: oas://spec.json
+        ResourceURL: oas://openapi.json
   - AssignMessage:
       .continueOnError: false
       .enabled: true
@@ -94,10 +94,10 @@ ProxyEndpoints:
         .name: no-route
 TargetEndpoints: []
 Resources:
-  #{{ os_writefile "./spec.json" ($.Values.spec | toPrettyJson) }}
+  #{{ os_writefile "./openapi.json" ($.Values.spec | toPrettyJson) }}
   - Resource:
       Type: oas
-      Path: ./spec.json
+      Path: ./openapi.json
   #{{ os_copyfile "./response-mocker.cjs" "./response-mocker.cjs" }}
   - Resource:
       Type: jsc

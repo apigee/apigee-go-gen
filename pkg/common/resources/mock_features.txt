@@ -1,7 +1,7 @@
 
   1. Request validation
 
-     The mock API proxy includes an OpenAPI spec validation policy.
+     The mock API proxy includes an OpenAPI Description validation policy.
      This is used to validate the request body, headers, and query parameters.
 
      You can pass the 'Mock-Validate-Request: false' header to skip this policy.

@@ -32,10 +32,10 @@ The `apigee-go-gen` includes the following set of `transform` commands to help y
 * [sharedflow-to-yaml](./commands/sharedflow-to-yaml.md) - Transforms an Apigee API shared flow bundle to a YAML doc
 * [yaml-to-sharedflow](./commands/yaml-to-sharedflow.md) - Transforms a YAML doc to an Apigee shared flow bundle
 
-* [oas2-to-oas3](./commands/oas2-to-oas3.md) - Transforms an OpenAPI 2 spec (also known as Swagger) into OpenAPI 3
+* [oas2-to-oas3](./commands/oas2-to-oas3.md) - Transforms an OpenAPI 2 Description (also known as Swagger) into OpenAPI 3
 
 * [resolve-refs](./commands/resolve-refs.md) - Replace external $refs (JSONRefs) in a YAML or JSON doc with actual values
 
-* [oas-overlay](./commands/oas-overlay.md) - Transforms an Open API spec by applying an [overlay](https://github.com/OAI/Overlay-Specification/blob/main/versions/1.0.0.md) file
+* [oas-overlay](./commands/oas-overlay.md) - Transforms an OpenAPI Description by applying an [Overlay](https://github.com/OAI/Overlay-Specification/blob/main/versions/1.0.0.md) file
 
 

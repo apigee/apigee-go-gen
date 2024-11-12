@@ -1362,7 +1362,7 @@ function pathMatches(path, pathTemplate) {
 function parseSpec(json) {
   var parsed_spec = {};
   if (!isString(json) || json === "") {
-    throw new Error("could not find OpenAPI spec, set spec_json flow variable");
+    throw new Error("could not find OpenAPI Description, set spec_json flow variable");
   }
 
   try {

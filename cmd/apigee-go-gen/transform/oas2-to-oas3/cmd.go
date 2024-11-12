@@ -26,7 +26,7 @@ var allowCycles = flags.NewBool(false)
 
 var Cmd = &cobra.Command{
 	Use:   "oas2-to-oas3",
-	Short: "Transforms the input OpenAPI 2 spec into OpenAPI 3 spec",
+	Short: "Transforms the input OpenAPI 2 Description into an OpenAPI 3 Description",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return utils.OAS2FileToOAS3File(string(input), string(output), bool(allowCycles))
 	},

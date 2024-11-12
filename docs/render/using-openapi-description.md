@@ -1,4 +1,4 @@
-# Using OpenAPI Spec
+# Using OpenAPI Description
 <!--
   Copyright 2024 Google LLC
 
@@ -15,18 +15,18 @@
   limitations under the License.
 -->
 
-You can use the [render apiproxy](./commands/render-apiproxy.md) command to create an Apigee API proxy bundle using a template and an [OpenAPI spec](https://www.openapis.org/) as input.
+You can use the [render apiproxy](./commands/render-apiproxy.md) command to create an Apigee API proxy bundle using a template and an [OpenAPI Description](https://www.openapis.org/) as input.
 
 ## How it works
 
 - [x] **Start with Your Template**
 > This is your baseline. Include any standard policies or settings you want in your final proxy.
 - [x] **Customize the Output** 
-> Your template uses special placeholders that are replaced with details from your OpenAPI spec.
+> Your template uses special placeholders that are replaced with details from your OpenAPI Description.
 - [x] **Control the Output** 
-> Use control logic in your template to adjust your proxy configuration based on your OpenAPI spec.
-- [x] **Access the Spec** 
-> Use `--set-oas` to access the OpenAPI as a [map](https://go.dev/blog/maps) (and as text) during template rendering.
+> Use control logic in your template to adjust your proxy configuration based on your OpenAPI Description.
+- [x] **Access the OAS Description** 
+> Use `--set-oas` to access the OpenAPI Description as a [map](https://go.dev/blog/maps) (and as text) during template rendering.
 
 !!! Note
     Both OAS2 and OAS3 are supported using the `--set-oas` flag

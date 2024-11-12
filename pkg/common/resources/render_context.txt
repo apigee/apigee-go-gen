@@ -21,7 +21,7 @@
          (see https://pkg.go.dev/github.com/vektah/gqlparser/v2/ast#Schema)
 
       --set-oas key=./path/to/oas.yaml
-         Sets individual key/value. The value is the OpenAPI spec as a map[string]any.
+         Sets individual key/value. The value is the OpenAPI Description as a map[string]any.
          (Only OAS 2.0 and OAS 3.X.X supported)
 
       --set-grpc key=./path/to/protobuf.proto

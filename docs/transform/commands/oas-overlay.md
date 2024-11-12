@@ -15,7 +15,7 @@
   limitations under the License.
 -->
 
-This command applies an [OpenAPI Overlay 1.0](https://github.com/OAI/Overlay-Specification/blob/main/versions/1.0.0.md) to an OpenAPI spec.
+This command applies an [OpenAPI Overlay 1.0](https://github.com/OAI/Overlay-Specification/blob/main/versions/1.0.0.md) to an OpenAPI Description.
 
 ## Usage
 
@@ -23,13 +23,13 @@ The `oas-overlay` command takes the following parameters:
 
 * `--overlay` is the path to the OpenAPI Overlay (either as JSON or YAML)
 
-* `--spec` (*optional*)  is the path to the OpenAPI Spec  to transform (either as JSON or YAML)
+* `--spec` (*optional*)  is the path to the OpenAPI Description to transform (either as JSON or YAML)
   
 * `--output` is the document to be created (either as JSON or YAML)
 
 
-> The `--spec` parameter is optional. If omitted, the OAS path is read form the `extends` property of the overlay.
-> In this case, the path is relative to the location of the overlay file itself.
+> The `--spec` parameter is optional. If omitted, the OAS path is read from the `extends` property of the Overlay.
+> In this case, the path is relative to the location of the Overlay file itself.
 
 
 
