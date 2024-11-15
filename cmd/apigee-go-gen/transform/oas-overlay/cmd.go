@@ -26,7 +26,7 @@ var output flags.String
 
 var Cmd = &cobra.Command{
 	Use:   "oas-overlay",
-	Short: "Transforms Open API spec by applying overlay file",
+	Short: "Transforms OpenAPI Description by applying Overlay file",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return utils.OASOverlay(string(overlay), string(spec), string(output))
 	},
@@ -35,8 +35,8 @@ var Cmd = &cobra.Command{
 func init() {
 
 	Cmd.Flags().SortFlags = false
-	Cmd.Flags().VarP(&spec, "spec", "s", "path to OpenAPI spec file (optional)")
-	Cmd.Flags().VarP(&overlay, "overlay", "", "path to overlay file")
+	Cmd.Flags().VarP(&spec, "spec", "s", "path to OpenAPI Description file (optional)")
+	Cmd.Flags().VarP(&overlay, "overlay", "", "path to Overlay file")
 	Cmd.Flags().VarP(&output, "output", "o", "path to output file, or omit to use stdout")
 
 	_ = Cmd.MarkFlagRequired("overlay")

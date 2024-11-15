@@ -35,7 +35,7 @@ The `render template` command takes the following  parameters:
     --set-string string    sets key=value (string), e.g. "base_path=/v1/hello"
     --values string        sets keys/values from YAML file, e.g. "./values.yaml"
     --set-file string      sets key=value where value is the content of a file, e.g. "my_data=./from/file.txt"
-    --set-oas string       sets key=value where value is an OpenAPI spec, e.g. "my_spec=./petstore.yaml"
+    --set-oas string       sets key=value where value is an OpenAPI Description, e.g. "my_spec=./petstore.yaml"
     --set-grpc string      sets key=value where value is a gRPC proto, e.g. "my_proto=./greeter.proto"
     --set-graphql string   sets key=value where value is a GraphQL schema, e.g. "my_schema=./resorts.graphql"
     --set-json string      sets key=value where value is JSON, e.g. 'servers=["server1","server2"]'

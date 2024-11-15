@@ -28,7 +28,7 @@ var debug = flags.NewBool(false)
 
 var Cmd = &cobra.Command{
 	Use:   "oas",
-	Short: "Generate a mock API proxy from an OpenAPI 3.X spec",
+	Short: "Generate a mock API proxy from an OpenAPI 3.X Description",
 	Long:  Usage(),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return mock.GenerateMockProxyBundle(string(input), string(output), bool(debug))
@@ -37,7 +37,7 @@ var Cmd = &cobra.Command{
 
 func init() {
 	Cmd.Flags().SortFlags = false
-	Cmd.Flags().VarP(&input, "input", "i", `path to OpenAPI spec (e.g. "./path/to/spec.yaml")`)
+	Cmd.Flags().VarP(&input, "input", "i", `path to OpenAPI Description (e.g. "./path/to/openapi.yaml")`)
 	Cmd.Flags().VarP(&output, "output", "o", `output directory or zip file (e.g. "./path/to/apiproxy.zip")`)
 	Cmd.Flags().VarP(&debug, "debug", "", `prints rendered template before creating API proxy bundle"`)
 
@@ -49,7 +49,7 @@ func init() {
 
 func Usage() string {
 	usageText := `
-This command generates a mock API proxy bundle from an OpenAPI 3.X Spec.
+This command generates a mock API proxy bundle from an OpenAPI 3.X Description.
 
 The mock API proxy includes the following features:
 

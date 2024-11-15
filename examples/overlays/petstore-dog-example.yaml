@@ -7,13 +7,15 @@ actions:
     update:
       content:
         'application/json':
-          example:
-            {
-              "id": 1,
-              "photoUrls": [],
-              "name": "Rin Tin Tin",
-              "category": {
-                "id": 1,
-                "name": "Dog"
-              }
-            }
+          examples:
+            findByStatus:
+              value:
+                {
+                  "id": 1,
+                  "photoUrls": [],
+                  "name": "Rin Tin Tin",
+                  "category": {
+                    "id": 1,
+                    "name": "Dog"
+                  }
+                }

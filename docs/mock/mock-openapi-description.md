@@ -1,4 +1,4 @@
-# Mock OpenAPI Spec
+# Mock OpenAPI Description
 <!--
   Copyright 2024 Google LLC
 
@@ -15,7 +15,7 @@
   limitations under the License.
 -->
 
-You can use the [mock oas](./commands/mock-oas.md) command to create a mock API proxy from your OpenAPI 3 specification, allowing you to simulate API behavior without a real backend. 
+You can use the [mock oas](./commands/mock-oas.md) command to create a mock API proxy from your OpenAPI 3 Description, allowing you to simulate API behavior without a real backend. 
 
 ## Examples
 
@@ -42,9 +42,9 @@ apigee-go-gen mock oas \
 
 The generated mock API proxy supports the following features.
 
-### :white_check_mark: Base Path from Spec
+### :white_check_mark: Base Path from OAS Description
 
-The `Base Path` for the mock API proxy is derived from the first element of the [servers](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.1.md#oas-servers) array in your OpenAPI spec.
+The `Base Path` for the mock API proxy is derived from the first element of the [servers](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.1.md#oas-servers) array in your OpenAPI Description.
 
 For example, if your server array looks like this:
 
@@ -73,7 +73,7 @@ This built-in CORS support ensures that your mock API behaves like a real API in
 ### :white_check_mark: Request Validation
 
 
-By default, the mock API proxy validates the incoming requests against your specification. 
+By default, the mock API proxy validates the incoming requests against your description.
 This ensures that the HTTP headers, query parameters, and request body all conform to the defined rules.
 
 This helps you catch errors in your client code early on.
@@ -95,7 +95,7 @@ The mock API proxy automatically generates different status codes for your mock 
 **Want more control?** You can use headers to select response the status code:
 
 * **Specific status code:** Use the `Mock-Status` header in your request and set it to the desired code (e.g., `Mock-Status: 404`).
-* **Random status code:** Use the `Mock-Fuzz: true` header to get a random status code from your spec.
+* **Random status code:** Use the `Mock-Fuzz: true` header to get a random status code from your description.
 
 If you use both `Mock-Status` and `Mock-Fuzz`, `Mock-Status` takes precedence.
 
@@ -116,7 +116,7 @@ If you use both `Accept` and `Mock-Fuzz`, the `Accept` header will take preceden
 
 ### :white_check_mark: Dynamic Response Body
 
-The mock API proxy can generate realistic response bodies based on your OpenAPI spec.
+The mock API proxy can generate realistic response bodies based on your OpenAPI Description.
 
 Here's how it determines what to send back for any particular operation's response (in order):
 
@@ -184,29 +184,29 @@ The following fields are supported when generating examples from a JSON schema:
     * `minLength`, `maxLength` fields - string length chosen randomly between these values
 * `integer` type
     * `minimum`, `maximum` fields - a random integer value chosen randomly between these values
-    * `exclusiveMinimuim` field (boolean, JSON-Schema 4)
-    * `exclusiveMaximum` field  (boolean, JSON-Schema 4)
+    * `exclusiveMinimum` field (boolean, JSON-Schema 4, number, JSON Schema 7 or greater)
+    * `exclusiveMaximum` field  (boolean, JSON-Schema 4, number, JSON Schema 7 or greater)
     * `multipleOf` field
 * `number` type
     * `minimum`, `maximum` fields - a random float value chosen randomly between these values
-    * `exclusiveMinimuim` field (boolean, JSON-Schema 4)
-    * `exclusiveMaximum` field  (boolean, JSON-Schema 4)
+    * `exclusiveMinimum` field (boolean, JSON-Schema 4, number, JSON Schema 7 or greater)
+    * `exclusiveMaximum` field  (boolean, JSON-Schema 4, number, JSON Schema 7 or greater)
     * `multipleOf` field
 
 Markdown
-## Enriching your OpenAPI Spec with Examples
+## Enriching your OpenAPI Description with Examples
 
-Sometimes, your OpenAPI specification might be missing response examples or schemas. In other cases, the examples might be very large and difficult to include directly in the spec.  Overlays provide a solution for these situations.
+Sometimes, your OpenAPI Description might be missing response examples or schemas. In other cases, the examples might be very large and difficult to include directly in the description. Overlays provide a solution for these situations.
 
-**What is an overlay?**
+**What is an Overlay?**
 
-An overlay is a separate file that allows you to add or modify information in your existing OpenAPI spec. This is useful for adding examples, schemas, or any other data that you want to keep separate from your main specification file. To learn more about how overlays work, you can refer to the [overlay specification](https://spec.openapis.org/overlay/latest.html).
+An Overlay is a separate file that allows you to add or modify information in your existing OpenAPI Description. This is useful for adding examples, schemas, or any other data that you want to keep separate from your main description file. To learn more about how Overlays work, you can refer to the [Overlay Specification](https://spec.openapis.org/overlay/latest.html).
 
-**How to use an overlay**
+**How to use an Overlay**
 
-Here's how you can use an overlay to add a static example to an API operation:
+Here's how you can use an Overlay to add a static example to an API operation:
 
-1.  **Create an overlay file:** This file defines the changes you want to make to your OpenAPI spec. Here's an example that adds a sample response for the `/pet/findByStatus` operation:
+1.  **Create an Overlay file:** This file defines the changes you want to make to your OpenAPI Description. Here's an example that adds a sample response for the `/pet/findByStatus` operation:
 
     ```yaml
     overlay: 1.0.0
@@ -218,20 +218,23 @@ Here's how you can use an overlay to add a static example to an API operation:
         update:
           content:
             'application/json':
-              example:
-                {
-                  "id": 1,
-                  "photoUrls": [],
-                  "name": "Rin Tin Tin",
-                  "category": {
-                    "id": 1,
-                    "name": "Dog"
-                  }
-                }
+              examples:
+                findByStatus:
+                  value:
+                    {
+                      "id": 1,
+                      "photoUrls": [],
+                      "name": "Rin Tin Tin",
+                      "category": {
+                        "id": 1,
+                        "name": "Dog"
+                      }
+                    }
+
     ```
     
 
-2.  **Apply the overlay to your OpenAPI spec:** Use the `apigee-go-gen` tool to combine your overlay file with your OpenAPI spec:
+2.  **Apply the Overlay to your OpenAPI Description:** Use the `apigee-go-gen` tool to combine your Overlay file with your OpenAPI Description:
 
     ```bash
     apigee-go-gen transform oas-overlay \
@@ -240,7 +243,7 @@ Here's how you can use an overlay to add a static example to an API operation:
       --output ./out/specs/petstore-overlaid.yaml
     ```
 
-3.  **Generate a mock API proxy:** You can now use the updated OpenAPI spec to generate a mock API proxy in Apigee:
+3.  **Generate a mock API proxy:** You can now use the updated OpenAPI Description to generate a mock API proxy in Apigee:
 
     ```bash
     apigee-go-gen mock oas \
@@ -248,4 +251,4 @@ Here's how you can use an overlay to add a static example to an API operation:
         --output ./out/mock-apiproxies/petstore.zip
     ```
 
-This process allows you to manage your OpenAPI spec more effectively by keeping your examples and other supplementary data in separate files.
+This process allows you to manage your OpenAPI Description more effectively by keeping your examples and other supplementary data in separate files.

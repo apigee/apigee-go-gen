@@ -25,7 +25,7 @@ The `apigee-go-gen` CLI tool streamlines your Apigee development experience usin
 
 * **[Transformation commands](./transform/index.md)** Easily convert between Apigee's API proxy format and YAML for better readability and management.
 * **[Template rendering commands](./render/index.md)**  Enjoy powerful customization and dynamic configuration options, inspired by the flexibility of Helm using the Go [text/template](https://pkg.go.dev/text/template) engine.
-* **[Mock generation command](./mock/mock-openapi-spec.md)** Effortlessly create a mock API proxy from your OpenAPI 3.X spec, complete with dynamic response bodies, headers, and status codes.
+* **[Mock generation command](./mock/mock-openapi-description.md)** Effortlessly create a mock API proxy from your OpenAPI 3.X Description, complete with dynamic response bodies, headers, and status codes.
 
 By using this tool alongside the [Apigee CLI](https://github.com/apigee/apigeecli), you'll unlock a highly customizable workflow. This is perfect for both streamlined local development and robust CI/CD pipelines.
 
@@ -59,8 +59,8 @@ This approach has the potential to address the current challenges, offering:
 - [x] **Faster time to production** 
 > Leverage Apigee community templates to save time and resources.
 
-- [x] **Stay in sync with API specs** 
-> Auto-update templated API Proxies to stay in sync with the spec, while preserving customizations.
+- [x] **Stay in sync with API descriptions**
+> Auto-update templated API Proxies to stay in sync with the api description, while preserving customizations.
 
 ## Support
 

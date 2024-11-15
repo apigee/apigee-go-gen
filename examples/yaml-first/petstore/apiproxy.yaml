@@ -51,7 +51,7 @@ TargetEndpoints:
 Resources:
   - Resource:
       Type: oas
-      Path: ./spec.yaml
+      Path: ./openapi.yaml
   - Resource:
       Type: properties
       Path: ./test.properties

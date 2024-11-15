@@ -15,17 +15,17 @@
   limitations under the License.
 -->
 
-This command generates a mock API proxy bundle from your OpenAPI 3 specification.  
+This command generates a mock API proxy bundle from your OpenAPI 3 Description.  
 
 ## Usage
 
 The `mock oas` command takes the following parameters:
 
 ```text
-  -i, --input string    path to OpenAPI spec (e.g. "./path/to/spec.yaml")
+  -i, --input string    path to OpenAPI Description (e.g. "./path/to/openapi.yaml")
   -o, --output string   output directory or zip file (e.g. "./path/to/apiproxy.zip")
   -h, --help            help for oas
 ```
 
-> See how the mock API proxy bundle works over at the [Mock OpenAPI Spec](../mock-openapi-spec.md) doc page
+> See how the mock API proxy bundle works over at the [Mock OpenAPI Description](../mock-openapi-description.md) doc page
 

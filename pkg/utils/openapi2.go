@@ -80,7 +80,7 @@ func OAS2FileToOAS3File(input string, output string, allowCycles bool) error {
 	if slices.IndexFunc(oas2node.Content[0].Content, func(n *yaml.Node) bool {
 		return n.Value == "swagger"
 	}) < 0 {
-		return errors.Errorf("input %s is not an OpenAPI 2.0 spec", input)
+		return errors.Errorf("input %s is not an OpenAPI 2.0 Description", input)
 	}
 
 	cycles, err := YAMLDetectRefCycles(oas2node, input)

@@ -18,7 +18,7 @@
     .name: OAS-Validate
     DisplayName: OAS-Validate
     Source: request
-    OASResource: oas://spec.yaml
+    OASResource: oas://openapi.yaml
 - RaiseFault:
     .continueOnError: false
     .enabled: true

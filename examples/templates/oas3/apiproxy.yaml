@@ -76,9 +76,9 @@ TargetEndpoints:
 Resources:
   - Resource:
       Type: oas
-      #{{ os_writefile "./spec.yaml" $.Values.spec_string }}
-      #{{ remove_oas_extensions "./spec.yaml" }}
-      Path: ./spec.yaml
+      #{{ os_writefile "./openapi.yaml" $.Values.spec_string }}
+      #{{ remove_oas_extensions "./openapi.yaml" }}
+      Path: ./openapi.yaml
   - Resource:
       Type: properties
       #{{ os_copyfile "./test.properties" "./resources/test.properties" }}

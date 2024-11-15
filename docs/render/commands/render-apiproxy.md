@@ -21,13 +21,13 @@ Under the hood, this command combines the [render template](./render-template.md
 
 Using a template based workflow offers several advantages over working directly with the traditional Apigee API proxy bundle. e.g.
 
-- [x] **Enhanced Customization**  
+- [x] **Enhanced Customization**
 > Tweak your API proxy configurations with the readability of YAML.
 
-- [x] **Seamless Spec Synchronization**  
-> Template-generated API proxy bundles can be easily synced with your specs by re-generating them when changes occur.
+- [x] **Seamless OAS Description Synchronization**
+> Template-generated API proxy bundles can be easily synced with your descriptions by re-generating them when changes occur.
 
-- [x] **Streamline Your Development**  
+- [x] **Streamline Your Development**
 > YAML's versatility allows for easy version control, automation, and integration into CI/CD pipelines.
 
 ## Usage
@@ -46,7 +46,7 @@ The `render apiproxy` command takes the following parameters:
       --set-string string        sets key=value (string), e.g. "base_path=/v1/hello" 
       --values string            sets keys/values from YAML file, e.g. "./values.yaml"
       --set-file string          sets key=value where value is the content of a file, e.g. "my_data=./from/file.txt"
-      --set-oas string           sets key=value where value is an OpenAPI spec, e.g. "my_spec=./petstore.yaml"
+      --set-oas string           sets key=value where value is an OpenAPI Description, e.g. "my_spec=./petstore.yaml"
       --set-grpc string          sets key=value where value is a gRPC proto, e.g. "my_proto=./greeter.proto"
       --set-graphql string       sets key=value where value is a GraphQL schema, e.g. "my_schema=./resorts.graphql"
       --set-json string          sets key=value where value is JSON, e.g. 'servers=["server1","server2"]'

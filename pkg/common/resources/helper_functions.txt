@@ -73,13 +73,13 @@
         e.g. {{ fmt_printf "url: %%v\n" $url }}
 
     remove_oas_extensions(src string) string
-        Removes the OpenAPI spec extensions from the file specified by src
+        Removes the OpenAPI Description extensions from the file specified by src
         The file must already exist in the output directory
 
-        This is useful if to make the spec files small within the generated bundles
+        This is useful if to make the OAS Description files small within the generated bundles
         e.g.
-          {{ os_writefile "./spec.yaml" $.Values.spec_string }}
-          {{ remove_oas_extensions "./spec.yaml" }}
+          {{ os_writefile "./openapi.yaml" $.Values.spec_string }}
+          {{ remove_oas_extensions "./openapi.yaml" }}
 
     Sprig
       Template functions from Sprig library

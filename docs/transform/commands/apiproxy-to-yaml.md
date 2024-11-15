@@ -98,7 +98,7 @@ Below is the general structure of a bundle
 ./apiproxy/resources/java/
 ./apiproxy/resources/java/library.jar
 
-# Optional OpenAPI spec files (for use with the OAS policy)
+# Optional OpenAPI Description files (for use with the OAS policy)
 ./apiproxy/resources/oas
 ./apiproxy/resources/oas/openapi.yaml
 

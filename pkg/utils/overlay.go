@@ -42,12 +42,12 @@ func OASOverlay(overlayFile string, specFile string, outputFile string) error {
 		return err
 	}
 
-	//if extends field is set, and there is no spec file specified, use the extends field
+	//if extends field is set, and there is no OAS Description file specified, use the extends field
 	if extendsField != nil && specFile == "" {
 		if path.IsAbs(*extendsField) {
 			specFile = *extendsField
 		} else {
-			//when using extends, if path is relative, then it's relative to the overlay itself
+			//when using extends, if path is relative, then it's relative to the Overlay itself
 			dir := path.Dir(overlayFile)
 			specFile = path.Join(dir, *extendsField)
 		}
@@ -73,7 +73,7 @@ func OASOverlay(overlayFile string, specFile string, outputFile string) error {
 	if slices.IndexFunc(specNode.Content[0].Content, func(n *yaml.Node) bool {
 		return n.Value == "openapi"
 	}) < 0 {
-		return errors.Errorf("%s is not an OpenAPI 3.X spec file", specFile)
+		return errors.Errorf("%s is not an OpenAPI 3.X Description file", specFile)
 	}
 
 	resultNode, err := ApplyOASOverlay(overlayNode, specNode, overlayFile, specFile)
@@ -181,7 +181,7 @@ func getActionTarget(actionNode *yaml.Node, overlayFile string) (*yaml.Node, err
 	targetNode := results[0]
 
 	if targetNode.Kind != yaml.ScalarNode {
-		return nil, errors.Errorf("'target' field within overlay action is not a string at %s:%d", overlayFile, targetNode.Line)
+		return nil, errors.Errorf("'target' field within Overlay action is not a string at %s:%d", overlayFile, targetNode.Line)
 	}
 
 	return targetNode, nil
@@ -225,7 +225,7 @@ func getActionRemove(actionNode *yaml.Node, overlayFile string) (*bool, error) {
 
 	if removeNode.Kind != yaml.ScalarNode ||
 		!(removeNode.Value == "true" || removeNode.Value == "false") {
-		return nil, errors.Errorf("'remove' field within overlay action is not boolean at %s:%d", overlayFile, removeNode.Line)
+		return nil, errors.Errorf("'remove' field within Overlay action is not boolean at %s:%d", overlayFile, removeNode.Line)
 	}
 
 	remove = results[0].Value == "true"

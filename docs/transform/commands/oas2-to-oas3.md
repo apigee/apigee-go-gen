@@ -15,7 +15,7 @@
   limitations under the License.
 -->
 
-This command takes an OpenAPI 2 spec (also known as Swagger) and converts it into an OpenAPI 3 spec.
+This command takes an OpenAPI 2 Description (also known as Swagger) and converts it into an OpenAPI 3 Description.
 
 ## Usage
 

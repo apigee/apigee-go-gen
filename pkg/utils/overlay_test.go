@@ -60,7 +60,7 @@ func TestOASOverlay(t *testing.T) {
 		{
 			"bad-remove-value",
 			"petstore/oas3.yaml",
-			errors.New("'remove' field within overlay action is not boolean at testdata/oas-overlay/bad-remove-value/overlay.yaml:20"),
+			errors.New("'remove' field within Overlay action is not boolean at testdata/oas-overlay/bad-remove-value/overlay.yaml:20"),
 		},
 		{
 			"bad-action-op",
