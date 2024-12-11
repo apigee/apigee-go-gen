@@ -25,8 +25,8 @@ type SetFile struct {
 	Data *values.Map
 }
 
-func NewSetFile(data *values.Map) SetString {
-	return SetString{Data: data}
+func NewSetFile(data *values.Map) SetFile {
+	return SetFile{Data: data}
 }
 
 func (v *SetFile) Type() string {
@@ -48,6 +48,6 @@ func (v *SetFile) Set(entry string) error {
 		return errors.New(err)
 	}
 
-	v.Data.Set(key, fileText)
+	v.Data.Set(key, string(fileText))
 	return nil
 }
