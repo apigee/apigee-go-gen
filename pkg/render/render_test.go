@@ -22,6 +22,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -32,11 +33,13 @@ func TestRenderGeneric(t *testing.T) {
 		templateFile string
 		valuesFile   string
 		includesFile string
+		setFileFlag  string
 		wantErr      error
 	}{
 		{
 			"using-files",
 			"input.yaml",
+			"",
 			"",
 			"",
 			nil,
@@ -46,6 +49,7 @@ func TestRenderGeneric(t *testing.T) {
 			"input.yaml",
 			"",
 			"_helpers.tmpl",
+			"",
 			nil,
 		},
 		{
@@ -53,6 +57,15 @@ func TestRenderGeneric(t *testing.T) {
 			"apiproxy.yaml",
 			"values.yaml",
 			"",
+			"",
+			nil,
+		},
+		{
+			"set-file",
+			"input.yaml",
+			"",
+			"",
+			"data=./data.json",
 			nil,
 		},
 	}
@@ -84,6 +97,14 @@ func TestRenderGeneric(t *testing.T) {
 			if tt.includesFile != "" {
 				includesFile := path.Join(testDir, tt.includesFile)
 				err := cFlags.IncludeList.Set(includesFile)
+				require.NoError(t, err)
+			}
+
+			if tt.setFileFlag != "" {
+				key, filePath, _ := strings.Cut(tt.setFileFlag, "=")
+				tt.setFileFlag = fmt.Sprintf("%s=%s", key, path.Join(testDir, filePath))
+				f := flags.NewSetFile(cFlags.Values)
+				err := f.Set(tt.setFileFlag)
 				require.NoError(t, err)
 			}
 
