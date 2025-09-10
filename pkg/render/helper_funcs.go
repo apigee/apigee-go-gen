@@ -1,4 +1,4 @@
-//  Copyright 2024 Google LLC
+//  Copyright 2025 Google LLC
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -112,4 +112,20 @@ func getRemoveOASExtensions(templateFile string, outputFile string, dryRun bool)
 	}
 
 	return _removeOASExtensionsFunc
+}
+
+func convertOAS3ToMCPValues(args ...any) map[string]any {
+	if len(args) < 1 {
+		panic("oas3_to_mcp function requires one arguments")
+	}
+
+	oas3file := args[0].(string)
+
+	var mcpValuesMap map[string]any
+	var err error
+	if mcpValuesMap, err = utils.OAS3ToMCPValues(oas3file); err != nil {
+		panic(err)
+	}
+
+	return mcpValuesMap
 }

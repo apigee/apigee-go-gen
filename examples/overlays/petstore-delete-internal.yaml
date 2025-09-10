@@ -12,17 +12,10 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-/*.json
-/*.yaml
-/*.iml
-.idea
-.DS_Store
-out
-dist
-./test
-dist/
-site
-venv
-.venv
-__pycache__
-scratch
+overlay: 1.0.0
+info:
+  title: Delete Internal Operations
+  version: 1.0.0
+actions:
+  - target: $.paths.*.*[?(@.x-visibility.extent=='INTERNAL')]
+    remove: true

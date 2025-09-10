@@ -251,6 +251,12 @@ paths:
       summary: Updates a pet in the store with form data
       description: ""
       operationId: updatePetWithForm
+      requestBody:
+        description: Update an existent user in the store
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/Pet"
       parameters:
         - name: petId
           in: path

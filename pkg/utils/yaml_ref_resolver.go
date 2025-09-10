@@ -1,4 +1,4 @@
-//  Copyright 2024 Google LLC
+//  Copyright 2025 Google LLC
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import (
 	"strings"
 )
 
-func YAMLResolveRefs(root *yaml.Node, filePath string, allowCycles bool) (*yaml.Node, error) {
+func YAMLResolveAllRefs(root *yaml.Node, filePath string, allowCycles bool) (*yaml.Node, error) {
 	fileDir := filepath.Dir(filePath)
 	filePath = filepath.Base(filePath)
 
@@ -33,7 +33,7 @@ func YAMLResolveRefs(root *yaml.Node, filePath string, allowCycles bool) (*yaml.
 	defer PopD()
 
 	cycles := [][]string{}
-	resolved, err := YAMLResolveRefsRecursive(root, "", filePath, []string{}, &map[string]*yaml.Node{}, &cycles)
+	resolved, err := YAMLResolveRefsRecursive(root, "", filePath, []string{}, &map[string]*yaml.Node{}, &cycles, true)
 	if err != nil {
 		return nil, err
 	}
@@ -49,7 +49,31 @@ func YAMLResolveRefs(root *yaml.Node, filePath string, allowCycles bool) (*yaml.
 	return resolved, nil
 }
 
-func YAMLResolveRefsRecursive(node *yaml.Node, relParentPath string, parentFile string, activePaths []string, loaded *map[string]*yaml.Node, cycles *[][]string) (*yaml.Node, error) {
+func YAMLResolveRefs(root *yaml.Node, filePath string, allowCycles bool) (*yaml.Node, error) {
+	fileDir := filepath.Dir(filePath)
+	filePath = filepath.Base(filePath)
+
+	PopD := PushDir(fileDir)
+	defer PopD()
+
+	cycles := [][]string{}
+	resolved, err := YAMLResolveRefsRecursive(root, "", filePath, []string{}, &map[string]*yaml.Node{}, &cycles, false)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(cycles) > 0 && allowCycles == false {
+		var multiError MultiError
+		for _, cycle := range cycles {
+			multiError.Errors = append(multiError.Errors, errors.Errorf("cyclic ref at %s", strings.Join(cycle, ":")))
+		}
+		return nil, errors.New(multiError)
+	}
+
+	return resolved, nil
+}
+
+func YAMLResolveRefsRecursive(node *yaml.Node, relParentPath string, parentFile string, activePaths []string, loaded *map[string]*yaml.Node, cycles *[][]string, resolveMainRefs bool) (*yaml.Node, error) {
 	var err error
 
 	if node == nil {
@@ -95,7 +119,7 @@ func YAMLResolveRefsRecursive(node *yaml.Node, relParentPath string, parentFile 
 		//do not resolve refs that point back to the main file back
 		absRefFilePath, _ := filepath.Abs(refFilePath)
 		rootPath, _, _ := strings.Cut(activePaths[0], ":")
-		if absRefFilePath == rootPath {
+		if absRefFilePath == rootPath && resolveMainRefs == false {
 			return node, nil
 		}
 
@@ -114,7 +138,7 @@ func YAMLResolveRefsRecursive(node *yaml.Node, relParentPath string, parentFile 
 		popd := PushDir(filepath.Dir(refFilePath))
 		defer popd()
 
-		resolved, err := YAMLResolveRefsRecursive(yamlNode, refJSONPath, filepath.Base(refFilePath), activePaths, loaded, cycles)
+		resolved, err := YAMLResolveRefsRecursive(yamlNode, refJSONPath, filepath.Base(refFilePath), activePaths, loaded, cycles, resolveMainRefs)
 		if err != nil {
 			return nil, err
 		}
@@ -124,7 +148,7 @@ func YAMLResolveRefsRecursive(node *yaml.Node, relParentPath string, parentFile 
 		for i := 0; i+1 < len(node.Content); i += 2 {
 			curPath := fmt.Sprintf("%s.%s", relParentPath, node.Content[i].Value)
 
-			resolved, err := YAMLResolveRefsRecursive(node.Content[i+1], curPath, parentFile, activePaths, loaded, cycles)
+			resolved, err := YAMLResolveRefsRecursive(node.Content[i+1], curPath, parentFile, activePaths, loaded, cycles, resolveMainRefs)
 			if err != nil {
 				return nil, err
 			}
@@ -132,7 +156,7 @@ func YAMLResolveRefsRecursive(node *yaml.Node, relParentPath string, parentFile 
 		}
 		return node, nil
 	} else if node.Kind == yaml.DocumentNode {
-		resolved, err := YAMLResolveRefsRecursive(node.Content[0], "$", parentFile, activePaths, loaded, cycles)
+		resolved, err := YAMLResolveRefsRecursive(node.Content[0], "$", parentFile, activePaths, loaded, cycles, resolveMainRefs)
 		if err != nil {
 			return nil, err
 		}
@@ -142,7 +166,7 @@ func YAMLResolveRefsRecursive(node *yaml.Node, relParentPath string, parentFile 
 		for i := 0; i < len(node.Content); i += 1 {
 			curPath := fmt.Sprintf("%s.%d", relParentPath, i)
 
-			resolved, err := YAMLResolveRefsRecursive(node.Content[i], curPath, parentFile, activePaths, loaded, cycles)
+			resolved, err := YAMLResolveRefsRecursive(node.Content[i], curPath, parentFile, activePaths, loaded, cycles, resolveMainRefs)
 			if err != nil {
 				return nil, err
 			}

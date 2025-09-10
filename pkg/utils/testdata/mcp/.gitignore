@@ -12,17 +12,5 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-/*.json
-/*.yaml
-/*.iml
-.idea
-.DS_Store
-out
-dist
-./test
-dist/
-site
-venv
-.venv
-__pycache__
-scratch
+**/out-*.yaml
+**/out-*.json

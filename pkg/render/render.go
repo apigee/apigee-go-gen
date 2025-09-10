@@ -274,6 +274,7 @@ func CreateTemplate(templateFile string, includeList []string, outputFile string
 	helperFuncs["blank"] = blankFunc
 	helperFuncs["deref"] = derefFunc
 	helperFuncs["slug_make"] = slugMakeFunc
+	helperFuncs["oas3_to_mcp"] = convertOAS3ToMCPValues
 
 	var templateText []byte
 	if templateText, err = os.ReadFile(templateFile); err != nil {

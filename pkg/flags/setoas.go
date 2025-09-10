@@ -1,4 +1,4 @@
-//  Copyright 2024 Google LLC
+//  Copyright 2025 Google LLC
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -69,6 +69,7 @@ func (v *SetOAS) Set(entry string) error {
 
 	v.Data.Set(key, specFileMap)
 	v.Data.Set(fmt.Sprintf("%s_string", key), string(specFileText))
+	v.Data.Set(fmt.Sprintf("%s_file", key), filePath)
 
 	return nil
 }
