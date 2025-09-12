@@ -269,22 +269,183 @@ function createFullUrl(baseURL, requestPath, argumentsObj, pathParams, queryPara
 }
 
 
-function parseStringToArray(str, defaultValue) {
+
+function parseJsonString(str, defaultValue) {
   if (!str || typeof str !== 'string') {
     return defaultValue;
   }
 
   try {
-    var parsedArray = JSON.parse(str);
-
-    if (Array.isArray(parsedArray)) {
-      return parsedArray;
-    } else {
-      return defaultValue;
-    }
+    return JSON.parse(str);
   } catch (error) {
     return defaultValue;
   }
+}
+
+function jsonToFormURLEncoded(jsonData) {
+  var params = [];
+
+  function processObject(obj, prefix) {
+    for (var key in obj) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
+        var newKey = prefix ? prefix + '.' + key : key;
+        var value = obj[key];
+
+        if (value && typeof value === 'object') {
+          if (Array.isArray(value)) {
+            for (var i = 0; i < value.length; i++) {
+              params.push(encodeURIComponent(newKey) + '=' + encodeURIComponent(value[i]));
+            }
+          } else {
+            processObject(value, newKey);
+          }
+        } else {
+          params.push(encodeURIComponent(newKey) + '=' + encodeURIComponent(value));
+        }
+      }
+    }
+  }
+
+  processObject(jsonData, '');
+
+  return params.join('&');
+}
+
+function jsonToXml(data, schema, propName, indentLevel) {
+  // Helper function to escape special characters for safe XML content
+  function escapeXml(unsafe) {
+    var str = String(unsafe);
+    return str.replace(/[<>&'"]/g, function(c) {
+      switch (c) {
+        case '<': return '&lt;';
+        case '>': return '&gt;';
+        case '&': return '&amp;';
+        case "'": return '&apos;';
+        case '"': return '&quot;';
+      }
+    });
+  }
+
+  var xmlString = '';
+  var indent = '  '.repeat(indentLevel || 0);
+
+  // Determine the element name based on a clear hierarchy of rules.
+  var elementName = '';
+  if (schema.xml && schema.xml.name) {
+    elementName = schema.xml.name;
+  } else if (propName) {
+    elementName = propName;
+  } else {
+    elementName = 'root';
+  }
+
+  // Add prefix if specified
+  if (schema.xml && schema.xml.prefix) {
+    elementName = schema.xml.prefix + ':' + elementName;
+  }
+
+  var rootAttributes = '';
+  var rootContent = '';
+
+  // Add namespace based on new annotations
+  if (schema.xml && schema.xml.namespace) {
+    var prefixAttr = schema.xml.prefix ? 'xmlns:' + schema.xml.prefix : 'xmlns';
+    rootAttributes += ' ' + prefixAttr + '="' + escapeXml(schema.xml.namespace) + '"';
+  }
+
+  // Separate properties into attributes and elements based on schema annotations
+  var attributes = {};
+  var elements = {};
+
+  if (schema.properties) {
+    for (var key in schema.properties) {
+      if (schema.properties.hasOwnProperty(key)) {
+        var propSchema = schema.properties[key];
+        // Check if it's an attribute
+        if (propSchema.xml && propSchema.xml.attribute) {
+          attributes[propSchema.xml.name] = key;
+        } else {
+          // If not an attribute, assume it's an element.
+          // The element name is either from xml.name or the property key.
+          var childElementName = (propSchema.xml && propSchema.xml.name) ? propSchema.xml.name : key;
+          elements[childElementName] = key;
+        }
+      }
+    }
+  }
+
+  // Construct the root element's attributes from the JSON data
+  for (var attrName in attributes) {
+    if (attributes.hasOwnProperty(attrName)) {
+      var dataKey = attributes[attrName];
+      if (data.hasOwnProperty(dataKey)) {
+        rootAttributes += ' ' + attrName + '="' + escapeXml(data[dataKey]) + '"';
+      }
+    }
+  }
+
+  // If there are child elements, we treat this as a container.
+  if (Object.keys(elements).length > 0) {
+    for (var elemName in elements) {
+      if (elements.hasOwnProperty(elemName)) {
+        var dataKey = elements[elemName];
+        if (data.hasOwnProperty(dataKey)) {
+          var childData = data[dataKey];
+          var childSchema = schema.properties[dataKey];
+
+          // Handle arrays with the "wrapped" annotation
+          if (Array.isArray(childData)) {
+            if (childSchema.xml && childSchema.xml.wrapped) {
+              var wrapperName = childSchema.xml.name;
+              var wrapperPrefix = childSchema.xml.prefix ? childSchema.xml.prefix + ':' : '';
+              var wrapperNamespace = childSchema.xml.namespace ? ' xmlns:' + (childSchema.xml.prefix || '') + '="' + escapeXml(childSchema.xml.namespace) + '"' : '';
+
+              rootContent += '\n' + indent + '  <' + wrapperPrefix + wrapperName + wrapperNamespace + '>';
+              childData.forEach(function(item) {
+                rootContent += '\n' + jsonToXml(item, childSchema.items, null, (indentLevel || 0) + 2);
+              });
+              rootContent += '\n' + indent + '  </' + wrapperPrefix + wrapperName + '>';
+            } else {
+              // Handle unwrapped arrays
+              childData.forEach(function(item) {
+                rootContent += '\n' + jsonToXml(item, childSchema.items, elemName, (indentLevel || 0) + 1);
+              });
+            }
+          } else if (typeof childData === 'object' && childData !== null) {
+            // Handle nested objects and pass the correct element name
+            rootContent += '\n' + jsonToXml(childData, childSchema, elemName, (indentLevel || 0) + 1);
+          } else {
+            // Handle simple key-value pairs as elements
+            rootContent += '\n' + indent + '  <' + elemName + '>' + escapeXml(childData) + '</' + elemName + '>';
+          }
+        }
+      }
+    }
+  } else if (typeof data === 'string' || typeof data === 'number' || typeof data === 'boolean') {
+    // If there are no child elements, the value of the JSON property is the text content
+    rootContent = escapeXml(data);
+  }
+
+  // Build the final XML string for this node
+  if (rootContent.indexOf('\n') !== -1) {
+    // Prettify with newlines for child elements
+    xmlString = indent + '<' + elementName + rootAttributes + '>' + rootContent + '\n' + indent + '</' + elementName + '>';
+  } else {
+    // Keep text content on the same line
+    xmlString = indent + '<' + elementName + rootAttributes + '>' + rootContent + '</' + elementName + '>';
+  }
+
+  return xmlString;
+}
+
+function convertJsonToXml(jsonBody, jsonSchema) {
+  var xmlHeader = '<?xml version="1.0" encoding="UTF-8"?>\n';
+
+  // The entire jsonBody is now treated as the root element's data.
+  // The name of the root element is now determined within jsonToXml.
+  var xmlString = jsonToXml(jsonBody, jsonSchema, null, 0);
+
+  return xmlHeader + xmlString;
 }
 
 function setToolCallTarget(ctx) {
@@ -299,9 +460,9 @@ function setToolCallTarget(ctx) {
   var targetVerb = ctx.getVariable("propertyset.mcp-tools." + rpc["params"]["name"] + ".target_verb");
   var targetContentType = ctx.getVariable("propertyset.mcp-tools." + rpc["params"]["name"] + ".target_content_type");
   var payloadParam = ctx.getVariable("propertyset.mcp-tools." + rpc["params"]["name"] + ".payload_param");
-  var headerParams = parseStringToArray(ctx.getVariable("propertyset.mcp-tools." + rpc["params"]["name"] + ".header_params"), []);
-  var queryParams = parseStringToArray(ctx.getVariable("propertyset.mcp-tools." + rpc["params"]["name"] + ".query_params"), []);
-  var pathParams = parseStringToArray(ctx.getVariable("propertyset.mcp-tools." + rpc["params"]["name"] + ".path_params"), []);
+  var headerParams = parseJsonString(ctx.getVariable("propertyset.mcp-tools." + rpc["params"]["name"] + ".header_params"), []);
+  var queryParams = parseJsonString(ctx.getVariable("propertyset.mcp-tools." + rpc["params"]["name"] + ".query_params"), []);
+  var pathParams = parseJsonString(ctx.getVariable("propertyset.mcp-tools." + rpc["params"]["name"] + ".path_params"), []);
 
 
   //Build the Request Object
@@ -322,11 +483,19 @@ function setToolCallTarget(ctx) {
 
     var requestBody = _get(rpc, "params.arguments." + payloadParam, null);
     if (requestBody) {
+      var payloadSchema = parseJsonString(ctx.getVariable("propertyset.mcp-tools." + rpc["params"]["name"] + ".payload_schema"), []);
       if (isString(requestBody)) {
         ctx.setVariable("message.content", requestBody)
+      } else if (targetContentType === "application/x-www-form-urlencoded") {
+        ctx.setVariable("message.content", jsonToFormURLEncoded(requestBody))
+      } else if (targetContentType === "application/xml" && payloadSchema) {
+        ctx.setVariable("message.content", convertJsonToXml(requestBody, payloadSchema))
       } else {
         ctx.setVariable("message.content", getPrettyJSON(requestBody))
       }
+    } else {
+      //clear the message content so that JSON-RPC body is not passed through
+      ctx.setVariable("message.content", "");
     }
   }
 

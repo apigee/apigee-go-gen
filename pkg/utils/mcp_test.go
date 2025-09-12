@@ -15,7 +15,6 @@
 package utils
 
 import (
-	"github.com/go-errors/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v3"
@@ -37,11 +36,6 @@ func TestOAS3ToMCPValues(t *testing.T) {
 			name:    "petstore",
 			spec:    "oas3/petstore/oas3.yaml",
 			wantErr: nil,
-		},
-		{
-			name:    "npr",
-			spec:    "oas3/npr/oas3.yaml",
-			wantErr: errors.New("Operation at $.paths./v2/ratings.POST is missing 'requestBody' property"),
 		},
 	}
 	for _, tt := range tests {

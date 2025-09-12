@@ -41,10 +41,10 @@
     {{- "" -}}{{ "\n"}}{{ $operationId }}.target_verb={{ $toolTarget.verb }}
     {{- "" -}}{{ "\n"}}{{ $operationId }}.target_content_type={{ $toolTarget.contentType }}
     {{- "" -}}{{ "\n"}}{{ $operationId }}.payload_param={{ $toolTarget.payloadParam }}
+    {{- "" -}}{{ "\n"}}{{ $operationId }}.payload_schema={{ $toolTarget.payloadSchema | toJson }}
     {{- "" -}}{{ "\n"}}{{ $operationId }}.path_params={{ $toolTarget.pathParams | toJson }}
     {{- "" -}}{{ "\n"}}{{ $operationId }}.query_params={{ $toolTarget.queryParams | toJson }}
     {{- "" -}}{{ "\n"}}{{ $operationId }}.header_params={{ $toolTarget.headerParams | toJson }}
-
 
     {{- "" -}}{{ "\n"}}
   {{- end -}}

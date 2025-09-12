@@ -33,13 +33,14 @@ type MCPTool struct {
 }
 
 type MCPToolTarget struct {
-	Verb         string   `yaml:"verb"`
-	PathSuffix   string   `yaml:"pathSuffix"`
-	ContentType  string   `yaml:"contentType"`
-	QueryParams  []string `yaml:"queryParams"`
-	HeaderParams []string `yaml:"headerParams"`
-	PathParams   []string `yaml:"pathParams"`
-	PayloadParam string   `yaml:"payloadParam"`
+	Verb          string     `yaml:"verb"`
+	PathSuffix    string     `yaml:"pathSuffix"`
+	ContentType   string     `yaml:"contentType"`
+	QueryParams   []string   `yaml:"queryParams"`
+	HeaderParams  []string   `yaml:"headerParams"`
+	PathParams    []string   `yaml:"pathParams"`
+	PayloadParam  string     `yaml:"payloadParam"`
+	PayloadSchema *yaml.Node `yaml:"payloadSchema"`
 }
 
 type MCPValuesFile struct {
@@ -106,7 +107,7 @@ func OAS3ToMCPValues(file string) (mcpValuesMap map[string]any, err error) {
 
 			var paramsNode *yaml.Node
 			var requestBodyNode *yaml.Node
-			var responsesNode *yaml.Node
+			//var responsesNode *yaml.Node
 			var operationIdNode *yaml.Node
 			var descriptionNode *yaml.Node
 			var summaryNode *yaml.Node
@@ -123,9 +124,9 @@ func OAS3ToMCPValues(file string) (mcpValuesMap map[string]any, err error) {
 				return nil, err
 			}
 
-			if responsesNode, err = GetChildNodeByJSONPath(verbNode, "$.responses"); err != nil {
-				return nil, err
-			}
+			//if responsesNode, err = GetChildNodeByJSONPath(verbNode, "$.responses"); err != nil {
+			//	return nil, err
+			//}
 
 			if descriptionNode, err = GetChildNodeByJSONPathOrDefault(verbNode, "$.description", &yaml.Node{Kind: yaml.ScalarNode, Value: ""}); err != nil {
 				return nil, err
@@ -138,16 +139,6 @@ func OAS3ToMCPValues(file string) (mcpValuesMap map[string]any, err error) {
 			var operationJSONPath = fmt.Sprintf("$.paths.%s.%s", path, strings.ToLower(verb))
 			if operationIdNode == nil {
 				return nil, errors.Errorf("Operation at %s is missing 'operationId' property", operationJSONPath)
-			}
-
-			if verb == "POST" || verb == "PUT" {
-				if requestBodyNode == nil {
-					return nil, errors.Errorf("Operation at %s is missing 'requestBody' property", operationJSONPath)
-				}
-
-				if responsesNode == nil {
-					return nil, errors.Errorf("Operation at %s is missing 'responses' property", operationJSONPath)
-				}
 			}
 
 			operationId := operationIdNode.Value
@@ -179,6 +170,7 @@ func OAS3ToMCPValues(file string) (mcpValuesMap map[string]any, err error) {
 			}
 
 			inputSchema := createSchemaEntry("object")
+			contentSchemaNode := &yaml.Node{Kind: yaml.MappingNode, Content: []*yaml.Node{}}
 
 			//process parameters
 			pathParamsList := []string{}
@@ -245,7 +237,6 @@ func OAS3ToMCPValues(file string) (mcpValuesMap map[string]any, err error) {
 					return nil, errors.Errorf("The 'requestBody' property witin the '%s' operation must have at least one content element", operationId)
 				}
 
-				var contentSchemaNode *yaml.Node
 				if len(requestBodyContent.Content) >= 2 {
 					//find the JSON content element, or get the first one
 					for c := 0; c+1 < len(requestBodyContent.Content); c += 1 {
@@ -253,7 +244,7 @@ func OAS3ToMCPValues(file string) (mcpValuesMap map[string]any, err error) {
 
 						curContentType := requestBodyContent.Content[c].Value
 						if curSchemaNode, err = GetChildNodeByJSONPath(requestBodyContent.Content[c+1], "$.schema"); err != nil {
-							return nil, errors.Errorf("The 'requestBody.%s.schema' is missing witin the '%s' operation", curContentType, operationId)
+							return nil, errors.Errorf("The 'requestBody.%s.schema' is missing within the '%s' operation", curContentType, operationId)
 						}
 
 						//check the original spec to see if it was a $ref
@@ -300,13 +291,14 @@ func OAS3ToMCPValues(file string) (mcpValuesMap map[string]any, err error) {
 			})
 
 			mcpToolsTargets[operationId] = &MCPToolTarget{
-				Verb:         verb,
-				PathSuffix:   path,
-				ContentType:  requestContentType,
-				PathParams:   pathParamsList,
-				QueryParams:  queryParamsList,
-				HeaderParams: headerParamsList,
-				PayloadParam: requestBodyParam,
+				Verb:          verb,
+				PathSuffix:    path,
+				ContentType:   requestContentType,
+				PathParams:    pathParamsList,
+				QueryParams:   queryParamsList,
+				HeaderParams:  headerParamsList,
+				PayloadParam:  requestBodyParam,
+				PayloadSchema: contentSchemaNode,
 			}
 
 		}
