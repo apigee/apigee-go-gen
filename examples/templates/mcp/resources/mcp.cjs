@@ -196,19 +196,30 @@ function modifyRequestPath(ctx) {
 
 
 
-function replacePathParams(requestPath, argumentsObj) {
+function replacePathParams(requestPath, argumentsObj, pathParamNames) {
   var hasPlaceholders = /\{([a-zA-Z0-9_]+)\}/.test(requestPath);
 
   if (!hasPlaceholders) {
     return requestPath;
   }
 
-  if (!argumentsObj || !argumentsObj.arguments || !argumentsObj.arguments.path_params) {
-    throw new Error("Invalid arguments structure. 'arguments.path_params' is required when path contains placeholders.");
+  // Ensure arguments object has the expected structure
+  if (!argumentsObj || !argumentsObj.arguments) {
+    throw new Error("Invalid arguments structure. 'arguments' is required when path contains placeholders.");
+  }
+
+  // Ensure pathParamNames is a valid array
+  if (!Array.isArray(pathParamNames)) {
+    throw new Error("Invalid pathParamNames. It must be an array of strings.");
   }
 
   var replacedPath = requestPath.replace(/\{([a-zA-Z0-9_]+)\}/g, function(match, paramName) {
-    var paramValue = argumentsObj.arguments.path_params[paramName];
+    if (pathParamNames.indexOf(paramName) === -1) {
+      throw new Error("Path parameter '" + paramName + "' is not a recognized parameter. Please check the provided list of pathParamNames.");
+    }
+
+    // Retrieve the value directly from the arguments object
+    var paramValue = argumentsObj.arguments[paramName];
 
     if (typeof paramValue === 'undefined' || paramValue === null) {
       throw new Error("Missing required path parameter: '" + paramName + "'");
@@ -220,19 +231,29 @@ function replacePathParams(requestPath, argumentsObj) {
   return replacedPath;
 }
 
-
-function createQueryParams(argumentsObj) {
-  if (!argumentsObj || !argumentsObj.arguments || !argumentsObj.arguments.query_params) {
-    return ""
+function createQueryParams(argumentsObj, queryParamNames) {
+  // Ensure arguments object has the expected structure
+  if (!argumentsObj || !argumentsObj.arguments) {
+    return "";
   }
 
-  var queryParams = argumentsObj.arguments.query_params;
+  // Ensure queryParamNames is a valid array
+  if (!Array.isArray(queryParamNames)) {
+    console.error("Invalid queryParamNames. It must be an array of strings.");
+    return "";
+  }
+
   var params = [];
 
-  for (var key in queryParams) {
-    if (Object.prototype.hasOwnProperty.call(queryParams, key)) {
+  // Iterate over the provided list of valid query parameter names
+  for (var i = 0; i < queryParamNames.length; i++) {
+    var key = queryParamNames[i];
+    var value = argumentsObj.arguments[key];
+
+    // Only include the key-value pair if the value is defined and not null
+    if (typeof value !== 'undefined' && value !== null) {
       var encodedKey = encodeURIComponent(key);
-      var encodedValue = encodeURIComponent(queryParams[key]);
+      var encodedValue = encodeURIComponent(value);
       params.push(encodedKey + "=" + encodedValue);
     }
   }
@@ -241,10 +262,112 @@ function createQueryParams(argumentsObj) {
 }
 
 
-function createFullUrl(baseURL, requestPath, argumentsObj) {
-  var fullPath = replacePathParams(requestPath, argumentsObj);
-  var queryString = createQueryParams(argumentsObj);
+function createFullUrl(baseURL, requestPath, argumentsObj, pathParams, queryParams) {
+  var fullPath = replacePathParams(requestPath, argumentsObj, pathParams);
+  var queryString = createQueryParams(argumentsObj, queryParams);
   return baseURL + fullPath + queryString;
+}
+
+
+function parseStringToArray(str, defaultValue) {
+  if (!str || typeof str !== 'string') {
+    return defaultValue;
+  }
+
+  try {
+    var parsedArray = JSON.parse(str);
+
+    if (Array.isArray(parsedArray)) {
+      return parsedArray;
+    } else {
+      return defaultValue;
+    }
+  } catch (error) {
+    return defaultValue;
+  }
+}
+
+function setToolCallTarget(ctx) {
+  var rpc = parseJsonRpc(ctx, ctx.getVariable("request.content"), false)
+
+  if (rpc.method !== "tools/call") {
+    throw new Error("Cannot set target on non MCP tools/call method.")
+  }
+
+  var targetUrl = ctx.getVariable("propertyset.mcp-tools." + rpc["params"]["name"] + ".target_url");
+  var targetPathSuffix = ctx.getVariable("propertyset.mcp-tools." + rpc["params"]["name"] + ".target_path_suffix");
+  var targetVerb = ctx.getVariable("propertyset.mcp-tools." + rpc["params"]["name"] + ".target_verb");
+  var targetContentType = ctx.getVariable("propertyset.mcp-tools." + rpc["params"]["name"] + ".target_content_type");
+  var payloadParam = ctx.getVariable("propertyset.mcp-tools." + rpc["params"]["name"] + ".payload_param");
+  var headerParams = parseStringToArray(ctx.getVariable("propertyset.mcp-tools." + rpc["params"]["name"] + ".header_params"), []);
+  var queryParams = parseStringToArray(ctx.getVariable("propertyset.mcp-tools." + rpc["params"]["name"] + ".query_params"), []);
+  var pathParams = parseStringToArray(ctx.getVariable("propertyset.mcp-tools." + rpc["params"]["name"] + ".path_params"), []);
+
+
+  //Build the Request Object
+  //Set Verb
+  ctx.setVariable("message.verb", targetVerb);
+
+  //Set URL
+  ctx.setVariable("target.url", createFullUrl(targetUrl, targetPathSuffix, rpc["params"], pathParams, queryParams));
+
+  //Set the Body
+  if (targetVerb === "GET") {
+    ctx.setVariable("message.content", "");
+  } else {
+    //post, put, delete, options
+    if (targetContentType) {
+      ctx.setVariable("request.header.Content-Type", targetContentType);
+    }
+
+    var requestBody = _get(rpc, "params.arguments." + payloadParam, null);
+    if (requestBody) {
+      if (isString(requestBody)) {
+        ctx.setVariable("message.content", requestBody)
+      } else {
+        ctx.setVariable("message.content", getPrettyJSON(requestBody))
+      }
+    }
+  }
+
+  //Set Headers
+  for (var headerName in headerParams) {
+    var headerValue = _get(rpc, "params.arguments." + headerName, null);
+    if (headerValue) {
+      ctx.setVariable("request.header." + headerName, headerValue)
+    }
+  }
+  
+}
+
+function processToolRes(ctx) {
+  var statusCode = parseInt(ctx.getVariable("response.status.code"));
+  var content = ctx.getVariable("response.content");
+
+  var statusCodePrefix = parseInt(statusCode/100);
+
+  var isError = false;
+  if (statusCodePrefix === 4 || statusCodePrefix === 5) {
+    isError = true;
+  }
+
+  var headers = [["Content-Type", "application/json"]];
+  var mcpId = ctx.getVariable("mcp.id");
+
+  var rpcResponse = {
+    jsonrpc: "2.0",
+    id: mcpId,
+    result: {
+      content: [
+        {
+          type: "text",
+          text: content
+        }
+      ],
+      isError: isError
+    }
+  }
+  setResponse(ctx, 200, headers,  getPrettyJSON(rpcResponse));
 }
 
 

@@ -33,9 +33,13 @@ type MCPTool struct {
 }
 
 type MCPToolTarget struct {
-	Verb        string `yaml:"verb"`
-	PathSuffix  string `yaml:"pathSuffix"`
-	ContentType string `yaml:"contentType"`
+	Verb         string   `yaml:"verb"`
+	PathSuffix   string   `yaml:"pathSuffix"`
+	ContentType  string   `yaml:"contentType"`
+	QueryParams  []string `yaml:"queryParams"`
+	HeaderParams []string `yaml:"headerParams"`
+	PathParams   []string `yaml:"pathParams"`
+	PayloadParam string   `yaml:"payloadParam"`
 }
 
 type MCPValuesFile struct {
@@ -49,19 +53,27 @@ func OAS3ToMCPValues(file string) (mcpValuesMap map[string]any, err error) {
 		return nil, err
 	}
 
-	var node *yaml.Node
-	node = &yaml.Node{}
-	if err = yaml.Unmarshal(input, node); err != nil {
+	//create two version of the same OAS(one with all $refs resolved, and one original)
+	var nodeOriginal *yaml.Node
+	var nodeInLined *yaml.Node
+
+	nodeOriginal = &yaml.Node{}
+	if err = yaml.Unmarshal(input, nodeOriginal); err != nil {
+		return nil, errors.New(err)
+	}
+
+	nodeInLined = &yaml.Node{}
+	if err = yaml.Unmarshal(input, nodeInLined); err != nil {
 		return nil, errors.New(err)
 	}
 
 	//resolve references
-	if node, err = YAMLResolveAllRefs(node, file, false); err != nil {
+	if nodeInLined, err = YAMLResolveAllRefs(nodeInLined, file, false); err != nil {
 		return nil, err
 	}
 
 	//verify we are actually working with OAS3
-	if slices.IndexFunc(node.Content[0].Content, func(n *yaml.Node) bool {
+	if slices.IndexFunc(nodeInLined.Content[0].Content, func(n *yaml.Node) bool {
 		return n.Value == "openapi"
 	}) < 0 {
 		return nil, errors.Errorf("input file '%s' is not an OpenAPI 3.X Description", file)
@@ -70,7 +82,7 @@ func OAS3ToMCPValues(file string) (mcpValuesMap map[string]any, err error) {
 	var paths *yaml.Node
 
 	//get the paths
-	if paths, err = GetChildNodeByJSONPath(node, "$.paths"); err != nil {
+	if paths, err = GetChildNodeByJSONPath(nodeInLined, "$.paths"); err != nil {
 		return nil, err
 	}
 
@@ -84,6 +96,7 @@ func OAS3ToMCPValues(file string) (mcpValuesMap map[string]any, err error) {
 	for i := 0; i+1 < len(paths.Content); i += 2 {
 		path := paths.Content[i].Value
 		pathNode := paths.Content[i+1]
+
 		for j := 0; j+1 < len(pathNode.Content); j += 2 {
 			verb := strings.ToUpper(pathNode.Content[j].Value)
 			verbNode := pathNode.Content[j+1]
@@ -122,7 +135,7 @@ func OAS3ToMCPValues(file string) (mcpValuesMap map[string]any, err error) {
 				return nil, err
 			}
 
-			var operationJSONPath = fmt.Sprintf("$.paths.%s.%s", path, verb)
+			var operationJSONPath = fmt.Sprintf("$.paths.%s.%s", path, strings.ToLower(verb))
 			if operationIdNode == nil {
 				return nil, errors.Errorf("Operation at %s is missing 'operationId' property", operationJSONPath)
 			}
@@ -168,13 +181,11 @@ func OAS3ToMCPValues(file string) (mcpValuesMap map[string]any, err error) {
 			inputSchema := createSchemaEntry("object")
 
 			//process parameters
-			pathParamsSchema := createSchemaEntry("object")
-			queryParamsSchema := createSchemaEntry("object")
-			headerParamsSchema := createSchemaEntry("object")
+			pathParamsList := []string{}
+			queryParamsList := []string{}
+			headerParamsList := []string{}
+			requestBodyParam := ""
 
-			hasPathParams := false
-			hasQueryParams := false
-			hasHeaderParams := false
 			if paramsNode != nil {
 				for k, paramNode := range paramsNode.Content {
 					var paramNameNode *yaml.Node
@@ -207,32 +218,19 @@ func OAS3ToMCPValues(file string) (mcpValuesMap map[string]any, err error) {
 
 					switch paramInNode.Value {
 					case "header":
-						hasHeaderParams = true
-						addPropertyToSchema(headerParamsSchema, paramNameNode.Value, paramSchemaNode)
+						addPropertyToSchema(inputSchema, paramNameNode.Value, paramSchemaNode)
+						headerParamsList = append(headerParamsList, paramNameNode.Value)
 						break
 					case "path":
-						hasPathParams = true
-						addPropertyToSchema(pathParamsSchema, paramNameNode.Value, paramSchemaNode)
+						addPropertyToSchema(inputSchema, paramNameNode.Value, paramSchemaNode)
+						pathParamsList = append(pathParamsList, paramNameNode.Value)
 						break
 					case "query":
-						hasQueryParams = true
-						addPropertyToSchema(queryParamsSchema, paramNameNode.Value, paramSchemaNode)
+						addPropertyToSchema(inputSchema, paramNameNode.Value, paramSchemaNode)
+						queryParamsList = append(queryParamsList, paramNameNode.Value)
 						break
 					}
 				}
-
-				if hasHeaderParams {
-					addPropertyToSchema(inputSchema, "header_params", headerParamsSchema)
-				}
-
-				if hasPathParams {
-					addPropertyToSchema(inputSchema, "path_params", pathParamsSchema)
-				}
-
-				if hasQueryParams {
-					addPropertyToSchema(inputSchema, "query_params", queryParamsSchema)
-				}
-
 			}
 
 			//process request body
@@ -258,6 +256,8 @@ func OAS3ToMCPValues(file string) (mcpValuesMap map[string]any, err error) {
 							return nil, errors.Errorf("The 'requestBody.%s.schema' is missing witin the '%s' operation", curContentType, operationId)
 						}
 
+						//check the original spec to see if it was a $ref
+
 						if c == 0 {
 							requestContentType = curContentType
 							contentSchemaNode = curSchemaNode
@@ -270,12 +270,27 @@ func OAS3ToMCPValues(file string) (mcpValuesMap map[string]any, err error) {
 						}
 					}
 
-					addPropertyToSchema(inputSchema, "request_body", contentSchemaNode)
+					requestBodyParam = fmt.Sprintf("%s_body", operationId)
+					requestBodyJSONPath := fmt.Sprintf("%s.requestBody.content.%s.schema.$ref", operationJSONPath, requestContentType)
+					var dollarRefNode *yaml.Node
+					if dollarRefNode, err = GetChildNodeByJSONPath(nodeOriginal, requestBodyJSONPath); err != nil {
+						return nil, err
+					}
+
+					if dollarRefNode != nil {
+						var re = regexp.MustCompile(`(?msi)#\/components\/schemas\/(.+)`)
+						match := re.FindStringSubmatch(dollarRefNode.Value)
+						if len(match) > 1 {
+							requestBodyParam = match[1]
+						}
+
+					}
+
+					addPropertyToSchema(inputSchema, requestBodyParam, contentSchemaNode)
 				}
 
 			}
 
-			//fmt.Printf("path = %s, verb = %s, operationId = %s, pathParams = %v\n", path, verb, operationId, pathParams)
 			mcpToolsList = append(mcpToolsList, &MCPTool{
 				Name:         operationId,
 				Title:        summary,
@@ -285,9 +300,13 @@ func OAS3ToMCPValues(file string) (mcpValuesMap map[string]any, err error) {
 			})
 
 			mcpToolsTargets[operationId] = &MCPToolTarget{
-				Verb:        verb,
-				PathSuffix:  path,
-				ContentType: requestContentType,
+				Verb:         verb,
+				PathSuffix:   path,
+				ContentType:  requestContentType,
+				PathParams:   pathParamsList,
+				QueryParams:  queryParamsList,
+				HeaderParams: headerParamsList,
+				PayloadParam: requestBodyParam,
 			}
 
 		}
