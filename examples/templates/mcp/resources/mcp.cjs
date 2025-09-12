@@ -196,19 +196,30 @@ function modifyRequestPath(ctx) {
 
 
 
-function replacePathParams(requestPath, argumentsObj) {
+function replacePathParams(requestPath, argumentsObj, pathParamNames) {
   var hasPlaceholders = /\{([a-zA-Z0-9_]+)\}/.test(requestPath);
 
   if (!hasPlaceholders) {
     return requestPath;
   }
 
-  if (!argumentsObj || !argumentsObj.arguments || !argumentsObj.arguments.path_params) {
-    throw new Error("Invalid arguments structure. 'arguments.path_params' is required when path contains placeholders.");
+  // Ensure arguments object has the expected structure
+  if (!argumentsObj || !argumentsObj.arguments) {
+    throw new Error("Invalid arguments structure. 'arguments' is required when path contains placeholders.");
+  }
+
+  // Ensure pathParamNames is a valid array
+  if (!Array.isArray(pathParamNames)) {
+    throw new Error("Invalid pathParamNames. It must be an array of strings.");
   }
 
   var replacedPath = requestPath.replace(/\{([a-zA-Z0-9_]+)\}/g, function(match, paramName) {
-    var paramValue = argumentsObj.arguments.path_params[paramName];
+    if (pathParamNames.indexOf(paramName) === -1) {
+      throw new Error("Path parameter '" + paramName + "' is not a recognized parameter. Please check the provided list of pathParamNames.");
+    }
+
+    // Retrieve the value directly from the arguments object
+    var paramValue = argumentsObj.arguments[paramName];
 
     if (typeof paramValue === 'undefined' || paramValue === null) {
       throw new Error("Missing required path parameter: '" + paramName + "'");
@@ -220,19 +231,29 @@ function replacePathParams(requestPath, argumentsObj) {
   return replacedPath;
 }
 
-
-function createQueryParams(argumentsObj) {
-  if (!argumentsObj || !argumentsObj.arguments || !argumentsObj.arguments.query_params) {
-    return ""
+function createQueryParams(argumentsObj, queryParamNames) {
+  // Ensure arguments object has the expected structure
+  if (!argumentsObj || !argumentsObj.arguments) {
+    return "";
   }
 
-  var queryParams = argumentsObj.arguments.query_params;
+  // Ensure queryParamNames is a valid array
+  if (!Array.isArray(queryParamNames)) {
+    console.error("Invalid queryParamNames. It must be an array of strings.");
+    return "";
+  }
+
   var params = [];
 
-  for (var key in queryParams) {
-    if (Object.prototype.hasOwnProperty.call(queryParams, key)) {
+  // Iterate over the provided list of valid query parameter names
+  for (var i = 0; i < queryParamNames.length; i++) {
+    var key = queryParamNames[i];
+    var value = argumentsObj.arguments[key];
+
+    // Only include the key-value pair if the value is defined and not null
+    if (typeof value !== 'undefined' && value !== null) {
       var encodedKey = encodeURIComponent(key);
-      var encodedValue = encodeURIComponent(queryParams[key]);
+      var encodedValue = encodeURIComponent(value);
       params.push(encodedKey + "=" + encodedValue);
     }
   }
@@ -241,10 +262,281 @@ function createQueryParams(argumentsObj) {
 }
 
 
-function createFullUrl(baseURL, requestPath, argumentsObj) {
-  var fullPath = replacePathParams(requestPath, argumentsObj);
-  var queryString = createQueryParams(argumentsObj);
+function createFullUrl(baseURL, requestPath, argumentsObj, pathParams, queryParams) {
+  var fullPath = replacePathParams(requestPath, argumentsObj, pathParams);
+  var queryString = createQueryParams(argumentsObj, queryParams);
   return baseURL + fullPath + queryString;
+}
+
+
+
+function parseJsonString(str, defaultValue) {
+  if (!str || typeof str !== 'string') {
+    return defaultValue;
+  }
+
+  try {
+    return JSON.parse(str);
+  } catch (error) {
+    return defaultValue;
+  }
+}
+
+function jsonToFormURLEncoded(jsonData) {
+  var params = [];
+
+  function processObject(obj, prefix) {
+    for (var key in obj) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
+        var newKey = prefix ? prefix + '.' + key : key;
+        var value = obj[key];
+
+        if (value && typeof value === 'object') {
+          if (Array.isArray(value)) {
+            for (var i = 0; i < value.length; i++) {
+              params.push(encodeURIComponent(newKey) + '=' + encodeURIComponent(value[i]));
+            }
+          } else {
+            processObject(value, newKey);
+          }
+        } else {
+          params.push(encodeURIComponent(newKey) + '=' + encodeURIComponent(value));
+        }
+      }
+    }
+  }
+
+  processObject(jsonData, '');
+
+  return params.join('&');
+}
+
+function jsonToXml(data, schema, propName, indentLevel) {
+  // Helper function to escape special characters for safe XML content
+  function escapeXml(unsafe) {
+    var str = String(unsafe);
+    return str.replace(/[<>&'"]/g, function(c) {
+      switch (c) {
+        case '<': return '&lt;';
+        case '>': return '&gt;';
+        case '&': return '&amp;';
+        case "'": return '&apos;';
+        case '"': return '&quot;';
+      }
+    });
+  }
+
+  var xmlString = '';
+  var indent = '  '.repeat(indentLevel || 0);
+
+  // Determine the element name based on a clear hierarchy of rules.
+  var elementName = '';
+  if (schema.xml && schema.xml.name) {
+    elementName = schema.xml.name;
+  } else if (propName) {
+    elementName = propName;
+  } else {
+    elementName = 'root';
+  }
+
+  // Add prefix if specified
+  if (schema.xml && schema.xml.prefix) {
+    elementName = schema.xml.prefix + ':' + elementName;
+  }
+
+  var rootAttributes = '';
+  var rootContent = '';
+
+  // Add namespace based on new annotations
+  if (schema.xml && schema.xml.namespace) {
+    var prefixAttr = schema.xml.prefix ? 'xmlns:' + schema.xml.prefix : 'xmlns';
+    rootAttributes += ' ' + prefixAttr + '="' + escapeXml(schema.xml.namespace) + '"';
+  }
+
+  // Separate properties into attributes and elements based on schema annotations
+  var attributes = {};
+  var elements = {};
+
+  if (schema.properties) {
+    for (var key in schema.properties) {
+      if (schema.properties.hasOwnProperty(key)) {
+        var propSchema = schema.properties[key];
+        // Check if it's an attribute
+        if (propSchema.xml && propSchema.xml.attribute) {
+          attributes[propSchema.xml.name] = key;
+        } else {
+          // If not an attribute, assume it's an element.
+          // The element name is either from xml.name or the property key.
+          var childElementName = (propSchema.xml && propSchema.xml.name) ? propSchema.xml.name : key;
+          elements[childElementName] = key;
+        }
+      }
+    }
+  }
+
+  // Construct the root element's attributes from the JSON data
+  for (var attrName in attributes) {
+    if (attributes.hasOwnProperty(attrName)) {
+      var dataKey = attributes[attrName];
+      if (data.hasOwnProperty(dataKey)) {
+        rootAttributes += ' ' + attrName + '="' + escapeXml(data[dataKey]) + '"';
+      }
+    }
+  }
+
+  // If there are child elements, we treat this as a container.
+  if (Object.keys(elements).length > 0) {
+    for (var elemName in elements) {
+      if (elements.hasOwnProperty(elemName)) {
+        var dataKey = elements[elemName];
+        if (data.hasOwnProperty(dataKey)) {
+          var childData = data[dataKey];
+          var childSchema = schema.properties[dataKey];
+
+          // Handle arrays with the "wrapped" annotation
+          if (Array.isArray(childData)) {
+            if (childSchema.xml && childSchema.xml.wrapped) {
+              var wrapperName = childSchema.xml.name;
+              var wrapperPrefix = childSchema.xml.prefix ? childSchema.xml.prefix + ':' : '';
+              var wrapperNamespace = childSchema.xml.namespace ? ' xmlns:' + (childSchema.xml.prefix || '') + '="' + escapeXml(childSchema.xml.namespace) + '"' : '';
+
+              rootContent += '\n' + indent + '  <' + wrapperPrefix + wrapperName + wrapperNamespace + '>';
+              childData.forEach(function(item) {
+                rootContent += '\n' + jsonToXml(item, childSchema.items, null, (indentLevel || 0) + 2);
+              });
+              rootContent += '\n' + indent + '  </' + wrapperPrefix + wrapperName + '>';
+            } else {
+              // Handle unwrapped arrays
+              childData.forEach(function(item) {
+                rootContent += '\n' + jsonToXml(item, childSchema.items, elemName, (indentLevel || 0) + 1);
+              });
+            }
+          } else if (typeof childData === 'object' && childData !== null) {
+            // Handle nested objects and pass the correct element name
+            rootContent += '\n' + jsonToXml(childData, childSchema, elemName, (indentLevel || 0) + 1);
+          } else {
+            // Handle simple key-value pairs as elements
+            rootContent += '\n' + indent + '  <' + elemName + '>' + escapeXml(childData) + '</' + elemName + '>';
+          }
+        }
+      }
+    }
+  } else if (typeof data === 'string' || typeof data === 'number' || typeof data === 'boolean') {
+    // If there are no child elements, the value of the JSON property is the text content
+    rootContent = escapeXml(data);
+  }
+
+  // Build the final XML string for this node
+  if (rootContent.indexOf('\n') !== -1) {
+    // Prettify with newlines for child elements
+    xmlString = indent + '<' + elementName + rootAttributes + '>' + rootContent + '\n' + indent + '</' + elementName + '>';
+  } else {
+    // Keep text content on the same line
+    xmlString = indent + '<' + elementName + rootAttributes + '>' + rootContent + '</' + elementName + '>';
+  }
+
+  return xmlString;
+}
+
+function convertJsonToXml(jsonBody, jsonSchema) {
+  var xmlHeader = '<?xml version="1.0" encoding="UTF-8"?>\n';
+
+  // The entire jsonBody is now treated as the root element's data.
+  // The name of the root element is now determined within jsonToXml.
+  var xmlString = jsonToXml(jsonBody, jsonSchema, null, 0);
+
+  return xmlHeader + xmlString;
+}
+
+function setToolCallTarget(ctx) {
+  var rpc = parseJsonRpc(ctx, ctx.getVariable("request.content"), false)
+
+  if (rpc.method !== "tools/call") {
+    throw new Error("Cannot set target on non MCP tools/call method.")
+  }
+
+  var targetUrl = ctx.getVariable("propertyset.mcp-tools." + rpc["params"]["name"] + ".target_url");
+  var targetPathSuffix = ctx.getVariable("propertyset.mcp-tools." + rpc["params"]["name"] + ".target_path_suffix");
+  var targetVerb = ctx.getVariable("propertyset.mcp-tools." + rpc["params"]["name"] + ".target_verb");
+  var targetContentType = ctx.getVariable("propertyset.mcp-tools." + rpc["params"]["name"] + ".target_content_type");
+  var payloadParam = ctx.getVariable("propertyset.mcp-tools." + rpc["params"]["name"] + ".payload_param");
+  var headerParams = parseJsonString(ctx.getVariable("propertyset.mcp-tools." + rpc["params"]["name"] + ".header_params"), []);
+  var queryParams = parseJsonString(ctx.getVariable("propertyset.mcp-tools." + rpc["params"]["name"] + ".query_params"), []);
+  var pathParams = parseJsonString(ctx.getVariable("propertyset.mcp-tools." + rpc["params"]["name"] + ".path_params"), []);
+
+
+  //Build the Request Object
+  //Set Verb
+  ctx.setVariable("message.verb", targetVerb);
+
+  //Set URL
+  ctx.setVariable("target.url", createFullUrl(targetUrl, targetPathSuffix, rpc["params"], pathParams, queryParams));
+
+  //Set the Body
+  if (targetVerb === "GET") {
+    ctx.setVariable("message.content", "");
+  } else {
+    //post, put, delete, options
+    if (targetContentType) {
+      ctx.setVariable("request.header.Content-Type", targetContentType);
+    }
+
+    var requestBody = _get(rpc, "params.arguments." + payloadParam, null);
+    if (requestBody) {
+      var payloadSchema = parseJsonString(ctx.getVariable("propertyset.mcp-tools." + rpc["params"]["name"] + ".payload_schema"), []);
+      if (isString(requestBody)) {
+        ctx.setVariable("message.content", requestBody)
+      } else if (targetContentType === "application/x-www-form-urlencoded") {
+        ctx.setVariable("message.content", jsonToFormURLEncoded(requestBody))
+      } else if (targetContentType === "application/xml" && payloadSchema) {
+        ctx.setVariable("message.content", convertJsonToXml(requestBody, payloadSchema))
+      } else {
+        ctx.setVariable("message.content", getPrettyJSON(requestBody))
+      }
+    } else {
+      //clear the message content so that JSON-RPC body is not passed through
+      ctx.setVariable("message.content", "");
+    }
+  }
+
+  //Set Headers
+  for (var headerName in headerParams) {
+    var headerValue = _get(rpc, "params.arguments." + headerName, null);
+    if (headerValue) {
+      ctx.setVariable("request.header." + headerName, headerValue)
+    }
+  }
+  
+}
+
+function processToolRes(ctx) {
+  var statusCode = parseInt(ctx.getVariable("response.status.code"));
+  var content = ctx.getVariable("response.content");
+
+  var statusCodePrefix = parseInt(statusCode/100);
+
+  var isError = false;
+  if (statusCodePrefix === 4 || statusCodePrefix === 5) {
+    isError = true;
+  }
+
+  var headers = [["Content-Type", "application/json"]];
+  var mcpId = ctx.getVariable("mcp.id");
+
+  var rpcResponse = {
+    jsonrpc: "2.0",
+    id: mcpId,
+    result: {
+      content: [
+        {
+          type: "text",
+          text: content
+        }
+      ],
+      isError: isError
+    }
+  }
+  setResponse(ctx, 200, headers,  getPrettyJSON(rpcResponse));
 }
 
 

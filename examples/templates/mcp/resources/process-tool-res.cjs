@@ -32,35 +32,6 @@
 
 var log = isApigee?print:console.log;
 
-function processToolRes(ctx) {
-  var statusCode = parseInt(ctx.getVariable("response.status.code"));
-  var content = ctx.getVariable("response.content");
-
-  var statusCodePrefix = parseInt(statusCode/100);
-
-  var isError = false;
-  if (statusCodePrefix === 4 || statusCodePrefix === 5) {
-    isError = true;
-  }
-
-  var headers = [["Content-Type", "application/json"]];
-  var mcpId = ctx.getVariable("mcp.id");
-
-  var rpcResponse = {
-    jsonrpc: "2.0",
-    id: mcpId,
-    result: {
-      content: [
-        {
-          type: "text",
-          text: content
-        }
-      ],
-      isError: isError
-    }
-  }
-  setResponse(ctx, 200, headers,  getPrettyJSON(rpcResponse));
-}
 
 function main(ctx) {
   try {
