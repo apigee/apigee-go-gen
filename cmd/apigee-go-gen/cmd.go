@@ -19,6 +19,7 @@ import (
 	"github.com/apigee/apigee-go-gen/cmd/apigee-go-gen/render"
 	"github.com/apigee/apigee-go-gen/cmd/apigee-go-gen/transform"
 	"github.com/apigee/apigee-go-gen/pkg/flags"
+	"github.com/apigee/apigee-go-gen/pkg/globals"
 	"github.com/spf13/cobra"
 	"os"
 	"path/filepath"
@@ -40,4 +41,5 @@ func init() {
 	RootCmd.AddCommand(VersionCmd)
 
 	RootCmd.PersistentFlags().Var(&showStack, "show-stack", "show stack trace for errors")
+	globals.ShowStack = &showStack
 }

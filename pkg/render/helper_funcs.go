@@ -15,7 +15,11 @@
 package render
 
 import (
+	"fmt"
+	"github.com/apigee/apigee-go-gen/pkg/globals"
 	"github.com/apigee/apigee-go-gen/pkg/utils"
+	"github.com/apigee/apigee-go-gen/pkg/utils/mcp"
+	"github.com/go-errors/errors"
 	"os"
 	"path/filepath"
 	"strings"
@@ -25,6 +29,8 @@ type HelperFunc func(args ...any) string
 
 func getOSCopyFileFunc(templateFile string, outputFile string, dryRun bool) HelperFunc {
 	_osCopyFileFunc := func(args ...any) string {
+		defer recoverPanic()
+
 		if len(args) < 2 {
 			panic("os_copyfile function requires two arguments")
 		}
@@ -80,6 +86,8 @@ func getOSCopyFileFunc(templateFile string, outputFile string, dryRun bool) Help
 
 func getRemoveOASExtensions(templateFile string, outputFile string, dryRun bool) HelperFunc {
 	_removeOASExtensionsFunc := func(args ...any) string {
+		defer recoverPanic()
+
 		if len(args) < 1 {
 			panic("remove_oas_extensions function requires one argument")
 		}
@@ -115,17 +123,30 @@ func getRemoveOASExtensions(templateFile string, outputFile string, dryRun bool)
 }
 
 func convertOAS3ToMCPValues(args ...any) map[string]any {
+	defer recoverPanic()
+
 	if len(args) < 1 {
 		panic("oas3_to_mcp function requires one arguments")
 	}
 
 	oas3file := args[0].(string)
-
 	var mcpValuesMap map[string]any
+
 	var err error
-	if mcpValuesMap, err = utils.OAS3ToMCPValues(oas3file); err != nil {
+	if mcpValuesMap, err = mcp.OAS3ToMCPValues(oas3file); err != nil {
 		panic(err)
 	}
 
 	return mcpValuesMap
+}
+
+func recoverPanic() {
+	if r := recover(); r != nil {
+		err := errors.Wrap(r, 1)
+		if *globals.ShowStack {
+			_, _ = fmt.Fprintf(os.Stderr, "Error: %s\n", err.Error())
+			_, _ = fmt.Fprintf(os.Stderr, "%s\n", err.Stack())
+		}
+		panic(err)
+	}
 }

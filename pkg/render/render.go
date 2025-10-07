@@ -1,4 +1,4 @@
-// Copyright 2024 Google LLC
+// Copyright 2025 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import (
 	"github.com/bmatcuk/doublestar/v4"
 	"github.com/go-errors/errors"
 	"github.com/gosimple/slug"
-	"google.golang.org/protobuf/types/descriptorpb"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -35,13 +34,6 @@ import (
 
 func RenderGeneric(context any, cFlags *CommonFlags, dryRun bool) error {
 	var err error
-
-	type RenderContext struct {
-		Proto    descriptorpb.FileDescriptorProto
-		ProtoStr string
-
-		Values map[string]any
-	}
 
 	outputDir := filepath.Dir(string(cFlags.OutputFile))
 	//create the output directory
@@ -107,6 +99,7 @@ func CreateTemplate(templateFile string, includeList []string, outputFile string
 	}
 
 	slugMakeFunc := func(args ...any) string {
+		defer recoverPanic()
 		if len(args) == 0 {
 			panic("slug_make function requires one argument")
 		}
@@ -115,6 +108,7 @@ func CreateTemplate(templateFile string, includeList []string, outputFile string
 	}
 
 	derefFunc := func(args ...any) any {
+		defer recoverPanic()
 		if len(args) == 0 {
 			panic("deref function requires one argument")
 		}
@@ -128,6 +122,7 @@ func CreateTemplate(templateFile string, includeList []string, outputFile string
 	}
 
 	osGetEnvFunc := func(args ...any) string {
+		defer recoverPanic()
 		if len(args) == 0 {
 			panic("os_getenv function requires one argument")
 		}
@@ -137,6 +132,7 @@ func CreateTemplate(templateFile string, includeList []string, outputFile string
 	}
 
 	osGetEnvs := func(args ...any) map[string]string {
+		defer recoverPanic()
 		envs := map[string]string{}
 		for _, envPair := range os.Environ() {
 			key, value, _ := strings.Cut(envPair, "=")
@@ -147,6 +143,7 @@ func CreateTemplate(templateFile string, includeList []string, outputFile string
 	}
 
 	urlParseFunc := func(args ...any) url.URL {
+		defer recoverPanic()
 		if len(args) == 0 {
 			panic("url_parse function requires one argument")
 		}
@@ -160,6 +157,7 @@ func CreateTemplate(templateFile string, includeList []string, outputFile string
 	}
 
 	osWritefileFunc := func(args ...any) string {
+		defer recoverPanic()
 		if len(args) < 2 {
 			panic("os_writefile function requires two arguments")
 		}
@@ -187,6 +185,7 @@ func CreateTemplate(templateFile string, includeList []string, outputFile string
 	}
 
 	fmtPrintfFunc := func(args ...any) string {
+		defer recoverPanic()
 		if len(args) < 0 {
 			panic("fmt_printf function requires at least one argument")
 		}
@@ -198,6 +197,7 @@ func CreateTemplate(templateFile string, includeList []string, outputFile string
 	includeStack := []string{fmt.Sprintf("file:%s", templateFile)}
 
 	includeFunc := func(args ...any) string {
+		defer recoverPanic()
 		if len(args) < 0 {
 			panic("include function requires at least one argument")
 		}
