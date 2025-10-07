@@ -21,30 +21,28 @@ tools_list:
             category:
               properties:
                 id:
-                  example: 1
+                  examples:
+                    - 1
                   format: int64
                   type: integer
                 name:
-                  example: Dogs
+                  examples:
+                    - Dogs
                   type: string
               type: object
-              xml:
-                name: category
             id:
-              example: 10
+              examples:
+                - 10
               format: int64
               type: integer
             name:
-              example: doggie
+              examples:
+                - doggie
               type: string
             photoUrls:
               items:
                 type: string
-                xml:
-                  name: photoUrl
               type: array
-              xml:
-                wrapped: true
             status:
               description: pet status in the store
               enum:
@@ -61,19 +59,61 @@ tools_list:
                   name:
                     type: string
                 type: object
-                xml:
-                  name: tag
               type: array
-              xml:
-                wrapped: true
           required:
             - name
             - photoUrls
           type: object
-          xml:
-            name: pet
       type: object
     name: updatePet
+    outputSchema:
+      properties:
+        category:
+          properties:
+            id:
+              examples:
+                - 1
+              format: int64
+              type: integer
+            name:
+              examples:
+                - Dogs
+              type: string
+          type: object
+        id:
+          examples:
+            - 10
+          format: int64
+          type: integer
+        name:
+          examples:
+            - doggie
+          type: string
+        photoUrls:
+          items:
+            type: string
+          type: array
+        status:
+          description: pet status in the store
+          enum:
+            - available
+            - pending
+            - sold
+          type: string
+        tags:
+          items:
+            properties:
+              id:
+                format: int64
+                type: integer
+              name:
+                type: string
+            type: object
+          type: array
+      required:
+        - name
+        - photoUrls
+      type: object
     title: Update an existing pet
   - description: Add a new pet to the store
     inputSchema:
@@ -83,30 +123,28 @@ tools_list:
             category:
               properties:
                 id:
-                  example: 1
+                  examples:
+                    - 1
                   format: int64
                   type: integer
                 name:
-                  example: Dogs
+                  examples:
+                    - Dogs
                   type: string
               type: object
-              xml:
-                name: category
             id:
-              example: 10
+              examples:
+                - 10
               format: int64
               type: integer
             name:
-              example: doggie
+              examples:
+                - doggie
               type: string
             photoUrls:
               items:
                 type: string
-                xml:
-                  name: photoUrl
               type: array
-              xml:
-                wrapped: true
             status:
               description: pet status in the store
               enum:
@@ -123,19 +161,61 @@ tools_list:
                   name:
                     type: string
                 type: object
-                xml:
-                  name: tag
               type: array
-              xml:
-                wrapped: true
           required:
             - name
             - photoUrls
           type: object
-          xml:
-            name: pet
       type: object
     name: addPet
+    outputSchema:
+      properties:
+        category:
+          properties:
+            id:
+              examples:
+                - 1
+              format: int64
+              type: integer
+            name:
+              examples:
+                - Dogs
+              type: string
+          type: object
+        id:
+          examples:
+            - 10
+          format: int64
+          type: integer
+        name:
+          examples:
+            - doggie
+          type: string
+        photoUrls:
+          items:
+            type: string
+          type: array
+        status:
+          description: pet status in the store
+          enum:
+            - available
+            - pending
+            - sold
+          type: string
+        tags:
+          items:
+            properties:
+              id:
+                format: int64
+                type: integer
+              name:
+                type: string
+            type: object
+          type: array
+      required:
+        - name
+        - photoUrls
+      type: object
     title: Add a new pet to the store
   - description: Multiple status values can be provided with comma separated strings
     inputSchema:
@@ -149,6 +229,59 @@ tools_list:
           type: string
       type: object
     name: findPetsByStatus
+    outputSchema:
+      properties:
+        result:
+          items:
+            properties:
+              category:
+                properties:
+                  id:
+                    examples:
+                      - 1
+                    format: int64
+                    type: integer
+                  name:
+                    examples:
+                      - Dogs
+                    type: string
+                type: object
+              id:
+                examples:
+                  - 10
+                format: int64
+                type: integer
+              name:
+                examples:
+                  - doggie
+                type: string
+              photoUrls:
+                items:
+                  type: string
+                type: array
+              status:
+                description: pet status in the store
+                enum:
+                  - available
+                  - pending
+                  - sold
+                type: string
+              tags:
+                items:
+                  properties:
+                    id:
+                      format: int64
+                      type: integer
+                    name:
+                      type: string
+                  type: object
+                type: array
+            required:
+              - name
+              - photoUrls
+            type: object
+          type: array
+      type: object
     title: Finds Pets by status
   - description: Multiple tags can be provided with comma separated strings. Use tag1, tag2, tag3 for testing.
     inputSchema:
@@ -159,6 +292,59 @@ tools_list:
           type: array
       type: object
     name: findPetsByTags
+    outputSchema:
+      properties:
+        result:
+          items:
+            properties:
+              category:
+                properties:
+                  id:
+                    examples:
+                      - 1
+                    format: int64
+                    type: integer
+                  name:
+                    examples:
+                      - Dogs
+                    type: string
+                type: object
+              id:
+                examples:
+                  - 10
+                format: int64
+                type: integer
+              name:
+                examples:
+                  - doggie
+                type: string
+              photoUrls:
+                items:
+                  type: string
+                type: array
+              status:
+                description: pet status in the store
+                enum:
+                  - available
+                  - pending
+                  - sold
+                type: string
+              tags:
+                items:
+                  properties:
+                    id:
+                      format: int64
+                      type: integer
+                    name:
+                      type: string
+                  type: object
+                type: array
+            required:
+              - name
+              - photoUrls
+            type: object
+          type: array
+      type: object
     title: Finds Pets by tags
   - description: Returns a single pet
     inputSchema:
@@ -168,6 +354,54 @@ tools_list:
           type: integer
       type: object
     name: getPetById
+    outputSchema:
+      properties:
+        category:
+          properties:
+            id:
+              examples:
+                - 1
+              format: int64
+              type: integer
+            name:
+              examples:
+                - Dogs
+              type: string
+          type: object
+        id:
+          examples:
+            - 10
+          format: int64
+          type: integer
+        name:
+          examples:
+            - doggie
+          type: string
+        photoUrls:
+          items:
+            type: string
+          type: array
+        status:
+          description: pet status in the store
+          enum:
+            - available
+            - pending
+            - sold
+          type: string
+        tags:
+          items:
+            properties:
+              id:
+                format: int64
+                type: integer
+              name:
+                type: string
+            type: object
+          type: array
+      required:
+        - name
+        - photoUrls
+      type: object
     title: Find pet by ID
   - description: ""
     inputSchema:
@@ -201,17 +435,32 @@ tools_list:
         petId:
           format: int64
           type: integer
-        uploadFile_body:
+        uploadFileBody:
           format: binary
           type: string
       type: object
     name: uploadFile
+    outputSchema:
+      properties:
+        code:
+          format: int32
+          type: integer
+        message:
+          type: string
+        type:
+          type: string
+      type: object
     title: uploads an image
   - description: Returns a map of status codes to quantities
     inputSchema:
       properties: {}
       type: object
     name: getInventory
+    outputSchema:
+      additionalProperties:
+        format: int32
+        type: integer
+      type: object
     title: Returns pet inventories by status
   - description: Place a new order in the store
     inputSchema:
@@ -221,15 +470,18 @@ tools_list:
             complete:
               type: boolean
             id:
-              example: 10
+              examples:
+                - 10
               format: int64
               type: integer
             petId:
-              example: 198772
+              examples:
+                - 198772
               format: int64
               type: integer
             quantity:
-              example: 7
+              examples:
+                - 7
               format: int32
               type: integer
             shipDate:
@@ -241,13 +493,44 @@ tools_list:
                 - placed
                 - approved
                 - delivered
-              example: approved
+              examples:
+                - approved
               type: string
           type: object
-          xml:
-            name: order
       type: object
     name: placeOrder
+    outputSchema:
+      properties:
+        complete:
+          type: boolean
+        id:
+          examples:
+            - 10
+          format: int64
+          type: integer
+        petId:
+          examples:
+            - 198772
+          format: int64
+          type: integer
+        quantity:
+          examples:
+            - 7
+          format: int32
+          type: integer
+        shipDate:
+          format: date-time
+          type: string
+        status:
+          description: Order Status
+          enum:
+            - placed
+            - approved
+            - delivered
+          examples:
+            - approved
+          type: string
+      type: object
     title: Place an order for a pet
   - description: For valid response try integer IDs with value <= 5 or > 10. Other values will generate exceptions.
     inputSchema:
@@ -257,6 +540,38 @@ tools_list:
           type: integer
       type: object
     name: getOrderById
+    outputSchema:
+      properties:
+        complete:
+          type: boolean
+        id:
+          examples:
+            - 10
+          format: int64
+          type: integer
+        petId:
+          examples:
+            - 198772
+          format: int64
+          type: integer
+        quantity:
+          examples:
+            - 7
+          format: int32
+          type: integer
+        shipDate:
+          format: date-time
+          type: string
+        status:
+          description: Order Status
+          enum:
+            - placed
+            - approved
+            - delivered
+          examples:
+            - approved
+          type: string
+      type: object
     title: Find purchase order by ID
   - description: For valid response try integer IDs with value < 1000. Anything above 1000 or nonintegers will generate API errors
     inputSchema:
@@ -273,77 +588,165 @@ tools_list:
         User:
           properties:
             email:
-              example: john@email.com
+              examples:
+                - john@email.com
               type: string
             firstName:
-              example: John
+              examples:
+                - John
               type: string
             id:
-              example: 10
+              examples:
+                - 10
               format: int64
               type: integer
             lastName:
-              example: James
+              examples:
+                - James
               type: string
             password:
-              example: "12345"
+              examples:
+                - "12345"
               type: string
             phone:
-              example: "12345"
+              examples:
+                - "12345"
               type: string
             userStatus:
               description: User Status
-              example: 1
+              examples:
+                - 1
               format: int32
               type: integer
             username:
-              example: theUser
+              examples:
+                - theUser
               type: string
           type: object
-          xml:
-            name: user
       type: object
     name: createUser
+    outputSchema:
+      properties:
+        email:
+          examples:
+            - john@email.com
+          type: string
+        firstName:
+          examples:
+            - John
+          type: string
+        id:
+          examples:
+            - 10
+          format: int64
+          type: integer
+        lastName:
+          examples:
+            - James
+          type: string
+        password:
+          examples:
+            - "12345"
+          type: string
+        phone:
+          examples:
+            - "12345"
+          type: string
+        userStatus:
+          description: User Status
+          examples:
+            - 1
+          format: int32
+          type: integer
+        username:
+          examples:
+            - theUser
+          type: string
+      type: object
     title: Create user
   - description: Creates list of users with given input array
     inputSchema:
       properties:
-        createUsersWithListInput_body:
+        createUsersWithListInputBody:
           items:
             properties:
               email:
-                example: john@email.com
+                examples:
+                  - john@email.com
                 type: string
               firstName:
-                example: John
+                examples:
+                  - John
                 type: string
               id:
-                example: 10
+                examples:
+                  - 10
                 format: int64
                 type: integer
               lastName:
-                example: James
+                examples:
+                  - James
                 type: string
               password:
-                example: "12345"
+                examples:
+                  - "12345"
                 type: string
               phone:
-                example: "12345"
+                examples:
+                  - "12345"
                 type: string
               userStatus:
                 description: User Status
-                example: 1
+                examples:
+                  - 1
                 format: int32
                 type: integer
               username:
-                example: theUser
+                examples:
+                  - theUser
                 type: string
             type: object
-            xml:
-              name: user
           type: array
       type: object
     name: createUsersWithListInput
+    outputSchema:
+      properties:
+        email:
+          examples:
+            - john@email.com
+          type: string
+        firstName:
+          examples:
+            - John
+          type: string
+        id:
+          examples:
+            - 10
+          format: int64
+          type: integer
+        lastName:
+          examples:
+            - James
+          type: string
+        password:
+          examples:
+            - "12345"
+          type: string
+        phone:
+          examples:
+            - "12345"
+          type: string
+        userStatus:
+          description: User Status
+          examples:
+            - 1
+          format: int32
+          type: integer
+        username:
+          examples:
+            - theUser
+          type: string
+      type: object
     title: Creates list of users with given input array
   - description: ""
     inputSchema:
@@ -354,6 +757,11 @@ tools_list:
           type: string
       type: object
     name: loginUser
+    outputSchema:
+      properties:
+        result:
+          type: string
+      type: object
     title: Logs user into the system
   - description: ""
     inputSchema:
@@ -368,6 +776,44 @@ tools_list:
           type: string
       type: object
     name: getUserByName
+    outputSchema:
+      properties:
+        email:
+          examples:
+            - john@email.com
+          type: string
+        firstName:
+          examples:
+            - John
+          type: string
+        id:
+          examples:
+            - 10
+          format: int64
+          type: integer
+        lastName:
+          examples:
+            - James
+          type: string
+        password:
+          examples:
+            - "12345"
+          type: string
+        phone:
+          examples:
+            - "12345"
+          type: string
+        userStatus:
+          description: User Status
+          examples:
+            - 1
+          format: int32
+          type: integer
+        username:
+          examples:
+            - theUser
+          type: string
+      type: object
     title: Get user by user name
   - description: This can only be done by the logged in user.
     inputSchema:
@@ -375,35 +821,41 @@ tools_list:
         User:
           properties:
             email:
-              example: john@email.com
+              examples:
+                - john@email.com
               type: string
             firstName:
-              example: John
+              examples:
+                - John
               type: string
             id:
-              example: 10
+              examples:
+                - 10
               format: int64
               type: integer
             lastName:
-              example: James
+              examples:
+                - James
               type: string
             password:
-              example: "12345"
+              examples:
+                - "12345"
               type: string
             phone:
-              example: "12345"
+              examples:
+                - "12345"
               type: string
             userStatus:
               description: User Status
-              example: 1
+              examples:
+                - 1
               format: int32
               type: integer
             username:
-              example: theUser
+              examples:
+                - theUser
               type: string
           type: object
-          xml:
-            name: user
         username:
           type: string
       type: object
@@ -419,6 +871,7 @@ tools_list:
     title: Delete user
 tools_targets:
   addPet:
+    accept: application/json
     contentType: application/json
     headerParams: []
     pathParams: []
@@ -481,8 +934,65 @@ tools_targets:
       xml:
         name: pet
     queryParams: []
+    responseSchema:
+      properties:
+        category:
+          properties:
+            id:
+              example: 1
+              format: int64
+              type: integer
+            name:
+              example: Dogs
+              type: string
+          type: object
+          xml:
+            name: category
+        id:
+          example: 10
+          format: int64
+          type: integer
+        name:
+          example: doggie
+          type: string
+        photoUrls:
+          items:
+            type: string
+            xml:
+              name: photoUrl
+          type: array
+          xml:
+            wrapped: true
+        status:
+          description: pet status in the store
+          enum:
+            - available
+            - pending
+            - sold
+          type: string
+        tags:
+          items:
+            properties:
+              id:
+                format: int64
+                type: integer
+              name:
+                type: string
+            type: object
+            xml:
+              name: tag
+          type: array
+          xml:
+            wrapped: true
+      required:
+        - name
+        - photoUrls
+      type: object
+      xml:
+        name: pet
     verb: POST
   createUser:
+    accept: ""
     contentType: application/json
     headerParams: []
     pathParams: []
@@ -521,13 +1031,46 @@ tools_targets:
       xml:
         name: user
     queryParams: []
+    responseSchema:
+      properties:
+        email:
+          example: john@email.com
+          type: string
+        firstName:
+          example: John
+          type: string
+        id:
+          example: 10
+          format: int64
+          type: integer
+        lastName:
+          example: James
+          type: string
+        password:
+          example: "12345"
+          type: string
+        phone:
+          example: "12345"
+          type: string
+        userStatus:
+          description: User Status
+          example: 1
+          format: int32
+          type: integer
+        username:
+          example: theUser
+          type: string
+      type: object
+      xml:
+        name: user
     verb: POST
   createUsersWithListInput:
+    accept: application/json
     contentType: application/json
     headerParams: []
     pathParams: []
     pathSuffix: /user/createWithList
-    payloadParam: createUsersWithListInput_body
+    payloadParam: createUsersWithListInputBody
     payloadSchema:
       items:
         properties:
@@ -563,8 +1106,41 @@ tools_targets:
           name: user
       type: array
     queryParams: []
+    responseSchema:
+      properties:
+        email:
+          example: john@email.com
+          type: string
+        firstName:
+          example: John
+          type: string
+        id:
+          example: 10
+          format: int64
+          type: integer
+        lastName:
+          example: James
+          type: string
+        password:
+          example: "12345"
+          type: string
+        phone:
+          example: "12345"
+          type: string
+        userStatus:
+          description: User Status
+          example: 1
+          format: int32
+          type: integer
+        username:
+          example: theUser
+          type: string
+      type: object
+      xml:
+        name: user
     verb: POST
   deleteOrder:
+    accept: ""
     contentType: ""
     headerParams: []
     pathParams:
@@ -573,8 +1149,10 @@ tools_targets:
     payloadParam: ""
     payloadSchema: {}
     queryParams: []
+    responseSchema: null
     verb: DELETE
   deletePet:
+    accept: ""
     contentType: ""
     headerParams:
       - api_key
@@ -584,8 +1162,10 @@ tools_targets:
     payloadParam: ""
     payloadSchema: {}
     queryParams: []
+    responseSchema: null
     verb: DELETE
   deleteUser:
+    accept: ""
     contentType: ""
     headerParams: []
     pathParams:
@@ -594,8 +1174,10 @@ tools_targets:
     payloadParam: ""
     payloadSchema: {}
     queryParams: []
+    responseSchema: null
     verb: DELETE
   findPetsByStatus:
+    accept: application/json
     contentType: ""
     headerParams: []
     pathParams: []
@@ -604,8 +1186,67 @@ tools_targets:
     payloadSchema: {}
     queryParams:
       - status
+    responseSchema:
+      items:
+        properties:
+          category:
+            properties:
+              id:
+                example: 1
+                format: int64
+                type: integer
+              name:
+                example: Dogs
+                type: string
+            type: object
+            xml:
+              name: category
+          id:
+            example: 10
+            format: int64
+            type: integer
+          name:
+            example: doggie
+            type: string
+          photoUrls:
+            items:
+              type: string
+              xml:
+                name: photoUrl
+            type: array
+            xml:
+              wrapped: true
+          status:
+            description: pet status in the store
+            enum:
+              - available
+              - pending
+              - sold
+            type: string
+          tags:
+            items:
+              properties:
+                id:
+                  format: int64
+                  type: integer
+                name:
+                  type: string
+              type: object
+              xml:
+                name: tag
+            type: array
+            xml:
+              wrapped: true
+        required:
+          - name
+          - photoUrls
+        type: object
+        xml:
+          name: pet
+      type: array
     verb: GET
   findPetsByTags:
+    accept: application/json
     contentType: ""
     headerParams: []
     pathParams: []
@@ -614,8 +1255,67 @@ tools_targets:
     payloadSchema: {}
     queryParams:
       - tags
+    responseSchema:
+      items:
+        properties:
+          category:
+            properties:
+              id:
+                example: 1
+                format: int64
+                type: integer
+              name:
+                example: Dogs
+                type: string
+            type: object
+            xml:
+              name: category
+          id:
+            example: 10
+            format: int64
+            type: integer
+          name:
+            example: doggie
+            type: string
+          photoUrls:
+            items:
+              type: string
+              xml:
+                name: photoUrl
+            type: array
+            xml:
+              wrapped: true
+          status:
+            description: pet status in the store
+            enum:
+              - available
+              - pending
+              - sold
+            type: string
+          tags:
+            items:
+              properties:
+                id:
+                  format: int64
+                  type: integer
+                name:
+                  type: string
+              type: object
+              xml:
+                name: tag
+            type: array
+            xml:
+              wrapped: true
+        required:
+          - name
+          - photoUrls
+        type: object
+        xml:
+          name: pet
+      type: array
     verb: GET
   getInventory:
+    accept: application/json
     contentType: ""
     headerParams: []
     pathParams: []
@@ -623,8 +1323,14 @@ tools_targets:
     payloadParam: ""
     payloadSchema: {}
     queryParams: []
+    responseSchema:
+      additionalProperties:
+        format: int32
+        type: integer
+      type: object
     verb: GET
   getOrderById:
+    accept: application/json
     contentType: ""
     headerParams: []
     pathParams:
@@ -633,8 +1339,39 @@ tools_targets:
     payloadParam: ""
     payloadSchema: {}
     queryParams: []
+    responseSchema:
+      properties:
+        complete:
+          type: boolean
+        id:
+          example: 10
+          format: int64
+          type: integer
+        petId:
+          example: 198772
+          format: int64
+          type: integer
+        quantity:
+          example: 7
+          format: int32
+          type: integer
+        shipDate:
+          format: date-time
+          type: string
+        status:
+          description: Order Status
+          enum:
+            - placed
+            - approved
+            - delivered
+          example: approved
+          type: string
+      type: object
+      xml:
+        name: order
     verb: GET
   getPetById:
+    accept: application/json
     contentType: ""
     headerParams: []
     pathParams:
@@ -643,8 +1380,65 @@ tools_targets:
     payloadParam: ""
     payloadSchema: {}
     queryParams: []
+    responseSchema:
+      properties:
+        category:
+          properties:
+            id:
+              example: 1
+              format: int64
+              type: integer
+            name:
+              example: Dogs
+              type: string
+          type: object
+          xml:
+            name: category
+        id:
+          example: 10
+          format: int64
+          type: integer
+        name:
+          example: doggie
+          type: string
+        photoUrls:
+          items:
+            type: string
+            xml:
+              name: photoUrl
+          type: array
+          xml:
+            wrapped: true
+        status:
+          description: pet status in the store
+          enum:
+            - available
+            - pending
+            - sold
+          type: string
+        tags:
+          items:
+            properties:
+              id:
+                format: int64
+                type: integer
+              name:
+                type: string
+            type: object
+            xml:
+              name: tag
+          type: array
+          xml:
+            wrapped: true
+      required:
+        - name
+        - photoUrls
+      type: object
+      xml:
+        name: pet
     verb: GET
   getUserByName:
+    accept: application/json
     contentType: ""
     headerParams: []
     pathParams:
@@ -653,8 +1447,41 @@ tools_targets:
     payloadParam: ""
     payloadSchema: {}
     queryParams: []
+    responseSchema:
+      properties:
+        email:
+          example: john@email.com
+          type: string
+        firstName:
+          example: John
+          type: string
+        id:
+          example: 10
+          format: int64
+          type: integer
+        lastName:
+          example: James
+          type: string
+        password:
+          example: "12345"
+          type: string
+        phone:
+          example: "12345"
+          type: string
+        userStatus:
+          description: User Status
+          example: 1
+          format: int32
+          type: integer
+        username:
+          example: theUser
+          type: string
+      type: object
+      xml:
+        name: user
     verb: GET
   loginUser:
+    accept: application/json
     contentType: ""
     headerParams: []
     pathParams: []
@@ -664,8 +1491,11 @@ tools_targets:
     queryParams:
       - username
       - password
+    responseSchema:
+      type: string
     verb: GET
   logoutUser:
+    accept: ""
     contentType: ""
     headerParams: []
     pathParams: []
@@ -673,8 +1503,10 @@ tools_targets:
     payloadParam: ""
     payloadSchema: {}
     queryParams: []
+    responseSchema: null
     verb: GET
   placeOrder:
+    accept: application/json
     contentType: application/json
     headerParams: []
     pathParams: []
@@ -711,8 +1543,39 @@ tools_targets:
       xml:
         name: order
     queryParams: []
+    responseSchema:
+      properties:
+        complete:
+          type: boolean
+        id:
+          example: 10
+          format: int64
+          type: integer
+        petId:
+          example: 198772
+          format: int64
+          type: integer
+        quantity:
+          example: 7
+          format: int32
+          type: integer
+        shipDate:
+          format: date-time
+          type: string
+        status:
+          description: Order Status
+          enum:
+            - placed
+            - approved
+            - delivered
+          example: approved
+          type: string
+      type: object
+      xml:
+        name: order
     verb: POST
   updatePet:
+    accept: application/json
     contentType: application/json
     headerParams: []
     pathParams: []
@@ -775,8 +1638,65 @@ tools_targets:
       xml:
         name: pet
     queryParams: []
+    responseSchema:
+      properties:
+        category:
+          properties:
+            id:
+              example: 1
+              format: int64
+              type: integer
+            name:
+              example: Dogs
+              type: string
+          type: object
+          xml:
+            name: category
+        id:
+          example: 10
+          format: int64
+          type: integer
+        name:
+          example: doggie
+          type: string
+        photoUrls:
+          items:
+            type: string
+            xml:
+              name: photoUrl
+          type: array
+          xml:
+            wrapped: true
+        status:
+          description: pet status in the store
+          enum:
+            - available
+            - pending
+            - sold
+          type: string
+        tags:
+          items:
+            properties:
+              id:
+                format: int64
+                type: integer
+              name:
+                type: string
+            type: object
+            xml:
+              name: tag
+          type: array
+          xml:
+            wrapped: true
+      required:
+        - name
+        - photoUrls
+      type: object
+      xml:
+        name: pet
     verb: PUT
   updatePetWithForm:
+    accept: ""
     contentType: ""
     headerParams: []
     pathParams:
@@ -787,8 +1707,10 @@ tools_targets:
     queryParams:
       - name
       - status
+    responseSchema: null
     verb: POST
   updateUser:
+    accept: ""
     contentType: application/json
     headerParams: []
     pathParams:
@@ -828,17 +1750,31 @@ tools_targets:
       xml:
         name: user
     queryParams: []
+    responseSchema: null
     verb: PUT
   uploadFile:
+    accept: application/json
     contentType: application/octet-stream
     headerParams: []
     pathParams:
       - petId
     pathSuffix: /pet/{petId}/uploadImage
-    payloadParam: uploadFile_body
+    payloadParam: uploadFileBody
     payloadSchema:
       format: binary
       type: string
     queryParams:
       - additionalMetadata
+    responseSchema:
+      properties:
+        code:
+          format: int32
+          type: integer
+        message:
+          type: string
+        type:
+          type: string
+      type: object
+      xml:
+        name: '##default'
     verb: POST

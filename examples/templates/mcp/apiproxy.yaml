@@ -189,7 +189,7 @@ Policies:
       DisplayName: JS-ProcessReq
       Properties: {}
       IncludeURL:  jsc://mcp.cjs
-      ResourceURL: jsc://process-req.cjs
+      ResourceURL: jsc://parse-mcp.cjs
   - AssignMessage:
       .continueOnError: false
       .enabled: true
@@ -224,19 +224,65 @@ Policies:
       .continueOnError: false
       .enabled: true
       .timeLimit: 200
-      .name: JS-SetTarget
-      DisplayName: JS-SetTarget
-      IncludeURL:  jsc://mcp.cjs
-      ResourceURL: jsc://setup-tool-target.cjs
+      .name: JS-ProcessMCPReq
+      -Data:
+       - DisplayName: JS-ProcessMCPReq
+       - IncludeURL: jsc://mcp.cjs
+       - IncludeURL: jsc://mcp-tools.cjs
+       - ResourceURL: jsc://process-mcp-req.cjs
   - Javascript:
       .continueOnError: false
       .enabled: true
       .timeLimit: 200
-      .name: JS-ProcessToolRes
-      DisplayName: JS-ProcessToolRes
+      .name: JS-ProcessRestRes
+      DisplayName: JS-ProcessRestRes
       IncludeURL: jsc://mcp.cjs
-      ResourceURL: jsc://process-tool-res.cjs
-
+      ResourceURL: jsc://process-rest-res.cjs
+  - Javascript:
+      .continueOnError: false
+      .enabled: true
+      .timeLimit: 200
+      .name: JS-ValidateTools
+      -Data:
+        - DisplayName: JS-ValidateTools
+        - IncludeURL: jsc://mcp.cjs
+        - IncludeURL: jsc://mcp-tools.cjs
+        - ResourceURL: jsc://validate-tools.cjs
+  - RaiseFault:
+      .continueOnError: false
+      .enabled: true
+      .name: RF-Method404
+      DisplayName: RF-Method404
+      Properties: { }
+      FaultResponse:
+        - AssignVariable:
+            Name: error_status
+            Value: 200
+        - AssignVariable:
+            Name: error_body
+            Template: |-
+              {
+                "jsonrpc": "2.0",
+                "id": {mcp.id},
+                "error": {
+                  "code": -32601,
+                  "message": "Could not find MCP method \"{escapeJSON(mcp.method)}\""
+                }
+              }
+      IgnoreUnresolvedVariables: true
+  - CORS:
+      .continueOnError: false
+      .enabled: true
+      .name: CORS-Allow
+      DisplayName: CORS-Allow
+      AllowOrigins: '{request.header.origin:*}'
+      AllowMethods: POST
+      AllowHeaders: '*'
+      ExposeHeaders: '*'
+      MaxAge: 3628800
+      AllowCredentials: true
+      GeneratePreflightResponse: true
+      IgnoreUnresolvedVariables: true
 ProxyEndpoints:
   - ProxyEndpoint:
       .name: default
@@ -255,78 +301,81 @@ ProxyEndpoints:
         - PreFlow:
             .name: PreFlow
             Request:
-              Step:
-                Name: JS-ProcessReq
-                Condition: request.header.Content-Type = "application/json" and request.verb = "POST"
-            Response: { }
+              -Data:
+                - Step:
+                    Name: CORS-Allow
+                - Step:
+                    Name: JS-ProcessReq
+                    Condition: request.verb = "POST" and request.header.Content-Type = "application/json"
         - PostFlow:
             .name: PostFlow
-            Request: { }
-            Response: { }
         - Flows:
             - Flow:
                 .name: initialize
-                Description: { }
-                Request: { }
                 Response:
                   Step:
                     Name: AM-InitializeRes
-                Condition: mcp.method = "initialize"
+                Condition: request.verb = "POST" and mcp.method = "initialize"
             - Flow:
                 .name: initialized
-                Description: { }
-                Request: { }
                 Response:
                   Step:
                     Name: AM-InitializedRes
-                Condition: mcp.method = "notifications/initialized"
+                Condition: request.verb = "POST" and mcp.method = "notifications/initialized"
             - Flow:
                 .name: resources/templates/list
-                Description: { }
-                Request: { }
                 Response:
                   Step:
                     Name: AM-ResourcesTemplatesListRes
-                Condition: mcp.method = "resources/templates/list"
+                Condition: request.verb = "POST" and mcp.method = "resources/templates/list"
             - Flow:
                 .name: resources/list
-                Description: { }
-                Request: { }
                 Response:
                   Step:
                     Name: AM-ResourcesListRes
-                Condition: mcp.method = "resources/list"
+                Condition: request.verb = "POST" and mcp.method = "resources/list"
             - Flow:
                 .name: prompts/list
-                Description: { }
-                Request: { }
                 Response:
                   Step:
                     Name: AM-PromptsListRes
-                Condition: mcp.method = "prompts/list"
+                Condition: request.verb = "POST" and mcp.method = "prompts/list"
             - Flow:
                 .name: tools/list
-                Description: { }
-                Request: { }
+                Condition: request.verb = "POST" and mcp.method = "tools/list"
                 Response:
-                  Step:
-                    Name: AM-ToolsListRes
-                Condition: mcp.method = "tools/list"
+                  -Data:
+                    - Step:
+                        Name: JS-ValidateTools
+                    - Step:
+                        Name: AM-ToolsListRes
             - Flow:
                 .name: ping
-                Description: { }
-                Request: { }
                 Response:
                   Step:
                     Name: AM-PingRes
-                Condition: mcp.method = "ping"
-            #{{- range $operationId, $_ := $mcp.tools_targets }}
+                Condition: request.verb = "POST" and mcp.method = "ping"
+#            #{{- range $operationId, $_ := $mcp.tools_targets }}
+#            - Flow:
+#                .name: tool-{{ $operationId }}
+#                Condition: request.verb = "POST" and (mcp.method = "tools/call") and (mcp.params.name = "{{ $operationId }}")
+#            #{{- end }}
             - Flow:
-                .name: tool-{{ $operationId }}
-                Condition: (mcp.method = "tools/call") and (mcp.params.name = "{{ $operationId }}")
-            #{{- end }}
+                .name: tools/call
+                Condition: request.verb = "POST" and mcp.method = "tools/call"
+            - Flow:
+                .name: method-404
+                Condition: "true"
+                Request:
+                  Step:
+                    Name: RF-Method404
         - HTTPProxyConnection:
-            BasePath: /mcp{{ include "get_basepath" (index $.Values.spec.servers 0 "url") }}
+            BasePath: >-
+              {{ if $.Values.base_path -}}
+                {{ $.Values.base_path | trimSuffix "/"  }}
+              {{- else -}}
+                /mcp{{ include "get_basepath" (index $.Values.spec.servers 0 "url") | trimSuffix "/" }}
+              {{- end }}
         - RouteRule:
             .name: tool-call
             TargetEndpoint: tool-call
@@ -351,10 +400,10 @@ TargetEndpoints:
         .name:
         Response:
           - Step:
-              Name: JS-ProcessToolRes
+              Name: JS-ProcessRestRes
         Request:
           - Step:
-              Name: JS-SetTarget
+              Name: JS-ProcessMCPReq
       Flows: { }
       PostFlow:
         .name:
@@ -372,25 +421,29 @@ TargetEndpoints:
             .name: success.codes
             -Data: 1xx,2xx,3xx,4xx,5xx
 Resources:
-  #{{ os_copyfile "./process-req.cjs" "./resources/process-req.cjs" }}
+  #{{ os_copyfile "./parse-mcp.cjs" "./resources/jsc/parse-mcp.cjs" }}
   - Resource:
       Type: jsc
-      Path: ./process-req.cjs
-  #{{ os_copyfile "./setup-tool-target.cjs" "./resources/setup-tool-target.cjs" }}
+      Path: ./parse-mcp.cjs
+  #{{ os_copyfile "./process-mcp-req.cjs" "./resources/jsc/process-mcp-req.cjs" }}
   - Resource:
       Type: jsc
-      Path: ./setup-tool-target.cjs
-  #{{ os_copyfile "./process-tool-res.cjs" "./resources/process-tool-res.cjs" }}
+      Path: ./process-mcp-req.cjs
+  #{{ os_copyfile "./process-rest-res.cjs" "./resources/jsc/process-rest-res.cjs" }}
   - Resource:
       Type: jsc
-      Path: ./process-tool-res.cjs
-  #{{ os_copyfile "./mcp.cjs" "./resources/mcp.cjs" }}
+      Path: ./process-rest-res.cjs
+  #{{ os_copyfile "./mcp.cjs" "./resources/jsc/mcp.cjs" }}
   - Resource:
       Type: jsc
       Path: ./mcp.cjs
-  #{{ include "create_mcp_properties_file" (dict "file" "mcp-tools.properties" "mcp" $mcp "oas" $.Values.spec) }}
+  #{{ os_copyfile "./validate-tools.cjs" "./resources/jsc/validate-tools.cjs" }}
   - Resource:
-      Type: properties
-      Path: ./mcp-tools.properties
+      Type: jsc
+      Path: ./validate-tools.cjs
+  #{{ include "create_mcp_json_file" (dict "file" "mcp-tools.cjs" "mcp" $mcp "oas" $.Values.spec) }}
+  - Resource:
+      Type: jsc
+      Path: ./mcp-tools.cjs
 
 

@@ -26,3 +26,4 @@ venv
 .venv
 __pycache__
 scratch
+**/node_modules
