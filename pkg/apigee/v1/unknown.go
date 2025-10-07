@@ -1,4 +1,4 @@
-// Copyright 2024 Google LLC
+// Copyright 2025 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package v1
 import (
 	"encoding/xml"
 	"fmt"
+	"runtime/debug" // Import the debug package
 )
 
 type Deprecated AnyNode
@@ -33,8 +34,21 @@ type AnyNode struct {
 type UnknownNodeError struct {
 	Location string
 	Node     *AnyNode
+	Stack    []byte // Add a field to hold the stack trace
 }
 
 func (e *UnknownNodeError) Error() string {
 	return fmt.Sprintf(`unknown node "%s" found at "%s"`, e.Node.XMLName.Local, e.Location)
+}
+
+func (e *UnknownNodeError) String() string {
+	return fmt.Sprintf("%s\n%s", e.Error(), e.Stack)
+}
+
+func NewUnknownNodeError(location string, node *AnyNode) *UnknownNodeError {
+	return &UnknownNodeError{
+		Location: location,
+		Node:     node,
+		Stack:    debug.Stack(),
+	}
 }

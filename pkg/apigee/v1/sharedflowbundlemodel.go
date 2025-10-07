@@ -1,4 +1,4 @@
-//  Copyright 2024 Google LLC
+//  Copyright 2025 Google LLC
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -127,7 +127,7 @@ func (a *SharedFlowBundleModel) Validate() error {
 	err := utils.MultiError{Errors: []error{}}
 	path := "Root"
 	if len(a.UnknownNode) > 0 {
-		err.Errors = append(err.Errors, &UnknownNodeError{path, a.UnknownNode[0]})
+		err.Errors = append(err.Errors, NewUnknownNodeError(path, a.UnknownNode[0]))
 		return err
 	}
 

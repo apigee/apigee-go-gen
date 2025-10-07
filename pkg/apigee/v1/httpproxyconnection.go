@@ -1,4 +1,4 @@
-// Copyright 2024 Google LLC
+// Copyright 2025 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,7 +14,10 @@
 
 package v1
 
-import "fmt"
+import (
+	"fmt"
+	"github.com/go-errors/errors"
+)
 
 type HTTPProxyConnection struct {
 	BasePath   string      `xml:"BasePath"`
@@ -30,7 +33,7 @@ func ValidateHTTPProxyConnection(v *HTTPProxyConnection, path string) []error {
 
 	subPath := fmt.Sprintf("%s.HTTPProxyConnection", path)
 	if len(v.UnknownNode) > 0 {
-		return []error{&UnknownNodeError{subPath, v.UnknownNode[0]}}
+		return []error{errors.New(NewUnknownNodeError(subPath, v.UnknownNode[0]))}
 	}
 
 	var subErrors []error

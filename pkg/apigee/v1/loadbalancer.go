@@ -1,4 +1,4 @@
-// Copyright 2024 Google LLC
+// Copyright 2025 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ func ValidateLoadBalancer(v *LoadBalancer, path string) []error {
 
 	subPath := fmt.Sprintf("%s.LoadBalancer", path)
 	if len(v.UnknownNode) > 0 {
-		return []error{&UnknownNodeError{subPath, v.UnknownNode[0]}}
+		return []error{NewUnknownNodeError(subPath, v.UnknownNode[0])}
 	}
 
 	var subErrors []error
