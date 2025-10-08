@@ -152,7 +152,7 @@ Dereferences the input pointer.
 
 ### **fmt_printf**
 ```go
-func fmt_printf**(pattern string, args ... string)
+func fmt_printf(pattern string, args ... string)
 ```
 
 Write to stdout during the rendering process.
@@ -169,6 +169,59 @@ e.g.
 ```gotemplate
 {{ fmt_printf "url: %%v\n" $url }}
 ```
+
+### **oas3_to_mcp**
+```go
+func oas3_to_mcp**(file string) map[string]any
+```
+
+Extracts MCP metadata from an OpenAPI 3.x description 
+
+The result contains `tools_list` and `tools_targets` sections.
+
+* The `tools_list` is an array that can be used for MCP tools/list response.
+* The `tools_targets` is a map with information useful for transcoding MCP tool/calls to REST.
+ 
+e.g.
+```gotemplate
+{{ $mcpValues := oas3_to_mcp "./path/to/openapi.yaml" }}
+```
+The file path is relative to the main template file directory.
+
+```js
+{
+  // A list of tool definitions.
+  tools_list: [
+    {
+      name: "...",                 // The unique operationId
+      title: "...",                // The operation summary.
+      description: "...",          // The operation description.
+      inputSchema: { ... },        // JSON Schema with all query, header, path and the request body
+      outputSchema: { ... },       // JSON Schema for the successful response body.
+    },
+    ...
+  ],
+
+  // A map of tool targets
+  tools_targets: {
+    [tool_name]: {                 // The unique operationId
+      verb: "...",                 // The target API HTTP method (e.g., "GET", "POST").
+      pathSuffix: "...",           // The target API path template (e.g., "/users/{userId}").
+      contentType: "...",          // The Content-Type header to sent to target
+      accept: "...",               // The Accept header to send to target
+      pathParams: ["...", ... ],   // List of target path parameter names.
+      queryParams ["...", ... ],   // List of target query parameter names.
+      headerParams: ["...", ... ], // List of target header parameter names.
+      payloadParam: "...",         // Name of the payload parameter used for the request body.
+      payloadSchema: { ... },      // JSON Schema for the target request body
+      responseSchema: { ... }      // JSON Schema for the target response body
+    }
+  }
+}
+```
+
+       
+
 
 ## Libraries
 ### **Sprig**
