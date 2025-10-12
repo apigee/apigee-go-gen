@@ -185,7 +185,7 @@ transformations automatically.
 
 ### Security
 
-If the **OpenAPI Description** defines a security requirement of type `oath2` or `openIdConnect`, the generated API proxy includes a discovery endpoint to support the OAuth flow. 🔐
+If the **OpenAPI Description** defines a security requirement of type `oauth2` or `openIdConnect`, the generated API proxy includes a discovery endpoint to support the OAuth flow. 🔐
 
 This endpoint serves the **Protected Resource Metadata** as required by the MCP specification.
 
