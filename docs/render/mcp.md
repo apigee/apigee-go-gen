@@ -117,3 +117,86 @@ To interact with your new MCP server using natural language, you can configure a
 
 * **Claude:** [Connecting to a remote MCP server](https://modelcontextprotocol.io/docs/develop/connect-remote-servers#connecting-to-a-remote-mcp-server)
 * **Gemini CLI:** [How to set up your MCP server](https://google-gemini.github.io/gemini-cli/docs/tools/mcp-server.html#how-to-set-up-your-mcp-server)
+
+
+## Template Features
+
+The baseline [MCP template](https'://github.com/apigee/apigee-go-gen/blob/main/examples/templates/mcp/apiproxy.yaml) automatically
+generates an Apigee API proxy that acts as a bridge, allowing Large Language Models (LLMs) to securely interact with
+existing REST APIs. The generated proxy handles the translation between the MCP format and standard REST API conventions.
+
+---
+
+### Automated Tool Mapping
+
+The template parses a source **OpenAPI Description** to expose API endpoints as **MCP tools**. Every defined operation
+(e.g., `GET /users`, `POST /products`) is automatically made available for an LLM to discover and call. 🗣️
+
+The generated `tools/list` response provides a comprehensive definition for each tool, which includes:
+
+* **`inputSchema`**: Defines the required inputs for the tool, mapped from the API's request parameters.
+* **`outputSchema`**: Defines the expected output structure, mapped directly from the response schema in the **OpenAPI Description**.
+
+Additionally, the proxy supports emitting **`structuredContent`** in the `tools/call` response. When the backend REST API
+returns a JSON payload (`application/json`), the proxy automatically includes it as structured data, allowing the LLM to
+parse the output directly without needing to interpret raw text.
+
+---
+
+### Parameter Mapping
+
+API request parameters are automatically mapped from the MCP tool's input schema to the backend REST request.
+The proxy ensures data from the LLM is correctly placed in the corresponding location for the target API. This includes:
+
+* **Query Parameters**
+* **Header Values**
+* **Path Variables**
+* **Request Body Content**
+
+This seamless mapping enables the LLM to provide data for the API without needing to conform to the underlying REST structure.
+
+---
+
+### Transcoding
+
+A core function of the proxy is **transcoding** requests. All MCP tool calls arrive in a standardized **JSON-RPC** format.
+The API proxy automatically unwraps this payload and transforms it into a conventional REST API request that the backend
+service can understand. 🤖➡️🌐
+
+This process includes:
+
+* **Unwrapping the Payload**: Extracting the target operation, parameters, and body from the incoming JSON-RPC request.
+* **Setting HTTP Headers**: Automatically setting necessary headers, such as `Content-Type` and `Accept`, based on the **OpenAPI Description**.
+* **Constructing the HTTP Request**: Assembling the final `GET`, `POST`, `PUT`, etc., request with the correct URL, headers, and body.
+
+---
+
+### Request Body Formats
+
+The template provides out-of-the-box support for backend APIs that consume either JSON or XML, handling the necessary
+transformations automatically.
+
+* **`application/json`**: For JSON-based backends, the request body is simply unwrapped from the MCP tool input and passed through.
+* **`application/xml`**: For XML-based backends, the proxy performs a two-step process:
+    1.  It unwraps the JSON data from the MCP request.
+    2.  It transforms that JSON data into the correct XML format, using the schema defined in your **OpenAPI Description** to ensure validity.
+
+---
+
+### Security
+
+If the **OpenAPI Description** defines a security requirement of type `oath2` or `openIdConnect`, the generated API proxy includes a discovery endpoint to support the OAuth flow. 🔐
+
+This endpoint serves the **Protected Resource Metadata** as required by the MCP specification.
+
+The metadata endpoint is exposed at the following path:
+
+`/.well-known/oauth-protected-resource{mcp_server_basepath}`
+
+!!! Note
+
+    It's crucial to understand that **the generated proxy does not act as an authorization server**.
+    Instead, this metadata simply informs the MCP client where to find the actual OAuth authorization server.
+
+    Additionally, whether dynamic client registration is supported is determined by the capabilities of the authorization
+    server itself, not the Apigee MCP API proxy.
