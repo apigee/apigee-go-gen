@@ -4772,8 +4772,12 @@ components:
         This mechanism will be replaced with a more typical API key system at a later date.
       name: User-Agent
       in: header
+    googleOpenIDConnect:
+      type: openIdConnect
+      openIdConnectUrl: https://accounts.google.com/.well-known/openid-configuration
 security:
   - userAgent: []
+  - googleOpenIDConnect: []
 externalDocs:
   description: Full API documentation
   url: https://www.weather.gov/documentation/services-web-api

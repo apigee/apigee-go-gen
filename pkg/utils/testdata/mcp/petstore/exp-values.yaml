@@ -11,7 +11,15 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-
+auth_server:
+  authorization_url: https://petstore3.swagger.io/oauth/authorize
+  flows:
+    - implicit
+  issuer_url: https://petstore3.swagger.io
+  scopes:
+    - read:pets
+    - write:pets
+  type: oauth2
 tools_list:
   - description: Update an existing pet by Id
     inputSchema:

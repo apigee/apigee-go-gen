@@ -46,6 +46,7 @@ type ToolTarget struct {
 type ValuesFile struct {
 	ToolsList    []*Tool                `yaml:"tools_list"`
 	ToolsTargets map[string]*ToolTarget `yaml:"tools_targets"`
+	AuthServer   AuthorizationServer    `yaml:"auth_server"`
 }
 
 func OAS3ToMCPValues(file string) (mcpValuesMap map[string]any, err error) {
@@ -266,9 +267,16 @@ func OAS3ToMCPValues(file string) (mcpValuesMap map[string]any, err error) {
 		}
 	}
 
+	var authServer AuthorizationServer
+	if authServer, err = SelectAuthorizationServer(oas3Node); err != nil {
+		return nil, err
+	}
+
 	valuesFile := &ValuesFile{
 		ToolsList:    mcpToolsList,
-		ToolsTargets: mcpToolsTargets}
+		ToolsTargets: mcpToolsTargets,
+		AuthServer:   authServer,
+	}
 
 	var valuesFileContent []byte
 	if valuesFileContent, err = yaml.Marshal(valuesFile); err != nil {

@@ -12,7 +12,10 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-
+auth_server:
+  issuer_url: https://accounts.google.com
+  openIdConnectUrl: https://accounts.google.com/.well-known/openid-configuration
+  type: openIdConnect
 tools_list:
   - description: Returns all alerts
     inputSchema:

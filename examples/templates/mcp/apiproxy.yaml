@@ -13,6 +13,10 @@
 #  limitations under the License.
 
 #{{ $mcp := oas3_to_mcp $.Values.spec_file }}
+#{{ $base_path := $.Values.base_path }}
+#{{- if not $base_path }}
+#  {{ $base_path = print "/mcp" (include "get_basepath" (index $.Values.spec.servers 0 "url") | trimSuffix "/") }}
+#{{- end }}
 APIProxy:
   .name: mcp-{{ slug_make ($.Values.spec.info.title) }}
   DisplayName: {{ $.Values.spec.info.title }}
@@ -270,19 +274,89 @@ Policies:
                 }
               }
       IgnoreUnresolvedVariables: true
+  - AssignMessage:
+      .continueOnError: false
+      .enabled: true
+      .name: AM-SaveReq
+      DisplayName: AM-SaveReq
+      Properties: { }
+      Copy:
+        .source: request
+        Headers: { }
+        QueryParams: { }
+        FormParams: { }
+        Payload: true
+        Verb: true
+        Path: true
+      IgnoreUnresolvedVariables: true
+      AssignTo:
+        .createNew: true
+        .transport: http
+        .type: request
+        -Data: original_request
   - CORS:
       .continueOnError: false
       .enabled: true
       .name: CORS-Allow
       DisplayName: CORS-Allow
       AllowOrigins: '{request.header.origin:*}'
-      AllowMethods: POST
+      AllowMethods: POST,GET,HEAD
       AllowHeaders: '*'
       ExposeHeaders: '*'
       MaxAge: 3628800
       AllowCredentials: true
       GeneratePreflightResponse: true
       IgnoreUnresolvedVariables: true
+  #{{- if $mcp.auth_server }}
+  - RaiseFault:
+      .continueOnError: false
+      .enabled: true
+      .name: RF-Set401
+      DisplayName: RF-Set401
+      Properties: { }
+      FaultResponse:
+        - Set:
+            Headers:
+              - Header:
+                  .name: WWW-Authenticate
+                  -Data: Bearer resource_metadata="{client.scheme}://{original_request.header.host}/.well-known/oauth-protected-resource{proxy.basepath}"
+        - AssignVariable:
+            Name: error_status
+            Value: 401
+        - AssignVariable:
+            Name: error_body
+            Template: |-
+              {
+                "jsonrpc": "2.0",
+                "id": {mcp.id},
+                "error": {
+                  "code": -32001,
+                  "message": "Unauthorized"
+                }
+              }
+      IgnoreUnresolvedVariables: true
+  - AssignMessage:
+      .continueOnError: false
+      .enabled: true
+      .name: AM-SetMetadataRes
+      DisplayName: AM-SetMetadataRes
+      Properties: { }
+      Set:
+        Payload:
+          .contentType: application/json
+          -Data: |-
+            {
+              "resource": "{client.scheme}://{original_request.header.host}{{ $base_path }}",
+              "resource_name": "{{ $.Values.spec.info.title }}",
+              "authorization_servers": [ "{{ $mcp.auth_server.issuer_url }}" ],
+              {{- if eq $mcp.auth_server.type "oauth2" }}
+              "scopes_supported": {{ $mcp.auth_server.scopes | toJson }},
+              {{- end }}
+              "bearer_methods_supported": [ "header" ]
+            }
+        StatusCode: 200
+        ReasonPhrase: OK
+  #{{- end }}
 ProxyEndpoints:
   - ProxyEndpoint:
       .name: default
@@ -303,10 +377,17 @@ ProxyEndpoints:
             Request:
               -Data:
                 - Step:
+                    Name: AM-SaveReq
+                - Step:
                     Name: CORS-Allow
                 - Step:
                     Name: JS-ProcessReq
                     Condition: request.verb = "POST" and request.header.Content-Type = "application/json"
+                #{{- if $mcp.auth_server }}
+                - Step:
+                    Name: RF-Set401
+                    Condition: request.header.authorization = null || NOT (request.header.authorization =| "Bearer ")
+                #{{- end }}
         - PostFlow:
             .name: PostFlow
         - Flows:
@@ -370,18 +451,48 @@ ProxyEndpoints:
                   Step:
                     Name: RF-Method404
         - HTTPProxyConnection:
-            BasePath: >-
-              {{ if $.Values.base_path -}}
-                {{ $.Values.base_path | trimSuffix "/"  }}
-              {{- else -}}
-                /mcp{{ include "get_basepath" (index $.Values.spec.servers 0 "url") | trimSuffix "/" }}
-              {{- end }}
+            BasePath: {{ $base_path }}
         - RouteRule:
             .name: tool-call
             TargetEndpoint: tool-call
             Condition: mcp.method = "tools/call"
         - RouteRule:
             .name: no-op
+  #{{- if $mcp.auth_server }}
+  - ProxyEndpoint:
+      .name: protected-resource-metadata
+      -Data:
+        - DefaultFaultRule:
+            .name: default-fault
+            Step:
+              Name: AM-SetGenericError
+        - FaultRules:
+            -Data:
+              - FaultRule:
+                  .name: custom-error
+                  Step:
+                    Name: AM-SetCustomError
+                  Condition: error_body != null
+        - PreFlow:
+            .name: PreFlow
+            Request:
+              -Data:
+                - Step:
+                    Name: AM-SaveReq
+                - Step:
+                    Name: CORS-Allow
+            Response:
+              Step:
+                Name: AM-SetMetadataRes
+        - PostFlow:
+            .name: PostFlow
+        - Flows: []
+        - HTTPProxyConnection:
+            BasePath: /.well-known/oauth-protected-resource{{ $base_path }}
+        - RouteRule:
+            .name: no-op
+  #{{- end }}
+
 TargetEndpoints:
   - TargetEndpoint:
       .name: tool-call
