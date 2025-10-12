@@ -121,7 +121,7 @@ To interact with your new MCP server using natural language, you can configure a
 
 ## Template Features
 
-The baseline [MCP template](https'://github.com/apigee/apigee-go-gen/blob/main/examples/templates/mcp/apiproxy.yaml) automatically
+The baseline [MCP template](https://github.com/apigee/apigee-go-gen/blob/main/examples/templates/mcp/apiproxy.yaml) automatically
 generates an Apigee API proxy that acts as a bridge, allowing Large Language Models (LLMs) to securely interact with
 existing REST APIs. The generated proxy handles the translation between the MCP format and standard REST API conventions.
 
