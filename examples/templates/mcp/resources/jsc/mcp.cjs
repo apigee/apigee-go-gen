@@ -1,20 +1,4 @@
 /*
- *  Copyright 2024 Google LLC
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- */
-
-/*
  * Copyright 2025 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -42,6 +26,8 @@ var JSON_RPC_INTERNAL_ERROR = -32603;
 var JSON_RPC_REQUEST_CANCELLED = -32800;
 var JSON_RPC_CONTENT_TOO_LARGE = -32801;
 var JSON_RPC_CONNECTION_CLOSED = -32000;
+var JSON_RPC_UNAUTHENTICATED_REQUEST = -32001;
+var JSON_RPC_UNAUTHORIZED_REQUEST = -32002;
 
 /**
  * Checks if an object is a string.
@@ -113,9 +99,10 @@ function _get(obj, keyString, defaultValue) {
  * @augments {Error}
  * @param {string} message The error message.
  * @param {number} statusCode The JSON-RPC error code (e.g., -32602).
+ * @param {number} [httpStatus] (optional) The HTTP Status code (e.g. 401)
  * @returns {JsonRPCError} An instance of JsonRPCError.
  */
-function JsonRPCError(message, statusCode) {
+function JsonRPCError(message, statusCode, httpStatus) {
 
   Error.call(this, message);
 
@@ -128,9 +115,16 @@ function JsonRPCError(message, statusCode) {
   this.name = 'JsonRPCError';
   this.code = statusCode;
   this.message = message
+  this.status = httpStatus;
 
   return this
 }
+
+/**
+ * @private
+ */
+JsonRPCError.prototype = Object.create(Error.prototype);
+JsonRPCError.prototype.constructor = JsonRPCError;
 
 /**
  * Sets the Apigee flow variables for a standardized JSON-RPC error response.
@@ -795,32 +789,12 @@ function processRESTRes(ctx) {
   setResponse(ctx, 200, headers,  getPrettyJSON(rpcResponse));
 }
 
-
-
-/**
- * Validates the structure of the entire mcpToolsInfo
- *
- * @param {object} mcpToolsInfo The complete tool definition list.
- * @throws {JsonRPCError} If the structure is invalid.
- */
-/**
- * Validates the structure of the entire mcpToolsInfo object without using JSON Schema.
- *
- * @param {object} mcpToolsInfo The complete tool definition list.
- * @throws {JsonRPCError} If the structure is invalid.
- * * NOTE: This function relies on external dependencies 'isPlainObject', 'JsonRPCError',
- * and 'JSON_RPC_INTERNAL_ERROR' being available in its scope.
- */
-
 /**
  * Validates the structure of the entire mcpToolsInfo object.
- *
- * This is needed in case manually edits the mcp-tools.cjs
+ * This is needed in case one manually edits the mcp-tools.cjs file.
  *
  * @param {object} mcpToolsInfo The complete tool definition list.
  * @throws {JsonRPCError} If the structure is invalid.
- * * NOTE: This function relies on external dependencies 'isPlainObject', 'JsonRPCError',
- * and 'JSON_RPC_INTERNAL_ERROR' being available in its scope.
  */
 function validateMcpToolsInfo(mcpToolsInfo) {
   if (!isPlainObject(mcpToolsInfo)) {
@@ -926,6 +900,132 @@ function validateMcpToolsInfo(mcpToolsInfo) {
 
 }
 
+/**
+ * Filters an MCP `tools/list` response based on the tools allowed in the API Product.
+ * It modifies the `response.content` flow variable in place.
+ *
+ * @param {object} ctx The Apigee context object.
+ */
+function filterMCPTools(ctx) {
+  var contentStr = ctx.getVariable("response.content");
+  var responseRpc = parseJsonString(contentStr, null);
+
+  // Silently exit if the response isn't a valid tools/list response.
+  if (!responseRpc || !responseRpc.result || !Array.isArray(responseRpc.result.tools)) {
+    return;
+  }
+
+  var mcpToolsStr = ctx.getVariable("mcp.authorized_product.tools");
+
+  // If authorizeMCPReq did not pass the mcp_tools variable, it means the
+  // product was not configured for MCP. Filter to an empty list.
+  if (!mcpToolsStr) {
+    responseRpc.result.tools = [];
+    var newContentStr = getPrettyJSON(responseRpc);
+    ctx.setVariable("response.content", newContentStr);
+    return;
+  }
+
+  var allowedTools = JSON.parse(mcpToolsStr);
+
+  // If the allowed tools array contains the wildcard "*", do not filter.
+  if (allowedTools.length === 1 && allowedTools[0] === '*') {
+    return;
+  }
+
+  // Otherwise, filter the list. An empty array `[]` will correctly result
+  // in an empty list of tools.
+  var originalTools = responseRpc.result.tools;
+  var filteredTools = originalTools.filter(function (tool) {
+    return allowedTools.indexOf(tool.name) >= 0;
+  });
+
+  responseRpc.result.tools = filteredTools;
+  var newContentStr = getPrettyJSON(responseRpc);
+  ctx.setVariable("response.content", newContentStr);
+}
+
+
+/**
+ * Authorizes an MCP (Media Communications Protocol) request based on the API product configuration.
+ * It checks if the called tool is in the list of allowed tools for the API key's associated product.
+ * Core methods like 'initialize' and 'ping' are always permitted.
+ *
+ * @param {object} ctx The Apigee context object.
+ * @throws {JsonRPCError} If the request is invalid, unauthorized, or if there's an internal configuration error.
+ */
+function authorizeMCPReq(ctx) {
+  var mcpMethod = ctx.getVariable("mcp.method");
+  if (!mcpMethod) {
+    throw new JsonRPCError("no MCP method specified", JSON_RPC_INVALID_REQUEST);
+  }
+
+  var publicMethods = [
+    "initialize", "notifications/initialized", "ping", "resources/list",
+    "resources/templates/list", "prompts/list"
+  ];
+
+  if (publicMethods.indexOf(mcpMethod) >= 0) {
+    return;
+  }
+
+  var prefix = "verifyapikey.VAK-Check.";
+  var apiProductName = ctx.getVariable(prefix + "apiproduct.name");
+  if (!apiProductName) {
+    throw new JsonRPCError("no API Product for MCP request", JSON_RPC_UNAUTHORIZED_REQUEST, 403);
+  }
+  ctx.setVariable("mcp.authorized_product.name", apiProductName);
+
+
+  var mcpToolsStr = ctx.getVariable(prefix + "apiproduct.mcp_tools");
+  var mcpToolsJson = null;
+
+  // Centralized parsing and validation: if mcp_tools exists, it MUST be valid JSON.
+  if (mcpToolsStr) {
+    try {
+      mcpToolsJson = JSON.parse(mcpToolsStr);
+    } catch (error) {
+      throw new JsonRPCError("MCP tools defined in API product \"" + apiProductName + "\" is not valid JSON", JSON_RPC_INTERNAL_ERROR);
+    }
+    if (!Array.isArray(mcpToolsJson)) {
+      throw new JsonRPCError("MCP tools in API product \"" + apiProductName + "\" must be a JSON array", JSON_RPC_INTERNAL_ERROR);
+    }
+    // Set the variable for downstream policies as soon as it's validated.
+    ctx.setVariable("mcp.authorized_product.tools", mcpToolsStr);
+  }
+
+  // `tools/list` is a special case: it's always an authorized method call.
+  // The filtering logic in a later step will use the variable set above (or not if it was absent).
+  if (mcpMethod === "tools/list") {
+    return;
+  }
+
+  // For all other protected methods (e.g., tools/call), mcp_tools MUST be defined.
+  if (!mcpToolsJson) { // This is equivalent to !mcpToolsStr
+    throw new JsonRPCError("unauthorized MCP method: " + mcpMethod + ". API product is not configured for MCP tools", JSON_RPC_UNAUTHORIZED_REQUEST, 403);
+  }
+
+  // If we reach here, we know mcpToolsJson is a valid, parsed array.
+
+  if (mcpMethod === "tools/call") {
+    var mcpTool = ctx.getVariable("mcp.params.name");
+    if (!mcpTool) {
+      throw new JsonRPCError("no MCP tool name specified for tools/call", JSON_RPC_INVALID_REQUEST);
+    }
+
+    // Check for the explicit wildcard ["*"]
+    if (mcpToolsJson.length === 1 && mcpToolsJson[0] === '*') {
+      return; // Wildcard allows any tool.
+    }
+
+    // If not a wildcard, check if the specific tool is in the list.
+    if (mcpToolsJson.indexOf(mcpTool) < 0) {
+      throw new JsonRPCError("unauthorized MCP tools/call: " + mcpTool, JSON_RPC_UNAUTHORIZED_REQUEST, 403);
+    }
+  }
+}
+
+
 if (!isApigee) {
   module.exports = {
     "flattenAndSetFlowVariables": flattenAndSetFlowVariables,
@@ -948,10 +1048,14 @@ if (!isApigee) {
     "getToolInfo": getToolInfo,
     "jsonToFormURLEncoded": jsonToFormURLEncoded,
     "validateMcpToolsInfo": validateMcpToolsInfo,
+    "filterMCPTools": filterMCPTools,
+    "authorizeMCPReq": authorizeMCPReq,
     "JSON_RPC_PARSE_ERROR": JSON_RPC_PARSE_ERROR,
     "JSON_RPC_INVALID_REQUEST": JSON_RPC_INVALID_REQUEST,
     "JSON_RPC_METHOD_NOT_FOUND": JSON_RPC_METHOD_NOT_FOUND,
     "JSON_RPC_INVALID_PARAMS": JSON_RPC_INVALID_PARAMS,
-    "JSON_RPC_INTERNAL_ERROR": JSON_RPC_INTERNAL_ERROR
+    "JSON_RPC_INTERNAL_ERROR": JSON_RPC_INTERNAL_ERROR,
+    "JSON_RPC_UNAUTHORIZED_REQUEST": JSON_RPC_UNAUTHORIZED_REQUEST,
+    "JSON_RPC_UNAUTHENTICATED_REQUEST": JSON_RPC_UNAUTHENTICATED_REQUEST
   };
 }

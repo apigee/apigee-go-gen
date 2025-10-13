@@ -35,14 +35,17 @@ const {
   replacePathParams,
   setResponse,
   validateMcpToolsInfo,
+  authorizeMCPReq,
+  filterMCPTools,
   JSON_RPC_PARSE_ERROR,
   JSON_RPC_INVALID_REQUEST,
   JSON_RPC_METHOD_NOT_FOUND,
   JSON_RPC_INVALID_PARAMS,
-  JSON_RPC_INTERNAL_ERROR
+  JSON_RPC_INTERNAL_ERROR,
+  JSON_RPC_UNAUTHORIZED_REQUEST
 } = require("../resources/jsc/mcp.cjs");
 
-const { expect, test, describe } = require('@jest/globals');
+const { expect, test, describe, beforeEach } = require('@jest/globals');
 
 
 // Mocking the Apigee context object (ctx)
@@ -927,6 +930,216 @@ describe('MCP Tool Info Validation (validateMcpToolsInfo) -  Tests', () => {
         message: expect.stringContaining("All elements in inputParams.query array must be strings.")
       })
     );
+  });
+});
+
+describe('MCP Authorization (authorizeMCPReq)', () => {
+  let ctx;
+  const VAK_PREFIX = "verifyapikey.VAK-Check.";
+
+  beforeEach(() => {
+    ctx = mockContext();
+  });
+
+  // --- Public Methods ---
+  test('should always allow public method "ping"', () => {
+    ctx.setVariable("mcp.method", "ping");
+    expect(() => authorizeMCPReq(ctx)).not.toThrow();
+  });
+
+  // --- Secure Default: `mcp_tools` is UNDEFINED ---
+  test('should throw UNAUTHORIZED for tools/call when mcp_tools is UNDEFINED', () => {
+    ctx.setVariable(VAK_PREFIX + "apiproduct.name", "TestProduct");
+    // mcp_tools is NOT set
+    ctx.setVariable("mcp.method", "tools/call");
+    ctx.setVariable("mcp.params.name", "any_tool");
+    expect(() => authorizeMCPReq(ctx)).toThrow(
+      expect.objectContaining({ code: JSON_RPC_UNAUTHORIZED_REQUEST, message: 'unauthorized MCP method: tools/call. API product is not configured for MCP tools' })
+    );
+  });
+
+  test('should succeed for tools/list when mcp_tools is UNDEFINED', () => {
+    ctx.setVariable(VAK_PREFIX + "apiproduct.name", "TestProduct");
+    // mcp_tools is NOT set
+    ctx.setVariable("mcp.method", "tools/list");
+    expect(() => authorizeMCPReq(ctx)).not.toThrow();
+    // Crucially, the authorized_tools variable should NOT be set
+    expect(ctx.getVariable("mcp.authorized_product.tools")).toBeUndefined();
+  });
+
+  // --- Wildcard `["*"]` ---
+  test('should succeed for any tools/call when mcp_tools is the wildcard `["*"]`', () => {
+    ctx.setVariable(VAK_PREFIX + "apiproduct.name", "TestProduct");
+    ctx.setVariable(VAK_PREFIX + "apiproduct.mcp_tools", '["*"]');
+    ctx.setVariable("mcp.method", "tools/call");
+    ctx.setVariable("mcp.params.name", "any_tool_is_allowed");
+    expect(() => authorizeMCPReq(ctx)).not.toThrow();
+    expect(ctx.getVariable("mcp.authorized_product.tools")).toBe('["*"]');
+  });
+
+  test('should succeed for tools/list when mcp_tools is the wildcard `["*"]`', () => {
+    ctx.setVariable(VAK_PREFIX + "apiproduct.name", "TestProduct");
+    ctx.setVariable(VAK_PREFIX + "apiproduct.mcp_tools", '["*"]');
+    ctx.setVariable("mcp.method", "tools/list");
+    expect(() => authorizeMCPReq(ctx)).not.toThrow();
+    expect(ctx.getVariable("mcp.authorized_product.tools")).toBe('["*"]');
+  });
+
+  // --- `mcp_tools` is DEFINED with a specific list ---
+  test('should succeed for an authorized tools/call operation', () => {
+    ctx.setVariable(VAK_PREFIX + "apiproduct.name", "TestProduct");
+    ctx.setVariable(VAK_PREFIX + "apiproduct.mcp_tools", '["fetch_data"]');
+    ctx.setVariable("mcp.method", "tools/call");
+    ctx.setVariable("mcp.params.name", "fetch_data");
+    expect(() => authorizeMCPReq(ctx)).not.toThrow();
+    expect(ctx.getVariable("mcp.authorized_product.tools")).toBe('["fetch_data"]');
+  });
+
+  test('should throw UNAUTHORIZED for a disallowed tools/call operation', () => {
+    ctx.setVariable(VAK_PREFIX + "apiproduct.name", "TestProduct");
+    ctx.setVariable(VAK_PREFIX + "apiproduct.mcp_tools", '["allowed_tool"]');
+    ctx.setVariable("mcp.method", "tools/call");
+    ctx.setVariable("mcp.params.name", "disallowed_tool");
+    expect(() => authorizeMCPReq(ctx)).toThrow(
+      expect.objectContaining({ code: JSON_RPC_UNAUTHORIZED_REQUEST, message: 'unauthorized MCP tools/call: disallowed_tool' })
+    );
+  });
+
+  test('should throw UNAUTHORIZED for tools/call when mcp_tools is an empty array', () => {
+    ctx.setVariable(VAK_PREFIX + "apiproduct.name", "TestProduct");
+    ctx.setVariable(VAK_PREFIX + "apiproduct.mcp_tools", '[]');
+    ctx.setVariable("mcp.method", "tools/call");
+    ctx.setVariable("mcp.params.name", "any_tool");
+    expect(() => authorizeMCPReq(ctx)).toThrow(
+      expect.objectContaining({
+        code: JSON_RPC_UNAUTHORIZED_REQUEST,
+        message: 'unauthorized MCP tools/call: any_tool'
+      })
+    );
+  });
+
+  // --- General Failure Scenarios ---
+  test('should throw UNAUTHORIZED if API product name is missing for a protected method', () => {
+    ctx.setVariable("mcp.method", "tools/call");
+    ctx.setVariable("mcp.params.name", "fetch_data");
+    expect(() => authorizeMCPReq(ctx)).toThrow(
+      expect.objectContaining({ code: JSON_RPC_UNAUTHORIZED_REQUEST, message: 'no API Product for MCP request' })
+    );
+  });
+
+  test('should throw INTERNAL_ERROR for tools/call if mcp_tools is invalid JSON', () => {
+    ctx.setVariable(VAK_PREFIX + "apiproduct.name", "TestProduct");
+    ctx.setVariable(VAK_PREFIX + "apiproduct.mcp_tools", '["tool"'); // Malformed
+    ctx.setVariable("mcp.method", "tools/call");
+    ctx.setVariable("mcp.params.name", "tool");
+    expect(() => authorizeMCPReq(ctx)).toThrow(
+      expect.objectContaining({ code: JSON_RPC_INTERNAL_ERROR, message: 'MCP tools defined in API product "TestProduct" is not valid JSON' })
+    );
+  });
+
+  test('should throw INTERNAL_ERROR for tools/list if mcp_tools is invalid JSON', () => {
+    ctx.setVariable(VAK_PREFIX + "apiproduct.name", "TestProduct");
+    ctx.setVariable(VAK_PREFIX + "apiproduct.mcp_tools", '["tool"'); // Malformed
+    ctx.setVariable("mcp.method", "tools/list");
+    expect(() => authorizeMCPReq(ctx)).toThrow(
+      expect.objectContaining({ code: JSON_RPC_INTERNAL_ERROR, message: 'MCP tools defined in API product "TestProduct" is not valid JSON' })
+    );
+  });
+
+  test('should throw INTERNAL_ERROR if mcp_tools is not a JSON array', () => {
+    ctx.setVariable(VAK_PREFIX + "apiproduct.name", "TestProduct");
+    ctx.setVariable(VAK_PREFIX + "apiproduct.mcp_tools", '{"tool": "fetch_data"}');
+    ctx.setVariable("mcp.method", "tools/call");
+    ctx.setVariable("mcp.params.name", "fetch_data");
+    expect(() => authorizeMCPReq(ctx)).toThrow(
+      expect.objectContaining({ code: JSON_RPC_INTERNAL_ERROR, message: 'MCP tools in API product "TestProduct" must be a JSON array' })
+    );
+  });
+
+  test('should throw INVALID_REQUEST if mcp.method is missing', () => {
+    ctx.setVariable(VAK_PREFIX + "apiproduct.name", "TestProduct");
+    expect(() => authorizeMCPReq(ctx)).toThrow(
+      expect.objectContaining({ code: JSON_RPC_INVALID_REQUEST, message: 'no MCP method specified' })
+    );
+  });
+
+  test('should throw INVALID_REQUEST for tools/call if tool name is missing', () => {
+    ctx.setVariable(VAK_PREFIX + "apiproduct.name", "TestProduct");
+    ctx.setVariable(VAK_PREFIX + "apiproduct.mcp_tools", '["fetch_data"]');
+    ctx.setVariable("mcp.method", "tools/call");
+    // mcp.params.name is not set
+    expect(() => authorizeMCPReq(ctx)).toThrow(
+      expect.objectContaining({ code: JSON_RPC_INVALID_REQUEST, message: 'no MCP tool name specified for tools/call' })
+    );
+  });
+});
+
+describe('MCP Tool Filtering (filterMCPTools)', () => {
+  let ctx;
+  const VAK_PREFIX = "verifyapikey.VAK-Check.";
+
+  const originalToolsListResponse = {
+    jsonrpc: "2.0",
+    id: "123",
+    result: {
+      tools: [
+        { name: "tool_a", description: "Does A" },
+        { name: "tool_b", description: "Does B" },
+        { name: "tool_c", description: "Does C" }
+      ]
+    }
+  };
+
+  beforeEach(() => {
+    ctx = mockContext();
+    ctx.setVariable("response.content", JSON.stringify(originalToolsListResponse));
+  });
+
+  test('should NOT filter tools if mcp_tools contains the wildcard `["*"]`', () => {
+    ctx.setVariable("mcp.authorized_product.tools", '["*"]');
+    filterMCPTools(ctx);
+    // The content should remain unchanged
+    expect(ctx.getVariable("response.content")).toBe(JSON.stringify(originalToolsListResponse));
+  });
+
+  test('should filter to an EMPTY list if mcp_tools is an empty array', () => {
+    ctx.setVariable("mcp.authorized_product.tools", "[]");
+    filterMCPTools(ctx);
+
+    const filteredResponse = JSON.parse(ctx.getVariable("response.content"));
+    expect(filteredResponse.result.tools).toEqual([]);
+  });
+
+  test('should throw INTERNAL_ERROR for tools/list if mcp_tools is not a JSON array', () => {
+    ctx.setVariable(VAK_PREFIX + "apiproduct.name", "TestProduct");
+    ctx.setVariable(VAK_PREFIX + "apiproduct.mcp_tools", '{"tool": "fetch_data"}');
+    ctx.setVariable("mcp.method", "tools/list");
+    expect(() => authorizeMCPReq(ctx)).toThrow(
+      expect.objectContaining({ code: JSON_RPC_INTERNAL_ERROR, message: 'MCP tools in API product "TestProduct" must be a JSON array' })
+    );
+  });
+
+  test('should filter to a SUBSET of tools if mcp_tools is a specific list', () => {
+    ctx.setVariable("mcp.authorized_product.tools", '["tool_a", "tool_c"]');
+    filterMCPTools(ctx);
+
+    const filteredResponse = JSON.parse(ctx.getVariable("response.content"));
+    expect(filteredResponse.result.tools).toHaveLength(2);
+    expect(filteredResponse.result.tools.map(t => t.name)).toEqual(["tool_a", "tool_c"]);
+  });
+
+  test('should filter to an EMPTY list if mcp.authorized_product.tools is UNDEFINED', () => {
+    // This variable is deliberately NOT set
+    filterMCPTools(ctx);
+    const filteredResponse = JSON.parse(ctx.getVariable("response.content"));
+    expect(filteredResponse.result.tools).toEqual([]);
+  });
+
+  test('should not throw an error if response content is not a valid tools/list response', () => {
+    ctx.setVariable("response.content", '{"invalid": "json"}');
+    expect(() => filterMCPTools(ctx)).not.toThrow();
+    // Content should be unchanged
+    expect(ctx.getVariable("response.content")).toBe('{"invalid": "json"}');
   });
 });
 

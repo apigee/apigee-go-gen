@@ -25,19 +25,19 @@ This is sometimes referred to as "MCPfying" a REST API.
 > Use baseline MCP template is provided in the [`examples/templates/mcp/`](https://github.com/apigee/apigee-go-gen/blob/main/examples/templates/mcp/apiproxy.yaml) directory. You can use it as-is or customize it to add specific policies or settings to your final API proxy.
 
 - [x] **Generate the MCP API proxy**
-> Use the `render apiproxy` command to generate a deployable MCP API proxy bundle from your OpenAPI description and the template.
+> Use the `render apiproxy` command to generate a deployable MCP API proxy bundle from your OpenAPI Description and the template.
 
 - [x] **Deploy the API proxy**
 > Use the [apigeecli](https://github.com/apigee/apigeecli) tool to deploy the generated API proxy bundle to your Apigee runtime environment.
 
 - [x] **Use the MCP Server**
-> Once deployed, the API proxy acts as an MCP server. The operations from your original OpenAPI description are now exposed as MCP tools.
+> Once deployed, the API proxy acts as an MCP server. The operations from your original OpenAPI Description are now exposed as MCP tools.
 
 ---
 
 ## Example
 
-This example demonstrates how to convert the `weather.yaml` OpenAPI description into an Apigee API proxy that serves MCP tools.
+This example demonstrates how to convert the `weather.yaml` OpenAPI Description into an Apigee API proxy that serves MCP tools.
 
 ### 1. Create the MCP API proxy
 
@@ -183,7 +183,7 @@ transformations automatically.
 
 ---
 
-### Security
+### OAuth 2 / OpenID Connect
 
 If the **OpenAPI Description** defines a security requirement of type `oauth2` or `openIdConnect`, the generated API proxy includes a discovery endpoint to support the OAuth flow. 🔐
 
@@ -200,3 +200,57 @@ The metadata endpoint is exposed at the following path:
 
     Additionally, whether dynamic client registration is supported is determined by the capabilities of the authorization
     server itself, not the Apigee MCP API proxy.
+
+---
+
+### Apigee Authentication
+The template can enforce API key validation for all incoming MCP requests, providing a foundational layer of security.
+
+**How to Enable**:
+
+To enable this feature, set the `check_app_authentication=true` flag when rendering the template:
+
+```bash
+apigee-go-gen render apiproxy \
+   --set check_app_authentication=true \
+   ...
+```
+
+
+When enabled, the generated proxy will include a [VerifyAPIKey](https://cloud.google.com/apigee/docs/api-platform/reference/policies/verify-api-key-policy) policy. All requests to the MCP server must include a valid API key in the `x-apikey` HTTP header. Requests without a valid key will be rejected with a 401 Unauthorized error.
+
+---
+
+### Apigee Authorization
+
+Beyond authentication, the template provides granular control over which MCP tools a specific client application can use. This is managed through Apigee's API Product configuration.
+
+**How to Enable**:
+
+To enable this feature, set the `check_app_authorization=true` flag when rendering the template. Note that this automatically enables `check_app_authentication` as well.
+
+```bash
+apigee-go-gen render apiproxy \
+   --set check_app_authorization=true \
+   ...
+```
+
+
+**How it Works**:
+
+
+Authorization is controlled using a [custom attribute](https://cloud.google.com/apigee/docs/api-platform/publish/create-api-products#customattributes) named `mcp_tools`, set in the API product associated with the client's API key. The value of this attribute must be a JSON array of strings.
+
+The behavior is as follows:
+
+  * `mcp_tools` is **NOT** defined (**secure default**): 
+    If the attribute is missing from the API product, no MCP `tools/call` requests are permitted. The `tools/list` method will return an empty list of tools. This is the most secure posture, as it requires explicit configuration to grant access.
+
+  * `mcp_tools` is `["*"]` (**wildcard**):
+    If the attribute is set to a JSON array containing only the wildcard string **"*"**, all tools are authorized. The `tools/list` response will include all tools generated from the OpenAPI Description.
+
+  * `mcp_tools` is `["tool_a", "tool_b", ...]` (**granular**): 
+    If the attribute contains a list of specific tool names, only those tools are authorized for `tools/call`. The `tools/list` response will be filtered to only show those specific tools.
+
+  * `mcp_tools` is `[]` (**empty**): 
+    If the attribute is an empty JSON array, no tools are authorized. Any `tools/call` request will be denied, and the `tools/list` method will return an empty list.
