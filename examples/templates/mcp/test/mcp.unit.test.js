@@ -36,7 +36,8 @@ const {
   setResponse,
   validateMcpToolsInfo,
   authorizeMCPReq,
-  filterMCPTools,
+  filterAuthorizedTools,
+  filterHeaderTools,
   JSON_RPC_PARSE_ERROR,
   JSON_RPC_INVALID_REQUEST,
   JSON_RPC_METHOD_NOT_FOUND,
@@ -967,37 +968,37 @@ describe('MCP Authorization (authorizeMCPReq)', () => {
     expect(ctx.getVariable("mcp.authorized_product.tools")).toBeUndefined();
   });
 
-  // --- Wildcard `["*"]` ---
-  test('should succeed for any tools/call when mcp_tools is the wildcard `["*"]`', () => {
+  // --- Wildcard `*` ---
+  test('should succeed for any tools/call when mcp_tools is the wildcard `*`', () => {
     ctx.setVariable(VAK_PREFIX + "apiproduct.name", "TestProduct");
-    ctx.setVariable(VAK_PREFIX + "apiproduct.mcp_tools", '["*"]');
+    ctx.setVariable(VAK_PREFIX + "apiproduct.mcp_tools", ' * '); // Test with whitespace
     ctx.setVariable("mcp.method", "tools/call");
     ctx.setVariable("mcp.params.name", "any_tool_is_allowed");
     expect(() => authorizeMCPReq(ctx)).not.toThrow();
-    expect(ctx.getVariable("mcp.authorized_product.tools")).toBe('["*"]');
+    expect(ctx.getVariable("mcp.authorized_product.tools")).toBe(' * ');
   });
 
-  test('should succeed for tools/list when mcp_tools is the wildcard `["*"]`', () => {
+  test('should succeed for tools/list when mcp_tools is the wildcard `*`', () => {
     ctx.setVariable(VAK_PREFIX + "apiproduct.name", "TestProduct");
-    ctx.setVariable(VAK_PREFIX + "apiproduct.mcp_tools", '["*"]');
+    ctx.setVariable(VAK_PREFIX + "apiproduct.mcp_tools", '*');
     ctx.setVariable("mcp.method", "tools/list");
     expect(() => authorizeMCPReq(ctx)).not.toThrow();
-    expect(ctx.getVariable("mcp.authorized_product.tools")).toBe('["*"]');
+    expect(ctx.getVariable("mcp.authorized_product.tools")).toBe('*');
   });
 
   // --- `mcp_tools` is DEFINED with a specific list ---
   test('should succeed for an authorized tools/call operation', () => {
     ctx.setVariable(VAK_PREFIX + "apiproduct.name", "TestProduct");
-    ctx.setVariable(VAK_PREFIX + "apiproduct.mcp_tools", '["fetch_data"]');
+    ctx.setVariable(VAK_PREFIX + "apiproduct.mcp_tools", 'create_user, fetch_data');
     ctx.setVariable("mcp.method", "tools/call");
     ctx.setVariable("mcp.params.name", "fetch_data");
     expect(() => authorizeMCPReq(ctx)).not.toThrow();
-    expect(ctx.getVariable("mcp.authorized_product.tools")).toBe('["fetch_data"]');
+    expect(ctx.getVariable("mcp.authorized_product.tools")).toBe('create_user, fetch_data');
   });
 
   test('should throw UNAUTHORIZED for a disallowed tools/call operation', () => {
     ctx.setVariable(VAK_PREFIX + "apiproduct.name", "TestProduct");
-    ctx.setVariable(VAK_PREFIX + "apiproduct.mcp_tools", '["allowed_tool"]');
+    ctx.setVariable(VAK_PREFIX + "apiproduct.mcp_tools", 'allowed_tool, another_tool');
     ctx.setVariable("mcp.method", "tools/call");
     ctx.setVariable("mcp.params.name", "disallowed_tool");
     expect(() => authorizeMCPReq(ctx)).toThrow(
@@ -1005,9 +1006,9 @@ describe('MCP Authorization (authorizeMCPReq)', () => {
     );
   });
 
-  test('should throw UNAUTHORIZED for tools/call when mcp_tools is an empty array', () => {
+  test('should throw UNAUTHORIZED for tools/call when tool is not in the list', () => {
     ctx.setVariable(VAK_PREFIX + "apiproduct.name", "TestProduct");
-    ctx.setVariable(VAK_PREFIX + "apiproduct.mcp_tools", '[]');
+    ctx.setVariable(VAK_PREFIX + "apiproduct.mcp_tools", 'some_tool'); // Set a tool that doesn't match
     ctx.setVariable("mcp.method", "tools/call");
     ctx.setVariable("mcp.params.name", "any_tool");
     expect(() => authorizeMCPReq(ctx)).toThrow(
@@ -1027,35 +1028,6 @@ describe('MCP Authorization (authorizeMCPReq)', () => {
     );
   });
 
-  test('should throw INTERNAL_ERROR for tools/call if mcp_tools is invalid JSON', () => {
-    ctx.setVariable(VAK_PREFIX + "apiproduct.name", "TestProduct");
-    ctx.setVariable(VAK_PREFIX + "apiproduct.mcp_tools", '["tool"'); // Malformed
-    ctx.setVariable("mcp.method", "tools/call");
-    ctx.setVariable("mcp.params.name", "tool");
-    expect(() => authorizeMCPReq(ctx)).toThrow(
-      expect.objectContaining({ code: JSON_RPC_INTERNAL_ERROR, message: 'MCP tools defined in API product "TestProduct" is not valid JSON' })
-    );
-  });
-
-  test('should throw INTERNAL_ERROR for tools/list if mcp_tools is invalid JSON', () => {
-    ctx.setVariable(VAK_PREFIX + "apiproduct.name", "TestProduct");
-    ctx.setVariable(VAK_PREFIX + "apiproduct.mcp_tools", '["tool"'); // Malformed
-    ctx.setVariable("mcp.method", "tools/list");
-    expect(() => authorizeMCPReq(ctx)).toThrow(
-      expect.objectContaining({ code: JSON_RPC_INTERNAL_ERROR, message: 'MCP tools defined in API product "TestProduct" is not valid JSON' })
-    );
-  });
-
-  test('should throw INTERNAL_ERROR if mcp_tools is not a JSON array', () => {
-    ctx.setVariable(VAK_PREFIX + "apiproduct.name", "TestProduct");
-    ctx.setVariable(VAK_PREFIX + "apiproduct.mcp_tools", '{"tool": "fetch_data"}');
-    ctx.setVariable("mcp.method", "tools/call");
-    ctx.setVariable("mcp.params.name", "fetch_data");
-    expect(() => authorizeMCPReq(ctx)).toThrow(
-      expect.objectContaining({ code: JSON_RPC_INTERNAL_ERROR, message: 'MCP tools in API product "TestProduct" must be a JSON array' })
-    );
-  });
-
   test('should throw INVALID_REQUEST if mcp.method is missing', () => {
     ctx.setVariable(VAK_PREFIX + "apiproduct.name", "TestProduct");
     expect(() => authorizeMCPReq(ctx)).toThrow(
@@ -1065,7 +1037,7 @@ describe('MCP Authorization (authorizeMCPReq)', () => {
 
   test('should throw INVALID_REQUEST for tools/call if tool name is missing', () => {
     ctx.setVariable(VAK_PREFIX + "apiproduct.name", "TestProduct");
-    ctx.setVariable(VAK_PREFIX + "apiproduct.mcp_tools", '["fetch_data"]');
+    ctx.setVariable(VAK_PREFIX + "apiproduct.mcp_tools", 'fetch_data');
     ctx.setVariable("mcp.method", "tools/call");
     // mcp.params.name is not set
     expect(() => authorizeMCPReq(ctx)).toThrow(
@@ -1074,10 +1046,8 @@ describe('MCP Authorization (authorizeMCPReq)', () => {
   });
 });
 
-describe('MCP Tool Filtering (filterMCPTools)', () => {
+describe('MCP Tool Filtering by Authorization (filterAuthorizedTools)', () => {
   let ctx;
-  const VAK_PREFIX = "verifyapikey.VAK-Check.";
-
   const originalToolsListResponse = {
     jsonrpc: "2.0",
     id: "123",
@@ -1095,33 +1065,24 @@ describe('MCP Tool Filtering (filterMCPTools)', () => {
     ctx.setVariable("response.content", JSON.stringify(originalToolsListResponse));
   });
 
-  test('should NOT filter tools if mcp_tools contains the wildcard `["*"]`', () => {
-    ctx.setVariable("mcp.authorized_product.tools", '["*"]');
-    filterMCPTools(ctx);
-    // The content should remain unchanged
-    expect(ctx.getVariable("response.content")).toBe(JSON.stringify(originalToolsListResponse));
+  test('should NOT filter tools if mcp_tools contains the wildcard `*`', () => {
+    ctx.setVariable("mcp.authorized_product.tools", ' * '); // Test with whitespace
+    filterAuthorizedTools(ctx);
+    // The content should remain unchanged, compare objects to avoid format differences.
+    expect(JSON.parse(ctx.getVariable("response.content"))).toEqual(originalToolsListResponse);
   });
 
-  test('should filter to an EMPTY list if mcp_tools is an empty array', () => {
-    ctx.setVariable("mcp.authorized_product.tools", "[]");
-    filterMCPTools(ctx);
+  test('should filter to an EMPTY list if mcp_tools is an empty string', () => {
+    ctx.setVariable("mcp.authorized_product.tools", "");
+    filterAuthorizedTools(ctx);
 
     const filteredResponse = JSON.parse(ctx.getVariable("response.content"));
     expect(filteredResponse.result.tools).toEqual([]);
   });
 
-  test('should throw INTERNAL_ERROR for tools/list if mcp_tools is not a JSON array', () => {
-    ctx.setVariable(VAK_PREFIX + "apiproduct.name", "TestProduct");
-    ctx.setVariable(VAK_PREFIX + "apiproduct.mcp_tools", '{"tool": "fetch_data"}');
-    ctx.setVariable("mcp.method", "tools/list");
-    expect(() => authorizeMCPReq(ctx)).toThrow(
-      expect.objectContaining({ code: JSON_RPC_INTERNAL_ERROR, message: 'MCP tools in API product "TestProduct" must be a JSON array' })
-    );
-  });
-
   test('should filter to a SUBSET of tools if mcp_tools is a specific list', () => {
-    ctx.setVariable("mcp.authorized_product.tools", '["tool_a", "tool_c"]');
-    filterMCPTools(ctx);
+    ctx.setVariable("mcp.authorized_product.tools", ' tool_a, tool_c  '); // Test with whitespace
+    filterAuthorizedTools(ctx);
 
     const filteredResponse = JSON.parse(ctx.getVariable("response.content"));
     expect(filteredResponse.result.tools).toHaveLength(2);
@@ -1130,15 +1091,83 @@ describe('MCP Tool Filtering (filterMCPTools)', () => {
 
   test('should filter to an EMPTY list if mcp.authorized_product.tools is UNDEFINED', () => {
     // This variable is deliberately NOT set
-    filterMCPTools(ctx);
+    filterAuthorizedTools(ctx);
     const filteredResponse = JSON.parse(ctx.getVariable("response.content"));
     expect(filteredResponse.result.tools).toEqual([]);
   });
 
   test('should not throw an error if response content is not a valid tools/list response', () => {
     ctx.setVariable("response.content", '{"invalid": "json"}');
-    expect(() => filterMCPTools(ctx)).not.toThrow();
+    expect(() => filterAuthorizedTools(ctx)).not.toThrow();
     // Content should be unchanged
+    expect(ctx.getVariable("response.content")).toBe('{"invalid": "json"}');
+  });
+});
+
+describe('MCP Tool Filtering by Header (filterHeaderTools)', () => {
+  let ctx;
+  const originalToolsListResponse = {
+    jsonrpc: "2.0",
+    id: "123",
+    result: {
+      tools: [
+        { name: "tool_a", description: "Does A" },
+        { name: "tool_b", description: "Does B" },
+        { name: "tool_c", description: "Does C" }
+      ]
+    }
+  };
+
+  beforeEach(() => {
+    ctx = mockContext();
+    ctx.setVariable("response.content", JSON.stringify(originalToolsListResponse));
+  });
+
+  test('should filter tools based on a simple header string', () => {
+    ctx.setVariable("request.header.x-mcp-tools-filter.values.string", "tool_a,tool_c");
+    filterHeaderTools(ctx);
+
+    const filteredResponse = JSON.parse(ctx.getVariable("response.content"));
+    expect(filteredResponse.result.tools).toHaveLength(2);
+    expect(filteredResponse.result.tools.map(t => t.name)).toEqual(["tool_a", "tool_c"]);
+  });
+
+  test('should handle extra whitespace in the header string', () => {
+    ctx.setVariable("request.header.x-mcp-tools-filter.values.string", "  tool_b ,  tool_c  ");
+    filterHeaderTools(ctx);
+
+    const filteredResponse = JSON.parse(ctx.getVariable("response.content"));
+    expect(filteredResponse.result.tools).toHaveLength(2);
+    expect(filteredResponse.result.tools.map(t => t.name)).toEqual(["tool_b", "tool_c"]);
+  });
+
+  test('should return an empty list if header tools do not match', () => {
+    ctx.setVariable("request.header.x-mcp-tools-filter.values.string", "tool_x,tool_y");
+    filterHeaderTools(ctx);
+
+    const filteredResponse = JSON.parse(ctx.getVariable("response.content"));
+    expect(filteredResponse.result.tools).toEqual([]);
+  });
+
+  test('should NOT filter if header is missing, empty, or wildcard', () => {
+    // Test with missing header
+    filterHeaderTools(ctx);
+    expect(JSON.parse(ctx.getVariable("response.content"))).toEqual(originalToolsListResponse);
+
+    // Test with empty header
+    ctx.setVariable("request.header.x-mcp-tools-filter", "");
+    filterHeaderTools(ctx);
+    expect(JSON.parse(ctx.getVariable("response.content"))).toEqual(originalToolsListResponse);
+
+    // Test with wildcard header
+    ctx.setVariable("request.header.x-mcp-tools-filter", " * ");
+    filterHeaderTools(ctx);
+    expect(JSON.parse(ctx.getVariable("response.content"))).toEqual(originalToolsListResponse);
+  });
+
+  test('should not throw an error if response content is not a valid tools/list response', () => {
+    ctx.setVariable("response.content", '{"invalid": "json"}');
+    expect(() => filterHeaderTools(ctx)).not.toThrow();
     expect(ctx.getVariable("response.content")).toBe('{"invalid": "json"}');
   });
 });

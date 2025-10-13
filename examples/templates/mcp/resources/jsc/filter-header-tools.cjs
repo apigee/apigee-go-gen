@@ -19,7 +19,7 @@ var log = isApigee?print:console.log;
 
 function main(ctx) {
   try {
-    filterMCPTools(ctx);
+    filterHeaderTools(ctx);
   } catch(e) {
     log("error.message: " + e.message);
     log("error.stack:\n" + e.stack);

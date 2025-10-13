@@ -183,7 +183,7 @@ Policies:
               "result": {
                 "tools": 
                  {{ $mcp.tools_list | toPrettyJson | nindent 18 }}
-                
+            
               }
             }
       IgnoreUnresolvedVariables: true
@@ -211,14 +211,14 @@ Policies:
         Payload:
           .contentType: application/json
           -Data: |-
-              {
-                "jsonrpc": "2.0",
-                "id": {mcp.id:1},
-                "error": {
-                  "code": {error.status.code},
-                  "message": "{escapeJSON(error.message)}"
-                }
+            {
+              "jsonrpc": "2.0",
+              "id": {mcp.id:1},
+              "error": {
+                "code": {error.status.code},
+                "message": "{escapeJSON(error.message)}"
               }
+            }
         StatusCode: "{error.status.code}"
         ReasonPhrase: "{error.reason.phrase}"
   - AssignMessage:
@@ -237,10 +237,10 @@ Policies:
       .timeLimit: 200
       .name: JS-ProcessMCPReq
       -Data:
-       - DisplayName: JS-ProcessMCPReq
-       - IncludeURL: jsc://mcp.cjs
-       - IncludeURL: jsc://mcp-tools.cjs
-       - ResourceURL: jsc://process-mcp-req.cjs
+        - DisplayName: JS-ProcessMCPReq
+        - IncludeURL: jsc://mcp.cjs
+        - IncludeURL: jsc://mcp-tools.cjs
+        - ResourceURL: jsc://process-mcp-req.cjs
   - Javascript:
       .continueOnError: false
       .enabled: true
@@ -259,6 +259,15 @@ Policies:
         - IncludeURL: jsc://mcp.cjs
         - IncludeURL: jsc://mcp-tools.cjs
         - ResourceURL: jsc://validate-tools.cjs
+  - Javascript:
+      .continueOnError: false
+      .enabled: true
+      .timeLimit: 200
+      .name: JS-FilterHeaderTools
+      -Data:
+        - DisplayName: JS-FilterHeaderTools
+        - IncludeURL: jsc://mcp.cjs
+        - ResourceURL: jsc://filter-header-tools.cjs
   #{{- if $.Values.check_app_authorization }}
   - Javascript:
       .continueOnError: false
@@ -273,11 +282,11 @@ Policies:
       .continueOnError: false
       .enabled: true
       .timeLimit: 200
-      .name: JS-FilterMCPTools
+      .name: JS-FilterAuthorizedTools
       -Data:
-        - DisplayName: JS-FilterMCPTools
+        - DisplayName: JS-FilterAuthorizedTools
         - IncludeURL: jsc://mcp.cjs
-        - ResourceURL: jsc://filter-mcp-tools.cjs
+        - ResourceURL: jsc://filter-authorized-tools.cjs
   #{{- end }}
   - RaiseFault:
       .continueOnError: false
@@ -475,9 +484,11 @@ ProxyEndpoints:
                         Name: JS-ValidateTools
                     - Step:
                         Name: AM-ToolsListRes
+                    - Step:
+                        Name: JS-FilterHeaderTools
                     #{{- if $.Values.check_app_authorization }}
                     - Step:
-                        Name: JS-FilterMCPTools
+                        Name: JS-FilterAuthorizedTools
                     #{{- end }}
             - Flow:
                 .name: ping
@@ -485,11 +496,11 @@ ProxyEndpoints:
                   Step:
                     Name: AM-PingRes
                 Condition: request.verb = "POST" and mcp.method = "ping"
-#            #{{- range $operationId, $_ := $mcp.tools_targets }}
-#            - Flow:
-#                .name: tool-{{ $operationId }}
-#                Condition: request.verb = "POST" and (mcp.method = "tools/call") and (mcp.params.name = "{{ $operationId }}")
-#            #{{- end }}
+            #            #{{- range $operationId, $_ := $mcp.tools_targets }}
+            #            - Flow:
+            #                .name: tool-{{ $operationId }}
+            #                Condition: request.verb = "POST" and (mcp.method = "tools/call") and (mcp.params.name = "{{ $operationId }}")
+            #            #{{- end }}
             - Flow:
                 .name: tools/call
                 Condition: request.verb = "POST" and mcp.method = "tools/call"
@@ -585,15 +596,19 @@ Resources:
   - Resource:
       Type: jsc
       Path: ./parse-mcp.cjs
+  #{{ os_copyfile "./filter-header-tools.cjs" "./resources/jsc/filter-header-tools.cjs" }}
+  - Resource:
+      Type: jsc
+      Path: ./filter-header-tools.cjs
   #{{- if $.Values.check_app_authorization }}
   #{{ os_copyfile "./authorize-mcp-req.cjs" "./resources/jsc/authorize-mcp-req.cjs" }}
   - Resource:
       Type: jsc
       Path: ./authorize-mcp-req.cjs
-  #{{ os_copyfile "./filter-mcp-tools.cjs" "./resources/jsc/filter-mcp-tools.cjs" }}
+  #{{ os_copyfile "./filter-authorized-tools.cjs" "./resources/jsc/filter-authorized-tools.cjs" }}
   - Resource:
       Type: jsc
-      Path: ./filter-mcp-tools.cjs
+      Path: ./filter-authorized-tools.cjs
   #{{- end }}
   #{{ os_copyfile "./process-mcp-req.cjs" "./resources/jsc/process-mcp-req.cjs" }}
   - Resource:
@@ -615,5 +630,3 @@ Resources:
   - Resource:
       Type: jsc
       Path: ./mcp-tools.cjs
-
-

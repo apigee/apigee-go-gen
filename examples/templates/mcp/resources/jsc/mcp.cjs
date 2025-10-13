@@ -318,6 +318,17 @@ function parseJsonRpc(ctx, jsonString, createFlowVars) {
   return rpc
 }
 
+/**
+ * Parses the incoming JSON-RPC request from the Apigee context.
+ * This is a wrapper around parseJsonRpc specifically for the main request body.
+ *
+ * @param {object} ctx The Apigee context object.
+ * @returns {object} The parsed JSON-RPC object.
+ */
+function parseMCPReq(ctx) {
+  return parseJsonRpc(ctx, ctx.getVariable("request.content"), true);
+}
+
 
 /**
  * Replaces path parameters (placeholders like `{paramName}`) in a request path with
@@ -903,10 +914,11 @@ function validateMcpToolsInfo(mcpToolsInfo) {
 /**
  * Filters an MCP `tools/list` response based on the tools allowed in the API Product.
  * It modifies the `response.content` flow variable in place.
+ * This is for authorization-based filtering only.
  *
  * @param {object} ctx The Apigee context object.
  */
-function filterMCPTools(ctx) {
+function filterAuthorizedTools(ctx) {
   var contentStr = ctx.getVariable("response.content");
   var responseRpc = parseJsonString(contentStr, null);
 
@@ -917,34 +929,61 @@ function filterMCPTools(ctx) {
 
   var mcpToolsStr = ctx.getVariable("mcp.authorized_product.tools");
 
-  // If authorizeMCPReq did not pass the mcp_tools variable, it means the
-  // product was not configured for MCP. Filter to an empty list.
-  if (!mcpToolsStr) {
-    responseRpc.result.tools = [];
-    var newContentStr = getPrettyJSON(responseRpc);
-    ctx.setVariable("response.content", newContentStr);
+  if (mcpToolsStr && mcpToolsStr.trim() === '*') {
+    // Wildcard means no filtering is needed.
     return;
   }
 
-  var allowedTools = JSON.parse(mcpToolsStr);
-
-  // If the allowed tools array contains the wildcard "*", do not filter.
-  if (allowedTools.length === 1 && allowedTools[0] === '*') {
-    return;
+  var allowedTools = [];
+  if (mcpToolsStr) {
+    allowedTools = mcpToolsStr.split(',').map(function(tool) {
+      return tool.trim();
+    });
   }
 
-  // Otherwise, filter the list. An empty array `[]` will correctly result
-  // in an empty list of tools.
-  var originalTools = responseRpc.result.tools;
-  var filteredTools = originalTools.filter(function (tool) {
+  // If mcpToolsStr is undefined or empty, allowedTools will be empty, correctly filtering out all tools.
+  responseRpc.result.tools = responseRpc.result.tools.filter(function(tool) {
     return allowedTools.indexOf(tool.name) >= 0;
   });
 
-  responseRpc.result.tools = filteredTools;
   var newContentStr = getPrettyJSON(responseRpc);
   ctx.setVariable("response.content", newContentStr);
 }
 
+
+/**
+ * Filters an MCP `tools/list` response based on the `x-mcp-tools-filter` header.
+ * It modifies the `response.content` flow variable in place.
+ *
+ * @param {object} ctx The Apigee context object.
+ */
+function filterHeaderTools(ctx) {
+  var contentStr = ctx.getVariable("response.content");
+  var responseRpc = parseJsonString(contentStr, null);
+
+  // Silently exit if the response isn't a valid tools/list response.
+  if (!responseRpc || !responseRpc.result || !Array.isArray(responseRpc.result.tools)) {
+    return;
+  }
+
+  var headerFilterStr = ctx.getVariable("request.header.x-mcp-tools-filter.values.string") || ctx.getVariable("request.header.x-mcp-tools-filter");
+
+  // Only filter if the header is present, a string, and not empty or a wildcard.
+  if (!headerFilterStr || !isString(headerFilterStr) || headerFilterStr.trim().length === 0 || headerFilterStr.trim() === '*') {
+    return;
+  }
+
+  var headerTools = headerFilterStr.split(',').map(function(tool) {
+    return tool.trim();
+  });
+
+  responseRpc.result.tools = responseRpc.result.tools.filter(function(tool) {
+    return headerTools.indexOf(tool.name) >= 0;
+  });
+
+  var newContentStr = getPrettyJSON(responseRpc);
+  ctx.setVariable("response.content", newContentStr);
+}
 
 /**
  * Authorizes an MCP (Media Communications Protocol) request based on the API product configuration.
@@ -976,36 +1015,23 @@ function authorizeMCPReq(ctx) {
   }
   ctx.setVariable("mcp.authorized_product.name", apiProductName);
 
-
   var mcpToolsStr = ctx.getVariable(prefix + "apiproduct.mcp_tools");
-  var mcpToolsJson = null;
 
-  // Centralized parsing and validation: if mcp_tools exists, it MUST be valid JSON.
-  if (mcpToolsStr) {
-    try {
-      mcpToolsJson = JSON.parse(mcpToolsStr);
-    } catch (error) {
-      throw new JsonRPCError("MCP tools defined in API product \"" + apiProductName + "\" is not valid JSON", JSON_RPC_INTERNAL_ERROR);
-    }
-    if (!Array.isArray(mcpToolsJson)) {
-      throw new JsonRPCError("MCP tools in API product \"" + apiProductName + "\" must be a JSON array", JSON_RPC_INTERNAL_ERROR);
-    }
-    // Set the variable for downstream policies as soon as it's validated.
+  // Set the variable for downstream policies if it exists.
+  if (isString(mcpToolsStr)) {
     ctx.setVariable("mcp.authorized_product.tools", mcpToolsStr);
   }
 
   // `tools/list` is a special case: it's always an authorized method call.
-  // The filtering logic in a later step will use the variable set above (or not if it was absent).
+  // The filtering logic in a later step will use the variable set above.
   if (mcpMethod === "tools/list") {
     return;
   }
 
   // For all other protected methods (e.g., tools/call), mcp_tools MUST be defined.
-  if (!mcpToolsJson) { // This is equivalent to !mcpToolsStr
+  if (!isString(mcpToolsStr)) {
     throw new JsonRPCError("unauthorized MCP method: " + mcpMethod + ". API product is not configured for MCP tools", JSON_RPC_UNAUTHORIZED_REQUEST, 403);
   }
-
-  // If we reach here, we know mcpToolsJson is a valid, parsed array.
 
   if (mcpMethod === "tools/call") {
     var mcpTool = ctx.getVariable("mcp.params.name");
@@ -1013,13 +1039,17 @@ function authorizeMCPReq(ctx) {
       throw new JsonRPCError("no MCP tool name specified for tools/call", JSON_RPC_INVALID_REQUEST);
     }
 
-    // Check for the explicit wildcard ["*"]
-    if (mcpToolsJson.length === 1 && mcpToolsJson[0] === '*') {
+    // Check for the explicit wildcard "*"
+    if (mcpToolsStr.trim() === '*') {
       return; // Wildcard allows any tool.
     }
 
-    // If not a wildcard, check if the specific tool is in the list.
-    if (mcpToolsJson.indexOf(mcpTool) < 0) {
+    // If not a wildcard, check if the specific tool is in the comma-separated list.
+    var allowedTools = mcpToolsStr.split(',').map(function(tool) {
+      return tool.trim();
+    });
+
+    if (allowedTools.indexOf(mcpTool) < 0) {
       throw new JsonRPCError("unauthorized MCP tools/call: " + mcpTool, JSON_RPC_UNAUTHORIZED_REQUEST, 403);
     }
   }
@@ -1030,6 +1060,7 @@ if (!isApigee) {
   module.exports = {
     "flattenAndSetFlowVariables": flattenAndSetFlowVariables,
     "parseJsonRpc": parseJsonRpc,
+    "parseMCPReq": parseMCPReq,
     "setResponse": setResponse,
     "setErrorResponse": setErrorResponse,
     "createFullUrl": createFullUrl,
@@ -1048,7 +1079,8 @@ if (!isApigee) {
     "getToolInfo": getToolInfo,
     "jsonToFormURLEncoded": jsonToFormURLEncoded,
     "validateMcpToolsInfo": validateMcpToolsInfo,
-    "filterMCPTools": filterMCPTools,
+    "filterAuthorizedTools": filterAuthorizedTools,
+    "filterHeaderTools": filterHeaderTools,
     "authorizeMCPReq": authorizeMCPReq,
     "JSON_RPC_PARSE_ERROR": JSON_RPC_PARSE_ERROR,
     "JSON_RPC_INVALID_REQUEST": JSON_RPC_INVALID_REQUEST,
@@ -1059,3 +1091,4 @@ if (!isApigee) {
     "JSON_RPC_UNAUTHENTICATED_REQUEST": JSON_RPC_UNAUTHENTICATED_REQUEST
   };
 }
+

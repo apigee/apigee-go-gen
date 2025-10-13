@@ -137,7 +137,7 @@ The generated `tools/list` response provides a comprehensive definition for each
 * **`inputSchema`**: Defines the required inputs for the tool, mapped from the API's request parameters.
 * **`outputSchema`**: Defines the expected output structure, mapped directly from the response schema in the **OpenAPI Description**.
 
-Additionally, the proxy supports emitting **`structuredContent`** in the `tools/call` response. When the backend REST API
+Additionally, the MCP API proxy supports emitting **`structuredContent`** in the `tools/call` response. When the backend REST API
 returns a JSON payload (`application/json`), the proxy automatically includes it as structured data, allowing the LLM to
 parse the output directly without needing to interpret raw text.
 
@@ -159,8 +159,8 @@ This seamless mapping enables the LLM to provide data for the API without needin
 
 ### Transcoding
 
-A core function of the proxy is **transcoding** requests. All MCP tool calls arrive in a standardized **JSON-RPC** format.
-The API proxy automatically unwraps this payload and transforms it into a conventional REST API request that the backend
+A core function of the MCP API proxy is **transcoding** requests. All MCP tool calls arrive in a standardized **JSON-RPC** format.
+The proxy automatically unwraps this payload and transforms it into a conventional REST API request that the backend
 service can understand. 🤖➡️🌐
 
 This process includes:
@@ -185,7 +185,7 @@ transformations automatically.
 
 ### OAuth 2 / OpenID Connect
 
-If the **OpenAPI Description** defines a security requirement of type `oauth2` or `openIdConnect`, the generated API proxy includes a discovery endpoint to support the OAuth flow. 🔐
+If the **OpenAPI Description** defines a security requirement of type `oauth2` or `openIdConnect`, the generated MCP API proxy includes a discovery endpoint to support the OAuth flow. 🔐
 
 This endpoint serves the **Protected Resource Metadata** as required by the MCP specification.
 
@@ -217,7 +217,8 @@ apigee-go-gen render apiproxy \
 ```
 
 
-When enabled, the generated proxy will include a [VerifyAPIKey](https://cloud.google.com/apigee/docs/api-platform/reference/policies/verify-api-key-policy) policy. All requests to the MCP server must include a valid API key in the `x-apikey` HTTP header. Requests without a valid key will be rejected with a 401 Unauthorized error.
+When enabled, the generated MCP API proxy will include a [VerifyAPIKey](https://cloud.google.com/apigee/docs/api-platform/reference/policies/verify-api-key-policy) policy. 
+All requests to the proxy must include a valid API key in the `x-apikey` HTTP header. Requests without a valid key will be rejected with a 401 Unauthorized error.
 
 ---
 
@@ -238,19 +239,32 @@ apigee-go-gen render apiproxy \
 
 **How it Works**:
 
-
-Authorization is controlled using a [custom attribute](https://cloud.google.com/apigee/docs/api-platform/publish/create-api-products#customattributes) named `mcp_tools`, set in the API product associated with the client's API key. The value of this attribute must be a JSON array of strings.
+Authorization is controlled using a [custom API product attribute](https://cloud.google.com/apigee/docs/api-platform/publish/create-api-products#customattributes) named `mcp_tools`.
+Thi is set in the API product associated with the client's API key. The value of this attribute is a simple **comma-separated** list of tool names.
 
 The behavior is as follows:
 
-  * `mcp_tools` is **NOT** defined (**secure default**): 
-    If the attribute is missing from the API product, no MCP `tools/call` requests are permitted. The `tools/list` method will return an empty list of tools. This is the most secure posture, as it requires explicit configuration to grant access.
+* `mcp_tools` is **NOT** defined (**secure default**):
+  If the attribute is missing from the API product, no MCP `tools/call` requests are permitted. The `tools/list` method will return an empty list of tools. This is the most secure posture, as it requires explicit configuration to grant access.
 
-  * `mcp_tools` is `["*"]` (**wildcard**):
-    If the attribute is set to a JSON array containing only the wildcard string **"*"**, all tools are authorized. The `tools/list` response will include all tools generated from the OpenAPI Description.
+* `mcp_tools` is `"*"` (**wildcard**):
+  If the attribute is set to the single wildcard character **`*`**, all tools are authorized. The `tools/list` response will include all tools generated from the OpenAPI Description.
 
-  * `mcp_tools` is `["tool_a", "tool_b", ...]` (**granular**): 
-    If the attribute contains a list of specific tool names, only those tools are authorized for `tools/call`. The `tools/list` response will be filtered to only show those specific tools.
+* `mcp_tools` is `"tool_a, tool_b, etc"` (**granular**):
+  If the attribute contains a comma-separated list of specific tool names, only those tools are authorized for `tools/call`. The `tools/list` response will be filtered to only show those specific tools.
 
-  * `mcp_tools` is `[]` (**empty**): 
-    If the attribute is an empty JSON array, no tools are authorized. Any `tools/call` request will be denied, and the `tools/list` method will return an empty list.
+* `mcp_tools` is `""` (**empty**):
+  If the attribute is an empty string, no tools are authorized. Any `tools/call` request will be denied, and the `tools/list` method will return an empty list.
+
+### Server-side Tool Filtering
+The MCP API proxy provides a mechanism to dynamically filter the list of tools returned by the `tools/list` method. 
+This is particularly useful for preventing "context rot", a scenario where providing an LLM with too many tool options can degrade its performance and ability to select the correct tool. 🧠
+
+This filtering is applied **independently** of the authorization rules set in the API Product.
+
+**How it Works**:
+
+Filtering is controlled via the `x-mcp-tools-filter` HTTP header. The header value is a **comma-separated** list of tool names you wish to include in the response of the `tools/list` call.
+
+* **Specific Tools**: A request with the header `x-mcp-tools-filter: tool_a, tool_c` will only receive `tool_a` and `tool_c` in the `tools/list` response (provided they are also allowed by the API Product authorization, if enabled).
+* **No Filtering**: A request with `x-mcp-tools-filter: *` (a single wildcard) or a request without the header will return all available tools.
