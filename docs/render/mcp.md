@@ -256,6 +256,18 @@ The behavior is as follows:
 * `mcp_tools` is `""` (**empty**):
   If the attribute is an empty string, no tools are authorized. Any `tools/call` request will be denied, and the `tools/list` method will return an empty list.
 
+### Binary Response Handling
+
+The MCP API proxy template automatically handles binary data returned from backend REST APIs, ensuring that non-textual content is correctly formatted for the LLM. 🖼️🎵
+
+This feature processes the `Content-Type` header of the backend response and transcodes the payload into the appropriate MCP tool response format.
+
+* **Images (`image/*`)**: If the backend returns an image (e.g., `image/png`, `image/jpeg`), the proxy automatically encodes it into a base64 string and wraps it in an MCP [image content](https://modelcontextprotocol.io/specification/2025-06-18/server/tools#image-content) tool response.
+* **Audio (`audio/*`)**: Similarly, audio responses (e.g., `audio/mpeg`, `audio/wav`) are base64 encoded and returned using the MCP [audio content](https://modelcontextprotocol.io/specification/2025-06-18/server/tools#audio-content) tool response type.
+* **Other Binary Types**: For other binary content like `application/pdf` or `application/zip`, the proxy creates an MCP [embedded resource](https://modelcontextprotocol.io/specification/2025-06-18/server/tools#embedded-resources) tool response. The binary data is base64 encoded and embedded within the `blob` field of the resource object.
+
+This built-in handling allows LLMs to receive and process images, audio files, and other documents directly from your existing APIs without any additional configuration.
+
 ### Server-side Tool Filtering
 The MCP API proxy provides a mechanism to dynamically filter the list of tools returned by the `tools/list` method. 
 This is particularly useful for preventing "context rot", a scenario where providing an LLM with too many tool options can degrade its performance and ability to select the correct tool. 🧠

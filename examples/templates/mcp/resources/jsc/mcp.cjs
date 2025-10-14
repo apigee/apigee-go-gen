@@ -93,6 +93,23 @@ function _get(obj, keyString, defaultValue) {
 }
 
 /**
+ * Calculates a simple hash code for a string.
+ *
+ * @param {string} str The string to hash.
+ * @returns {number} The calculated hash code.
+ */
+function hashCode(str) {
+  var hash = 0, i, chr;
+  if (str.length === 0) return hash;
+  for (i = 0; i < str.length; i++) {
+    chr   = str.charCodeAt(i);
+    hash  = ((hash << 5) - hash) + chr;
+    hash |= 0; // Convert to 32bit integer
+  }
+  return hash;
+}
+
+/**
  * Custom Error class for signaling JSON-RPC errors.
  *
  * @class
@@ -751,6 +768,51 @@ function processMCPRequest(ctx) {
 }
 
 /**
+ * Checks if a given MIME type should be treated as a binary resource.
+ *
+ * @param {string} mimeType The MIME type string to check.
+ * @returns {boolean} True if the MIME type is identified as binary, false otherwise.
+ */
+function isBinaryMimeType(mimeType) {
+  if (!isString(mimeType)) {
+    return false;
+  }
+
+  // Check for generic binary categories first
+  var genericBinaryPrefixes = [
+    'image/',
+    'audio/',
+    'video/',
+    'font/'
+  ];
+
+  for (var i = 0; i < genericBinaryPrefixes.length; i++) {
+    if (mimeType.indexOf(genericBinaryPrefixes[i]) === 0) {
+      return true;
+    }
+  }
+
+  // Fast check for common application-specific binary types
+  var commonBinaryMimeTypes = [
+    'application/octet-stream',
+    'application/pdf',
+    'application/zip',
+    'application/gzip',
+    'application/msword',
+    'application/vnd.ms-excel',
+    'application/vnd.ms-powerpoint',
+    'application/x-bzip',
+    'application/x-bzip2',
+    'application/x-7z-compressed',
+    'application/x-tar',
+    'application/java-archive'
+  ];
+
+  return commonBinaryMimeTypes.indexOf(mimeType) !== -1;
+}
+
+
+/**
  * Processes the response from the target REST service (stored in flow variables) and
  * constructs the standardized JSON-RPC 2.0 response wrapper (the `tools/call` result).
  * Sets the final response flow variables for the proxy.
@@ -760,6 +822,8 @@ function processMCPRequest(ctx) {
 function processRESTRes(ctx) {
   var statusCode = parseInt(ctx.getVariable("response.status.code"));
   var content = ctx.getVariable("response.content");
+  var contentType = ctx.getVariable("response.header.content-type");
+  var base64Content = ctx.getVariable("response.content.as.base64");
 
   var statusCodePrefix = parseInt(statusCode/100);
 
@@ -775,27 +839,60 @@ function processRESTRes(ctx) {
     jsonrpc: "2.0",
     id: mcpId,
     result: {
-      content: [
-        {
-          type: "text",
-          text: content
-        }
-      ],
       isError: isError
+      // 'content' will be added below based on type
+    }
+  };
+
+
+  //handle binary formats
+  if (isString(contentType)) {
+    if (contentType.indexOf("image/") === 0) {
+      rpcResponse.result.content = [{
+        type: "image",
+        data: base64Content,
+        mimeType: contentType
+      }];
+    } else if (contentType.indexOf("audio/") === 0) {
+      rpcResponse.result.content = [{
+        type: "audio",
+        data: base64Content,
+        mimeType: contentType
+      }];
+    } else if (isBinaryMimeType(contentType)) {
+      // Handle as generic binary resource
+      var hash = hashCode(base64Content);
+      var fileName = "downloaded-file"; // Generic name
+
+      rpcResponse.result.content = [{
+        type: "resource",
+        resource: {
+          uri: "urn:apigee:mcp:blob:" + hash,
+          name: fileName,
+          title: "Downloaded File",
+          mimeType: contentType,
+          blob: base64Content
+        }
+      }];
     }
   }
 
-  var jsonResponse = parseJsonString(content, null)
-  if (jsonResponse) {
-    //MCP version 2025-06-18 structuredContent only supports "object"
-    if (!isPlainObject(jsonResponse)) {
-      jsonResponse = {
-        result: jsonResponse
+  // Fallback to text/json handling
+  if (!rpcResponse.result.content) {
+    rpcResponse.result.content = [{
+      type: "text",
+      text: content
+    }];
+    var jsonResponse = parseJsonString(content, null);
+    if (jsonResponse) {
+      if (!isPlainObject(jsonResponse)) {
+        jsonResponse = {
+          result: jsonResponse
+        };
       }
+      rpcResponse.result.structuredContent = jsonResponse;
     }
-    rpcResponse.result.structuredContent = jsonResponse
   }
-
 
   setResponse(ctx, 200, headers,  getPrettyJSON(rpcResponse));
 }
@@ -1082,6 +1179,7 @@ if (!isApigee) {
     "filterAuthorizedTools": filterAuthorizedTools,
     "filterHeaderTools": filterHeaderTools,
     "authorizeMCPReq": authorizeMCPReq,
+    "isBinaryMimeType": isBinaryMimeType,
     "JSON_RPC_PARSE_ERROR": JSON_RPC_PARSE_ERROR,
     "JSON_RPC_INVALID_REQUEST": JSON_RPC_INVALID_REQUEST,
     "JSON_RPC_METHOD_NOT_FOUND": JSON_RPC_METHOD_NOT_FOUND,
@@ -1091,4 +1189,3 @@ if (!isApigee) {
     "JSON_RPC_UNAUTHENTICATED_REQUEST": JSON_RPC_UNAUTHENTICATED_REQUEST
   };
 }
-

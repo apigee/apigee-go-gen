@@ -27,8 +27,10 @@ const {
   getToolInfo,
   isPlainObject,
   isString,
+  isBinaryMimeType,
   jsonToFormURLEncoded,
   parseJsonRpc,
+  parseMCPReq,
   parseJsonString,
   processMCPRequest,
   processRESTRes,
@@ -194,6 +196,31 @@ describe('Object Path Getter (_get)', () => {
   test('should handle non-object input', () => {
     expect(_get(null, 'id', 0)).toBe(0);
     expect(_get(123, 'id', 0)).toBe(0);
+  });
+});
+
+describe('isBinaryMimeType', () => {
+  // Test common binary types
+  test('should return true for common binary MIME types', () => {
+    expect(isBinaryMimeType('application/pdf')).toBe(true);
+    expect(isBinaryMimeType('application/zip')).toBe(true);
+    expect(isBinaryMimeType('application/octet-stream')).toBe(true);
+  });
+
+  // Test text-based types that should return false
+  test('should return false for text-based MIME types', () => {
+    expect(isBinaryMimeType('application/json')).toBe(false);
+    expect(isBinaryMimeType('application/xml')).toBe(false);
+    expect(isBinaryMimeType('text/html')).toBe(false);
+    expect(isBinaryMimeType('text/plain')).toBe(false);
+  });
+
+  // Test invalid inputs
+  test('should return false for invalid or non-string inputs', () => {
+    expect(isBinaryMimeType(null)).toBe(false);
+    expect(isBinaryMimeType(undefined)).toBe(false);
+    expect(isBinaryMimeType(123)).toBe(false);
+    expect(isBinaryMimeType({})).toBe(false);
   });
 });
 
@@ -698,6 +725,7 @@ describe('MCP Request/Response Processing', () => {
     const ctx = mockContext();
     // Using integer for response.status.code
     ctx.setVariable("response.status.code", 200);
+    ctx.setVariable("response.header.content-type", "application/json");
     ctx.setVariable("response.content", '{"name": "result"}');
     ctx.setVariable("mcp.id", 10005); // Distinct integer ID
 
@@ -710,6 +738,7 @@ describe('MCP Request/Response Processing', () => {
     expect(rpcResponse.result.isError).toBe(false);
     // Should be the plain object directly
     expect(rpcResponse.result.structuredContent).toEqual({ name: "result" });
+    expect(rpcResponse.result.content[0].text).toBe('{"name": "result"}');
   });
 
   test('processRESTRes should wrap non-plain object responses (array/literal) in a "result" key', () => {
@@ -717,6 +746,7 @@ describe('MCP Request/Response Processing', () => {
     const arrayContent = '[1, "two", {"key": 3}]';
     // Using integer for response.status.code
     ctx.setVariable("response.status.code", 200);
+    ctx.setVariable("response.header.content-type", "application/json");
     ctx.setVariable("response.content", arrayContent);
     ctx.setVariable("mcp.id", 10006); // Distinct integer ID
 
@@ -735,6 +765,7 @@ describe('MCP Request/Response Processing', () => {
     const ctx = mockContext();
     // Using integer for response.status.code
     ctx.setVariable("response.status.code", 404);
+    ctx.setVariable("response.header.content-type", "application/json");
     ctx.setVariable("response.content", '{"error": "Not Found"}');
     ctx.setVariable("mcp.id", 10007); // Distinct integer ID
 
@@ -743,6 +774,78 @@ describe('MCP Request/Response Processing', () => {
     const rpcResponse = JSON.parse(ctx.getVariable("response.content"));
     expect(rpcResponse.id).toBe(10007); // Check for distinct integer ID
     expect(rpcResponse.result.isError).toBe(true);
+  });
+
+  test('processRESTRes should handle image responses correctly', () => {
+    const ctx = mockContext();
+    const base64ImageData = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
+    ctx.setVariable("response.status.code", 200);
+    ctx.setVariable("response.header.content-type", "image/png");
+    ctx.setVariable("response.content.as.base64", base64ImageData);
+    ctx.setVariable("mcp.id", 10008);
+
+    processRESTRes(ctx);
+
+    const rpcResponse = JSON.parse(ctx.getVariable("response.content"));
+    expect(rpcResponse.id).toBe(10008);
+    expect(rpcResponse.result.isError).toBe(false);
+    expect(rpcResponse.result.structuredContent).toBeUndefined();
+    expect(rpcResponse.result.content).toHaveLength(1);
+    expect(rpcResponse.result.content[0]).toEqual({
+      type: "image",
+      data: base64ImageData,
+      mimeType: "image/png"
+    });
+  });
+
+  test('processRESTRes should handle audio responses correctly', () => {
+    const ctx = mockContext();
+    const base64AudioData = "UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=";
+    ctx.setVariable("response.status.code", 200);
+    ctx.setVariable("response.header.content-type", "audio/wav");
+    ctx.setVariable("response.content.as.base64", base64AudioData);
+    ctx.setVariable("mcp.id", 10009);
+
+    processRESTRes(ctx);
+
+    const rpcResponse = JSON.parse(ctx.getVariable("response.content"));
+    expect(rpcResponse.id).toBe(10009);
+    expect(rpcResponse.result.isError).toBe(false);
+    expect(rpcResponse.result.structuredContent).toBeUndefined();
+    expect(rpcResponse.result.content).toHaveLength(1);
+    expect(rpcResponse.result.content[0]).toEqual({
+      type: "audio",
+      data: base64AudioData,
+      mimeType: "audio/wav"
+    });
+  });
+
+  test('processRESTRes should handle generic binary (pdf) responses correctly', () => {
+    const ctx = mockContext();
+    const base64PdfData = "JVBERi0xLjQKJ...";
+    const hash = 194360842; // Pre-calculated hash of the base64 string
+    ctx.setVariable("response.status.code", 200);
+    ctx.setVariable("response.header.content-type", "application/pdf");
+    ctx.setVariable("response.content.as.base64", base64PdfData);
+    ctx.setVariable("mcp.id", 10010);
+
+    processRESTRes(ctx);
+
+    const rpcResponse = JSON.parse(ctx.getVariable("response.content"));
+    expect(rpcResponse.id).toBe(10010);
+    expect(rpcResponse.result.isError).toBe(false);
+    expect(rpcResponse.result.structuredContent).toBeUndefined();
+    expect(rpcResponse.result.content).toHaveLength(1);
+    expect(rpcResponse.result.content[0]).toEqual({
+      type: "resource",
+      resource: {
+        uri: "urn:apigee:mcp:blob:" + hash,
+        name: "downloaded-file",
+        title: "Downloaded File",
+        mimeType: "application/pdf",
+        blob: base64PdfData
+      }
+    });
   });
 });
 
@@ -1155,12 +1258,12 @@ describe('MCP Tool Filtering by Header (filterHeaderTools)', () => {
     expect(JSON.parse(ctx.getVariable("response.content"))).toEqual(originalToolsListResponse);
 
     // Test with empty header
-    ctx.setVariable("request.header.x-mcp-tools-filter", "");
+    ctx.setVariable("request.header.x-mcp-tools-filter.values.string", "");
     filterHeaderTools(ctx);
     expect(JSON.parse(ctx.getVariable("response.content"))).toEqual(originalToolsListResponse);
 
     // Test with wildcard header
-    ctx.setVariable("request.header.x-mcp-tools-filter", " * ");
+    ctx.setVariable("request.header.x-mcp-tools-filter.values.string", " * ");
     filterHeaderTools(ctx);
     expect(JSON.parse(ctx.getVariable("response.content"))).toEqual(originalToolsListResponse);
   });
