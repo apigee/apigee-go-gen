@@ -87,15 +87,23 @@ func set(parent any, keyParts []string, keyIndex int, value any) error {
 	if keyIndex == len(keyParts)-1 {
 		//the end
 		switch typedParent := parent.(type) {
+		case map[string]any:
+			return set(&typedParent, keyParts, keyIndex, value)
 		case Map:
+			return set(&typedParent, keyParts, keyIndex, value)
+		case []any:
 			return set(&typedParent, keyParts, keyIndex, value)
 		case Slice:
 			return set(&typedParent, keyParts, keyIndex, value)
+		case *map[string]any:
+			return set((*Map)(typedParent), keyParts, keyIndex, value)
 		case *Map:
 			if isUnnamedSlice(cKey) {
 				return errors.Errorf("cannot set key %s on map type", cKey)
 			}
 			(*typedParent)[cKey] = value
+		case *[]any:
+			return set((*Slice)(typedParent), keyParts, keyIndex, value)
 		case *Slice:
 			if !isUnnamedSlice(cKey) {
 				return errors.Errorf("cannot key set %s on slice type", cKey)
@@ -114,8 +122,12 @@ func set(parent any, keyParts []string, keyIndex int, value any) error {
 	} else {
 		//walk down
 		switch typedParent := parent.(type) {
+		case map[string]any:
+			return set(&typedParent, keyParts, keyIndex, value)
 		case Map:
 			return set(&typedParent, keyParts, keyIndex, value)
+		case *map[string]any:
+			return set((*Map)(typedParent), keyParts, keyIndex, value)
 		case *Map:
 			if isUnnamedSlice(cKey) {
 				return errors.Errorf("cannot set key %s on map type", cKey)
@@ -125,16 +137,20 @@ func set(parent any, keyParts []string, keyIndex int, value any) error {
 				nextKey := keyParts[keyIndex+1]
 				if isUnnamedSlice(nextKey) {
 					//create a slice at this location
-					newParent = &Slice{}
+					newParent = []any{}
 				} else {
 					//create a map at this location
-					newParent = &Map{}
+					newParent = map[string]any{}
 				}
 				(*typedParent)[cKey] = newParent
 			}
 			return set(newParent, keyParts, keyIndex+1, value)
+		case []any:
+			return set(&typedParent, keyParts, keyIndex, value)
 		case Slice:
 			return set(&typedParent, keyParts, keyIndex, value)
+		case *[]any:
+			return set((*Slice)(typedParent), keyParts, keyIndex, value)
 		case *Slice:
 			if !isUnnamedSlice(cKey) {
 				return errors.Errorf("cannot key set %s on slice type", cKey)
@@ -150,10 +166,10 @@ func set(parent any, keyParts []string, keyIndex int, value any) error {
 			var newParent any
 			if isUnnamedSlice(nextKey) {
 				//create a slice at this location
-				newParent = &Slice{}
+				newParent = []any{}
 			} else {
 				//create a map at this location
-				newParent = &Map{}
+				newParent = map[string]any{}
 			}
 
 			(*typedParent)[index] = newParent
