@@ -12,6 +12,13 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-**/out-*.yaml
-**/out-*.json
-**/out-*.tf
+module "my_vpc" {
+  source  = "terraform-aws-modules/vpc/aws"
+  version = "~> 3.0"
+
+  name = "main-vpc"
+
+  providers = {
+    aws = aws.east
+  }
+}

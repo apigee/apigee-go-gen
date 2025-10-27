@@ -12,6 +12,9 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-**/out-*.yaml
-**/out-*.json
-**/out-*.tf
+server {
+  name = "web-01"
+}
+server {
+  name = "web-02"
+}

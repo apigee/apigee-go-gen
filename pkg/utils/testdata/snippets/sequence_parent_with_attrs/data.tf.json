@@ -1,0 +1,14 @@
+{
+  "Parent": {
+    "_Data": [
+      {
+        "Child": "foo"
+      },
+      {
+        "Child": "bar"
+      }
+    ],
+    "_attr1": "value1",
+    "_attr2": "value2"
+  }
+}

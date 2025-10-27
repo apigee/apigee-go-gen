@@ -12,6 +12,9 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-**/out-*.yaml
-**/out-*.json
-**/out-*.tf
+service "web" {
+  port = 80
+}
+service "api" {
+  port = 8080
+}

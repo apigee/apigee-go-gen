@@ -12,6 +12,21 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-**/out-*.yaml
-**/out-*.json
-**/out-*.tf
+FlowCallout {
+  _async = false
+  _continueOnError = true
+  _enabled = true
+  _name = "FC-Callout"
+  DisplayName = "FC-Callout"
+  SharedFlowBundle = "SharedFlowName"
+
+  Parameters "Parameter" {
+    _name = "param1"
+    _value = "Literal"
+  }
+
+  Parameters "Parameter" {
+    _name = "param2"
+    _ref = "request.content"
+  }
+}

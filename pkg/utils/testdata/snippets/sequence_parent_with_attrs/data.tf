@@ -12,6 +12,15 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-**/out-*.yaml
-**/out-*.json
-**/out-*.tf
+Parent {
+  _attr1 = "value1"
+  _attr2 = "value2"
+
+  _Data {
+    Child = "foo"
+  }
+
+  _Data {
+    Child = "bar"
+  }
+}

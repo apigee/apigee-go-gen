@@ -1,0 +1,22 @@
+{
+  "provider": [
+    {
+      "aws": {
+        "region": "us-east-1"
+      }
+    },
+    {
+      "aws": {
+        "alias": "east",
+        "region": "us-east-1",
+        "version": "~> 5.0"
+      }
+    },
+    {
+      "aws": {
+        "alias": "west",
+        "region": "us-west-2"
+      }
+    }
+  ]
+}

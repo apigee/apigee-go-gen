@@ -12,6 +12,8 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-**/out-*.yaml
-**/out-*.json
-**/out-*.tf
+output "instance_ip" {
+  description = "The IP address of the instance."
+  sensitive   = true
+  value       = aws_instance.main.public_ip
+}

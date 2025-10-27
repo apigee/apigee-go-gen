@@ -12,6 +12,17 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-**/out-*.yaml
-**/out-*.json
-**/out-*.tf
+provider "aws" {
+  region = "us-east-1"
+}
+
+provider "aws" {
+  alias   = "east"
+  region  = "us-east-1"
+  version = "~> 5.0"
+}
+
+provider "aws" {
+  alias  = "west"
+  region = "us-west-2"
+}

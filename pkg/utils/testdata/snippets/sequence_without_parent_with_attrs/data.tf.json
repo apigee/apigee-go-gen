@@ -1,0 +1,18 @@
+{
+  "Root": {
+    "_Data": [
+      {
+        "Child": {
+          "_name": "foo"
+        }
+      },
+      {
+        "Child": {
+          "_name": "bar"
+        }
+      }
+    ],
+    "_attr1": "val1",
+    "_attr2": "val2"
+  }
+}

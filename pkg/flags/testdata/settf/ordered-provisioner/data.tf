@@ -12,6 +12,19 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-**/out-*.yaml
-**/out-*.json
-**/out-*.tf
+resource "aws_instance" "example" {
+  # (resource configuration omitted for brevity)
+
+  provisioner "local-exec" {
+    command = "echo 'Hello World' >example.txt"
+  }
+  provisioner "file" {
+    source      = "example.txt"
+    destination = "/tmp/example.txt"
+  }
+  provisioner "remote-exec" {
+    inline = [
+      "sudo install-something -f /tmp/example.txt",
+    ]
+  }
+}

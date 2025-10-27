@@ -28,6 +28,12 @@
          Sets individual key/value. The Value is the gRPC proto is parsed into FileDescriptorProto type
          (See https://pkg.go.dev/google.golang.org/protobuf/types/descriptorpb#FileDescriptorProto )
 
+      --set-tf key=./path/to/terraform/file.tf
+         Sets individual key/value. The value is the Terraform HCL file as a map[string]any using JSON Configuration Syntax
+         (See https://developer.hashicorp.com/terraform/language/syntax/json)
+
+
+
 
   From your template, you can access data in the context with "$."
 

@@ -1,0 +1,11 @@
+{
+  "locals": {
+    "service_name": "my-app",
+    "owner": "${var.owner}",
+    "common_tags": {
+      "Service": "${local.service_name}",
+      "Owner": "${local.owner}"
+    },
+    "instance_ids": "${[for i in aws_instance.main : i.id]}"
+  }
+}

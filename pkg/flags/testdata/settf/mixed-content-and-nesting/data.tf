@@ -12,6 +12,28 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-**/out-*.yaml
-**/out-*.json
-**/out-*.tf
+region = "us-east-1"
+
+resource "aws_vpc" "main-vpc" {
+  name = "test-vpc"
+  tuple = [1, 2, 3]
+  mixed = [1, 2, 1 + 2 ]
+}
+
+# Single labeled block
+resource "aws_vpc" "main" {
+  cidr_block = "10.0.0.0/16"
+
+  # Nested unlabeled block
+  tags {
+    Name = "main-vpc"
+  }
+
+  # Another nested block (multiple)
+  subnet {
+    cidr = "10.0.1.0/24"
+  }
+  subnet {
+    cidr = "10.0.2.0/24"
+  }
+}

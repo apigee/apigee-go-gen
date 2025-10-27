@@ -12,6 +12,18 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-**/out-*.yaml
-**/out-*.json
-**/out-*.tf
+Root {
+  Child1 = 1
+}
+
+Root {
+  Child2 = 2
+}
+
+Root {
+  Child1 = 3
+}
+
+Root {
+  Child2 = 4
+}

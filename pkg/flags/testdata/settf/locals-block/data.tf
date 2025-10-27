@@ -12,6 +12,12 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-**/out-*.yaml
-**/out-*.json
-**/out-*.tf
+locals {
+  service_name = "my-app"
+  owner        = var.owner
+  common_tags = {
+    Service = local.service_name
+    Owner   = local.owner
+  }
+  instance_ids = [for i in aws_instance.main : i.id]
+}

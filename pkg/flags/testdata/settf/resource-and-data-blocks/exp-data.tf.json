@@ -1,0 +1,54 @@
+{
+  "data": {
+    "aws_ami": {
+      "example": {
+        "most_recent": true,
+        "provider": "aws.west"
+      }
+    }
+  },
+  "resource": [
+    {
+      "aws_instance": {
+        "main": {
+          "provider": "aws.east",
+          "ami": "${data.aws_ami.example.id}",
+          "connection": {
+            "type": "ssh",
+            "user": "admin"
+          },
+          "depends_on": [
+            "aws_s3_bucket.foo",
+            "aws_iam_role.bar"
+          ],
+          "lifecycle": {
+            "create_before_destroy": true,
+            "ignore_changes": [
+              "aws_security_group.sg.id",
+              "tags"
+            ]
+          },
+          "provisioner": {
+            "remote-exec": {
+              "connection": {
+                "type": "var.conn_type"
+              },
+              "inline": [
+                "echo 'hello'"
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "aws_instance": {
+        "secondary": {
+          "lifecycle": {
+            "ignore_changes": "all"
+          }
+        }
+      }
+    }
+  ]
+}

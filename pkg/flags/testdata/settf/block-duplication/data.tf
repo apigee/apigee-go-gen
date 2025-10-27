@@ -12,6 +12,17 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-**/out-*.yaml
-**/out-*.json
-**/out-*.tf
+
+# This block appears once
+single_block {
+  name = "a"
+}
+
+# This block type appears twice
+multi_block {
+  name = "b"
+}
+
+multi_block {
+  name = "c"
+}

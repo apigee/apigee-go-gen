@@ -1,4 +1,4 @@
-//  Copyright 2024 Google LLC
+//  Copyright 2025 Google LLC
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -17,11 +17,13 @@ package transform
 //goland:noinspection GoSnakeCaseUsage
 import (
 	apiproxy_to_yaml "github.com/apigee/apigee-go-gen/cmd/apigee-go-gen/transform/apiproxy-to-yaml"
+	json_to_tf "github.com/apigee/apigee-go-gen/cmd/apigee-go-gen/transform/json-to-tf"
 	json_to_yaml "github.com/apigee/apigee-go-gen/cmd/apigee-go-gen/transform/json-to-yaml"
 	oas_overlay "github.com/apigee/apigee-go-gen/cmd/apigee-go-gen/transform/oas-overlay"
 	oas2_to_oas3 "github.com/apigee/apigee-go-gen/cmd/apigee-go-gen/transform/oas2-to-oas3"
 	resolve_refs "github.com/apigee/apigee-go-gen/cmd/apigee-go-gen/transform/resolve-refs"
 	sharedflow_to_yaml "github.com/apigee/apigee-go-gen/cmd/apigee-go-gen/transform/sharedflow-to-yaml"
+	tf_to_json "github.com/apigee/apigee-go-gen/cmd/apigee-go-gen/transform/tf-to-json"
 	xml_to_yaml "github.com/apigee/apigee-go-gen/cmd/apigee-go-gen/transform/xml-to-yaml"
 	yaml_to_apiproxy "github.com/apigee/apigee-go-gen/cmd/apigee-go-gen/transform/yaml-to-apiproxy"
 	yaml_to_json "github.com/apigee/apigee-go-gen/cmd/apigee-go-gen/transform/yaml-to-json"
@@ -47,4 +49,6 @@ func init() {
 	Cmd.AddCommand(json_to_yaml.Cmd)
 	Cmd.AddCommand(yaml_to_json.Cmd)
 	Cmd.AddCommand(oas_overlay.Cmd)
+	Cmd.AddCommand(tf_to_json.Cmd)
+	Cmd.AddCommand(json_to_tf.Cmd)
 }

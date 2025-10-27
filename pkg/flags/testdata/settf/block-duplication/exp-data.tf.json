@@ -1,0 +1,13 @@
+{
+  "single_block": {
+    "name": "a"
+  },
+  "multi_block": [
+    {
+      "name": "b"
+    },
+    {
+      "name": "c"
+    }
+  ]
+}

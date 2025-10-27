@@ -1,0 +1,14 @@
+{
+  "Root": [
+    {
+      "Child": {
+        "_name": "foo"
+      }
+    },
+    {
+      "Child": {
+        "_name": "bar"
+      }
+    }
+  ]
+}

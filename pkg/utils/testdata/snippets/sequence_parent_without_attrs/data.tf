@@ -12,6 +12,10 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-**/out-*.yaml
-**/out-*.json
-**/out-*.tf
+Parent {
+  Child = "foo"
+}
+
+Parent {
+  Child = "bar"
+}

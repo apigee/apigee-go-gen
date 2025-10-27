@@ -1,0 +1,62 @@
+{
+  "resource": [
+    {
+      "aws_s3_bucket": {
+        "primary": {
+          "bucket": "${var.primary_bucket_name}",
+          "provider": "aws.primary"
+        }
+      }
+    },
+    {
+      "aws_s3_bucket": {
+        "secondary": {
+          "bucket": "${var.secondary_bucket_name}",
+          "provider": "aws.secondary"
+        }
+      }
+    },
+    {
+      "google_storage_bucket": {
+        "gcs_bucket": {
+          "location": "US-CENTRAL1",
+          "name": "${var.gcs_bucket_name}",
+          "provider": "google"
+        }
+      }
+    }
+  ],
+  "terraform": {
+    "required_providers": {
+      "aws": {
+        "configuration_aliases": [
+          "aws.primary",
+          "aws.secondary"
+        ],
+        "source": "hashicorp/aws",
+        "version": "~\u003e 5.0"
+      },
+      "google": {
+        "source": "hashicorp/google",
+        "version": "~\u003e 5.0"
+      }
+    }
+  },
+  "variable": [
+    {
+      "primary_bucket_name": {
+        "type": "string"
+      }
+    },
+    {
+      "secondary_bucket_name": {
+        "type": "string"
+      }
+    },
+    {
+      "gcs_bucket_name": {
+        "type": "string"
+      }
+    }
+  ]
+}

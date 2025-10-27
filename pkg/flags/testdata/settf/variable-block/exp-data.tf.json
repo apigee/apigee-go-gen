@@ -1,0 +1,29 @@
+{
+  "variable": [
+    {
+      "list_var": {
+        "type": "list(string)",
+        "description": "A list of strings.",
+        "default": [
+          "a",
+          "b",
+          "c"
+        ]
+      }
+    },
+    {
+      "obj_var": {
+        "type": "object({\n    name = string\n    age  = number\n  })",
+        "default": {
+          "name": "Terraform",
+          "age": 10
+        }
+      }
+    },
+    {
+      "no_default": {
+        "type": "string"
+      }
+    }
+  ]
+}

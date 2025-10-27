@@ -12,6 +12,24 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-**/out-*.yaml
-**/out-*.json
-**/out-*.tf
+
+variable "list_var" {
+  type        = list(string)
+  description = "A list of strings."
+  default     = ["a", "b", "c"]
+}
+
+variable "obj_var" {
+  type = object({
+    name = string
+    age  = number
+  })
+  default = {
+    name = "Terraform"
+    age  = 10
+  }
+}
+
+variable "no_default" {
+  type = string
+}

@@ -1,4 +1,4 @@
-//  Copyright 2024 Google LLC
+//  Copyright 2025 Google LLC
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -37,6 +37,7 @@ var setOAS = flags.NewSetOAS(cFlags.Values)
 var setGraphQL = flags.NewSetGraphQL(cFlags.Values)
 var setGRPC = flags.NewSetGRPC(cFlags.Values)
 var setJSON = flags.NewSetJSON(cFlags.Values)
+var setTF = flags.NewSetTF(cFlags.Values)
 
 var Cmd = &cobra.Command{
 	Use:   "apiproxy",
@@ -70,6 +71,7 @@ func init() {
 	Cmd.Flags().Var(&setOAS, "set-oas", `sets key=value where value is an OpenAPI Description, e.g. "my_spec=./petstore.yaml"`)
 	Cmd.Flags().Var(&setGRPC, "set-grpc", `sets key=value where value is a gRPC proto, e.g. "my_proto=./greeter.proto"`)
 	Cmd.Flags().Var(&setGraphQL, "set-graphql", `sets key=value where value is a GraphQL schema, e.g. "my_schema=./resorts.graphql"`)
+	Cmd.Flags().Var(&setTF, "set-tf", `sets key=value where value is a Terraform HCL file, e.g. "my_tf=./file.tf"`)
 	Cmd.Flags().Var(&setJSON, "set-json", `sets key=value where value is JSON, e.g. 'servers=["server1","server2"]'`)
 
 	_ = Cmd.MarkFlagRequired("template")

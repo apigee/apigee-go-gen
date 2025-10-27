@@ -1,0 +1,12 @@
+{
+  "Root": {
+    "Child1": {
+      "_Data": "foo",
+      "_name": "foo"
+    },
+    "Child2": {
+      "_Data": "bar",
+      "_name": "bar"
+    }
+  }
+}

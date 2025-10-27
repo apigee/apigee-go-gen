@@ -12,6 +12,18 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-**/out-*.yaml
-**/out-*.json
-**/out-*.tf
+string_attr   = "simple string"
+number_attr   = 123
+bool_attr     = false
+null_attr     = null
+wrapped_var   = var.foo
+wrapped_func  = format("Hello, %s", var.name)
+wrapped_cond  = var.a ? "b" : "c"
+template_str  = "Hello, ${var.name}!"
+list_attr     = [1, "two", true, var.three]
+object_attr = {
+  naked_key   = "value1"
+  "quoted_key" = "value2"
+  (var.key)   = "value3"
+  nested_list = [var.a, var.b]
+}

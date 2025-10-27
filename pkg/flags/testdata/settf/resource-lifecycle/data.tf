@@ -12,6 +12,8 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-**/out-*.yaml
-**/out-*.json
-**/out-*.tf
+resource "aws_instance" "example" {
+  lifecycle {
+    create_before_destroy = true
+  }
+}

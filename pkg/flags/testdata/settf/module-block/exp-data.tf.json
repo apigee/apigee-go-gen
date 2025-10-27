@@ -1,0 +1,12 @@
+{
+  "module": {
+    "my_vpc": {
+      "source": "terraform-aws-modules/vpc/aws",
+      "version": "~> 3.0",
+      "name": "main-vpc",
+      "providers": {
+        "aws": "aws.east"
+      }
+    }
+  }
+}
