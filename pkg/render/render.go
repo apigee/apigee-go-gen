@@ -81,8 +81,13 @@ func RenderTemplate(tmpl *template.Template, context any) ([]byte, error) {
 		return nil, errors.New(err)
 	}
 
+	//remove empty lines with just #
 	regex := regexp.MustCompile(`(?ms)^\s*#\s*$[\r\n]*`)
 	replaced := regex.ReplaceAll(renderedBytes.Bytes(), []byte{})
+
+	//remove lines with just # // a comment
+	regex = regexp.MustCompile(`(?m)^\s*#\s*//.+$[\r\n]*`)
+	replaced = regex.ReplaceAll(replaced, []byte{})
 	return replaced, nil
 }
 
