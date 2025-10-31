@@ -92,6 +92,7 @@ func RenderTemplate(tmpl *template.Template, context any) ([]byte, error) {
 }
 
 func CreateTemplate(templateFile string, includeList []string, outputFile string, dryRun bool) (*template.Template, error) {
+	includeList = append(includeList, templateFile)
 	includeMatches, err := ExpandInclude(includeList)
 	if err != nil {
 		return nil, err
@@ -280,6 +281,8 @@ func CreateTemplate(templateFile string, includeList []string, outputFile string
 	helperFuncs["deref"] = derefFunc
 	helperFuncs["slug_make"] = slugMakeFunc
 	helperFuncs["oas3_to_mcp"] = convertOAS3ToMCPValues
+	helperFuncs["yaml_to_json"] = convertYAMLTextToJSON
+	helperFuncs["json_to_yaml"] = convertJSONToYAML
 
 	var templateText []byte
 	if templateText, err = os.ReadFile(templateFile); err != nil {
