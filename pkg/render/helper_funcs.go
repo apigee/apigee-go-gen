@@ -140,6 +140,40 @@ func convertOAS3ToMCPValues(args ...any) map[string]any {
 	return mcpValuesMap
 }
 
+func convertYAMLTextToJSON(args ...any) string {
+	if len(args) < 1 {
+		panic("yaml_to_json function requires one argument")
+	}
+
+	yamlText := args[0].(string)
+
+	var jsonText []byte
+	var err error
+
+	if jsonText, err = utils.YAMLText2JSONText(strings.NewReader(yamlText)); err != nil {
+		panic(err)
+	}
+
+	return string(jsonText)
+}
+
+func convertJSONToYAML(args ...any) string {
+	if len(args) < 1 {
+		panic("json_to_yaml function requires one argument")
+	}
+
+	jsonText := args[0].(string)
+
+	var yamlText []byte
+	var err error
+
+	if yamlText, err = utils.JSONText2YAMLText(strings.NewReader(jsonText)); err != nil {
+		panic(err)
+	}
+
+	return string(yamlText)
+}
+
 func recoverPanic() {
 	if r := recover(); r != nil {
 		err := errors.Wrap(r, 1)
