@@ -1,25 +1,26 @@
 /*
- *  Copyright 2024 Google LLC
+ * Copyright 2025 Google LLC
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 var isApigee = (typeof context !== "undefined");
 var log = isApigee?print:console.log;
 
-// ********************
-// *** Schema Faker ***
-// ********************
+
+// *****************************
+// *** Schema Faker (random) ***
+// *****************************
 
 var defaultSeed = getRandomSeed();
 var prng = splitmix32(defaultSeed);
@@ -899,6 +900,405 @@ function setDefaultSeed(seed) {
 }
 
 
+
+// **************************
+// *** Schema Faker (AI)  ***
+// **************************
+
+var MAX_INT32 = 2147483647;
+
+function fuzzExampleFromSchemaAsync(ctx, mediaType, spec, schema, vertexConfig, geminiConfig, callback) {
+
+  var fuzzCallback = function(err, exampleInfo) {
+    if (err) {
+      log("AI fuzzer failed. " + err.message )
+      log("Falling back to random fuzzer ...");
+      try {
+        var example = fuzzExampleFromSchema(mediaType, spec, schema);
+        example.warning = "AI generation failed, fell back to random fuzzer.";
+        return callback(null, example);
+      } catch(err) {
+        return callback(err)
+      }
+    }
+    return callback(null, exampleInfo);
+  }
+
+  if (vertexConfig && vertexConfig.enabled) {
+    return fuzzExampleUsingVertexAsync(ctx, mediaType, spec, schema, vertexConfig, fuzzCallback);
+  }
+
+  if (geminiConfig && geminiConfig.enabled) {
+    return fuzzExampleUsingGeminiAsync(ctx, mediaType, spec, schema, geminiConfig, fuzzCallback);
+  }
+
+  // Conditions for Vertex and Gemini not met, use sync fuzzer
+  log("Generating response using random fuzzer (AI generation is disabled).");
+  try {
+    var example = fuzzExampleFromSchema(mediaType, spec, schema);
+    return callback(null, example);
+  } catch (e) {
+    return callback(e, null);
+  }
+}
+
+function fuzzExampleUsingVertexAsync(ctx, mediaType, spec, schema, vertexConfig, callback) {
+  log("Dispatching to Vertex AI for media type: " + mediaType);
+  if (mediaType.indexOf("json") > -1) {
+    return vertexAIGenerateJSON(ctx, vertexConfig, schema, spec, callback);
+  } else if (mediaType.indexOf("xml") > -1) {
+    return vertexAIGenerateXML(ctx, vertexConfig, schema, spec, callback);
+  }
+
+  return callback(new Error("Internal error: Unsupported media type " + mediaType), null);
+}
+
+function fuzzExampleUsingGeminiAsync(ctx, mediaType, spec, schema, geminiConfig, callback) {
+  log("Dispatching to Gemini for media type: " + mediaType);
+  if (mediaType.indexOf("json") > -1) {
+    return geminiGenerateJSON(ctx, geminiConfig, schema, spec, callback);
+  } else if (mediaType.indexOf("xml") > -1) {
+    return geminiGenerateXML(ctx, geminiConfig, schema, spec, callback);
+  }
+
+  return callback(new Error("Internal error: Unsupported media type " + mediaType), null);
+}
+
+
+/**
+ * Builds the request payload for calling the generateContent API for XML examples.
+ * @param ctx Apigee context
+ * @param spec
+ * @param schema
+ * @returns {{contents: [{parts: [{text: string}], role: string}], generationConfig: {seed: number}}}
+ */
+function buildXMLGenerateContentPayload(ctx, spec, schema) {
+  var schemaString;
+  try {
+    // Dereference but DO NOT clean, as XML hints like 'xml' are necessary for prompt
+    var inlinedSchema = dereferenceSchema(schema, spec);
+    schemaString = JSON.stringify(inlinedSchema, null, 2);
+  } catch (e) {
+    throw new Error("schema dereferencing failed for XML generation: " + e.message);
+  }
+
+  var xmlHints = [
+    "The outermost element should be defined by the top-level schema/object.",
+    "Object properties become child elements unless 'xml/attribute' is true, in which case they become XML attributes.",
+    "The 'xml/name' field overrides the default JSON property name for elements or attributes.",
+    "For arrays (type: array):",
+    "  - If 'xml/wrapped' is true on the array schema, create a wrapper element defined by the array's 'xml/name'.",
+    "  - Child array items should use the 'xml/name' defined in the 'items' schema, or default to the array property name."
+  ].join('\n');
+
+  var requestInfo = [
+    "REQUEST CONTEXT:",
+    "  - Method: " + ctx.getVariable("original_request.verb"),
+    "  - URL Path: " + ctx.getVariable("original_request.uri"),
+    "  - Body: " + (ctx.getVariable("original_request.content") || "")
+  ].join('\n');
+
+
+  var prompt =
+    "Generate a realistic and meaningful **XML document** that strictly adheres to the provided OpenAPI schema. " +
+    "The response content should be contextually relevant to the following request details. " +
+    "Do not include any surrounding text, explanations, or context, just the XML document. " +
+    "Interpret the XML field according to the following rules:\n\n" + xmlHints +
+    "\n\n" + requestInfo +
+    "\n\nSCHEMA:\n" + schemaString;
+
+  return {
+    "contents": [
+      {
+        "parts": [ { "text": prompt } ],
+        "role": "user"
+      }
+    ],
+    "generationConfig": {
+      "seed": defaultSeed % MAX_INT32
+    }
+  };
+}
+
+/**
+ * Builds the request payload for calling the generateContent API for JSON examples.
+ * @param ctx Apigee context
+ * @param spec
+ * @param schema
+ * @returns {{contents: [{parts: [{text: string}], role: string}], generationConfig: {response_mime_type: string, response_schema: (Object|*|{}), seed: number}}}
+ */
+function buildJSONGenerateContentPayload(ctx, spec, schema) {
+  var jsonSchema;
+  try {
+    var inlinedSchema = dereferenceSchema(schema, spec);
+    jsonSchema = convertOADSchemaToJSONSchema(inlinedSchema);
+  } catch (e) {
+    new Error("schema processing failed for JSON generation: " + e.message)
+  }
+
+  var requestInfo = [
+    "REQUEST CONTEXT:",
+    "  - Method: " + ctx.getVariable("original_request.verb"),
+    "  - URL Path: " + ctx.getVariable("original_request.uri"),
+    "  - Body: " + (ctx.getVariable("original_request.content") || "")
+  ].join('\n');
+
+  var prompt =
+    "Generate a realistic and meaningful JSON response that strictly adheres to the provided JSON schema. " +
+    "The response content should be contextually relevant to the following request details. " +
+    "Ensure all constraints, types, and required fields are respected. Do not include any surrounding text or explanations.\n\n" + requestInfo;
+
+
+  return {
+    "contents": [
+      {
+        "parts": [ { "text": prompt } ],
+        "role": "user"
+      }
+    ],
+    "generationConfig": {
+      "response_mime_type": "application/json",
+      "response_schema": jsonSchema,
+      "seed": defaultSeed % MAX_INT32
+    }
+  };
+}
+
+/**
+ * Return an onComplete handler for the generateContent HTTP requests
+ * @param callback
+ * @returns {(function(*, *): (*|undefined))|*}
+ */
+function getGenerateContentOnCompleteCallback(callback) {
+  var startTime = Date.now();
+  return function(response, error) {
+    var duration = Date.now() - startTime;
+    log("generateContent: duration " + duration + "ms.");
+
+    if (error) {
+      log("generateContent: error: " + error);
+      return callback(new Error("generateContent: error: " + error), null);
+    }
+
+    try {
+      var generatedContent = processGenerateContentResponse(response);
+      log("generateContent: successfully built response ...");
+      return callback(null, { example: generatedContent });
+    } catch(err) {
+      log("generateContent: error: " + err.message);
+      log("generateContent: status: " + (response ? response.status.code : "N/A"));
+      log("generateContent: body: " + (response ? response.content : "N/A"));
+      return callback(err)
+    }
+  }
+}
+
+function processGenerateContentResponse(response) {
+  if (!response || response.status.code !== "200") {
+    var status = response ? response.status.code : "N/A";
+    throw new Error("generateContent: API call failed with status " + status)
+  }
+
+  var result = JSON.parse(response.content);
+  var generatedContent = _get(result, "candidates.0.content.parts.0.text", null);
+
+  if (!generatedContent) {
+    throw new Error("generateContent: response format error or empty output.")
+  }
+
+  return generatedContent;
+}
+
+function vertexAIGenerateJSON(ctx, vertexConfig, schema, spec, callback) {
+  if (!vertexConfig.token) {
+    var reason = "vertex: generateContent(json): error: credentials missing";
+    return callback(new Error(reason), null);
+  }
+
+  var vertexPayload = buildJSONGenerateContentPayload(ctx, spec, schema)
+  var vertexUrl = "https://" + vertexConfig.region + "-aiplatform.googleapis.com/v1/projects/" +
+    vertexConfig.project + "/locations/" + vertexConfig.region +
+    "/publishers/google/models/" + vertexConfig.model + ":generateContent";
+
+  var req = new Request(vertexUrl, "POST",
+    {
+      "Authorization": vertexConfig.token,
+      "Content-Type": "application/json"
+    },
+    JSON.stringify(vertexPayload)
+  );
+
+  log("vertex: generateContent(json): url: " +  vertexUrl)
+  log("vertex: generateContent(json): body: " + JSON.stringify(vertexPayload))
+
+  return httpClient.send(req, getGenerateContentOnCompleteCallback(callback));
+}
+
+function vertexAIGenerateXML(ctx, vertexConfig, schema, spec, callback) {
+  if (!vertexConfig.token) {
+    var reason = "vertex: generateContent(xml): error: credentials missing";
+    return callback(new Error(reason), null); // Signal failure up the chain
+  }
+
+  var vertexPayload = buildXMLGenerateContentPayload(ctx, spec, schema)
+
+  var vertexUrl = "https://" + vertexConfig.region + "-aiplatform.googleapis.com/v1/projects/" +
+    vertexConfig.project + "/locations/" + vertexConfig.region +
+    "/publishers/google/models/" + vertexConfig.model + ":generateContent";
+
+  var req = new Request(vertexUrl, "POST", {
+      "Authorization": vertexConfig.token,
+      "Content-Type": "application/json"
+    },
+    JSON.stringify(vertexPayload)
+  );
+
+  log("vertex: generateContent(xml): url: " +  vertexUrl)
+  log("vertex: generateContent(xml): body: " + JSON.stringify(vertexPayload))
+
+  return httpClient.send(req, getGenerateContentOnCompleteCallback(callback));
+}
+
+function geminiGenerateJSON(ctx, geminiConfig, schema, spec, callback) {
+  if (!geminiConfig.api_key) {
+    var reason = "gemini: generateContent(json): error: API key is missing";
+    return callback(new Error(reason), null);
+  }
+
+
+  var geminiPayload = buildJSONGenerateContentPayload(ctx, spec, schema)
+  var geminiUrl = "https://generativelanguage.googleapis.com/v1beta/models/" +
+    geminiConfig.model + ":generateContent?key=" + geminiConfig.api_key;
+
+  var req = new Request(geminiUrl, "POST",
+    {
+      "Content-Type": "application/json"
+    },
+    JSON.stringify(geminiPayload)
+  );
+
+  log("gemini: generateContent(json): url: " +  geminiUrl);
+  log("gemini: generateContent(json): body: " + JSON.stringify(geminiPayload));
+  return httpClient.send(req, getGenerateContentOnCompleteCallback(callback));
+}
+
+function geminiGenerateXML(ctx, geminiConfig, schema, spec, callback) {
+  if (!geminiConfig.api_key) {
+    var reason = "gemini: generateContent(xml): error: API key is missing";
+    return callback(new Error(reason), null);
+  }
+
+
+  var geminiPayload = buildXMLGenerateContentPayload(ctx, spec, schema)
+  var geminiUrl = "https://generativelanguage.googleapis.com/v1beta/models/" +
+    geminiConfig.model + ":generateContent?key=" + geminiConfig.api_key;
+
+  var req = new Request(geminiUrl, "POST",
+    {
+      "Content-Type": "application/json"
+    },
+    JSON.stringify(geminiPayload)
+  );
+
+  log("gemini: generateContent(xml): url: " +  geminiUrl)
+  log("gemini: generateContent(xml): body: " + JSON.stringify(geminiPayload))
+  return httpClient.send(req, getGenerateContentOnCompleteCallback(callback));
+}
+
+
+/**
+ * Recursively cleans an OpenAPI schema to produce a pure JSON Schema
+ * by removing non-standard keywords like "xml".
+ * This creates a *new* object and does not mutate the original.
+ * @param {object} schema The input OpenAPI schema object.
+ * @returns {object} A new schema object containing only allowed keywords.
+ */
+function convertOADSchemaToJSONSchema(schema) {
+  if (typeof schema !== 'object' || schema === null) {
+    // Primitives or null
+    return schema;
+  }
+
+  if (Array.isArray(schema)) {
+    // Recurse over array items
+    return schema.map(convertOADSchemaToJSONSchema);
+  }
+
+  var cleanObj = {};
+  for (var key in schema) {
+    if (key === 'xml') {
+      // Skip the 'xml' property
+      continue;
+    }
+    if (Object.prototype.hasOwnProperty.call(schema, key)) {
+      // Recurse on all other properties
+      cleanObj[key] = convertOADSchemaToJSONSchema(schema[key]);
+    }
+  }
+  return cleanObj;
+}
+
+
+function dereferenceSchema(schemaObj, specDoc) {
+  // Check for primitive types, null, or if it's already visited
+  if (typeof schemaObj !== 'object' || schemaObj === null) {
+    return schemaObj;
+  }
+
+  // Handle arrays by mapping over them
+  if (Array.isArray(schemaObj)) {
+    return schemaObj.map(function(item) { return dereferenceSchema(item, specDoc); });
+  }
+
+  // Handle $ref
+  if (isRef(schemaObj)) {
+    var resolved = resolveRef(schemaObj, specDoc);
+    if (resolved) {
+      // Recurse on the resolved schema
+      return dereferenceSchema(resolved, specDoc);
+    }
+    // If it can't be resolved, return the original ref object
+    return schemaObj;
+  }
+
+  // Handle regular objects
+  var newObj = {}; // Create a new object to avoid circular dependencies in the original spec
+  for (var key in schemaObj) {
+    if (Object.prototype.hasOwnProperty.call(schemaObj, key)) {
+      newObj[key] = dereferenceSchema(schemaObj[key], specDoc);
+    }
+  }
+
+  return newObj;
+}
+
+/**
+ * Safely retrieves a nested property value from an object using a dot-separated key string.
+ *
+ * @param {object} obj The object to query.
+ * @param {string} keyString The dot-separated path to the nested property (e.g., "a.b.c").
+ * @param {*} defaultValue The value to return if the path is not found or the object is null/undefined.
+ * @returns {*} The value at the specified path, or the defaultValue.
+ */
+function _get(obj, keyString, defaultValue) {
+  if (typeof obj !== 'object' || obj === null) {
+    return defaultValue;
+  }
+
+  var keys = keyString.split('.');
+
+  var current = obj;
+  for (var i = 0; i < keys.length; i++) {
+    var key = keys[i];
+    if (typeof current !== 'object' || current === null || typeof current[key] === 'undefined') {
+      return defaultValue;
+    }
+    current = current[key];
+  }
+
+  return current;
+}
+
 // *************************
 // **** Response Mocker ****
 // *************************
@@ -908,19 +1308,19 @@ var DEFAULT_STATUS = 200;
 var DEFAULT_MEDIA_TYPE = "application/json";
 
 
-function setMockedResponse(ctx) {
+function setMockedResponse(ctx, callback) {
   var responseStatus;
-  var responseContent;
   var responseHeaders = [];
 
   //read the path and verb
-  var path = ctx.getVariable("proxy.pathsuffix");
-  var verb = ctx.getVariable("request.verb").toLowerCase();
+  var fullPath = ctx.getVariable("original_request.path");
+  var verb = ctx.getVariable("original_request.verb").toLowerCase();
+  var path = ctx.getVariable("proxy.pathsuffix") || "/"; //if no path suffix, assume it's just slash
 
   //ignore OPTIONS verb, used for CORS
   if (verb === "options") {
     setResponse(ctx, 200, [], "");
-    return;
+    return callback();
   }
 
   //read the spec
@@ -942,12 +1342,29 @@ function setMockedResponse(ctx) {
   var mockFuzz = ctx.getVariable("request.header.mock-fuzz") || null ;
   mockFuzz = mockFuzz? mockFuzz === "true" || mockFuzz === true : false;
 
+  var vertexEnabled = ctx.getVariable("vertex_enabled") === "true";
+  var vertexRegion, vertexModel, vertexToken, vertexProjectId;
+  if (vertexEnabled) {
+      vertexRegion = ctx.getVariable("vertex_region");
+      vertexModel =  ctx.getVariable("vertex_model");
+      // Read token from the message created by AM-Generate-Vertex-Token
+      vertexToken = ctx.getVariable("vertexTokenRequest.header.Authorization");
+      vertexProjectId = ctx.getVariable("vertex_project_id"); // Use the new variable
+  }
+
+  var geminiEnabled = ctx.getVariable("gemini_enabled") === "true";
+  var geminiModel, geminiApiKey;
+  if (geminiEnabled) {
+      geminiModel =  ctx.getVariable("gemini_model");
+      geminiApiKey = ctx.getVariable("gemini_api_key");
+  }
+
 
   // choose operation (based on verb and path)
   var operation = getOperation(spec, verb, path);
   if (!operation) {
-    setErrorResponse(ctx, 500,"no operation found for verb: " + verb + ", path: " + path);
-    return;
+    setErrorResponse(ctx, 500,"no operation found for verb: " + verb + ", path: " + fullPath);
+    return callback()
   }
   var operationId = operation["operationId"];
 
@@ -955,7 +1372,7 @@ function setMockedResponse(ctx) {
   //fi no responses available, error out
   if (!operation["responses"]) {
     setErrorResponse(ctx, 500,"no responses found for operationId: " + operationId);
-    return;
+    return callback();
   }
 
   // choose response (based on status code)
@@ -964,7 +1381,7 @@ function setMockedResponse(ctx) {
     //there are no listed responses, default to 200 with empty body
     setResponse(ctx, 200, responseHeaders, "");
     responseHeaders.push(["mock-warning", "no responses found operationId '" + operationId+"'"]);
-    return;
+    return callback();
   }
 
   responseStatus = responseInfo.status;
@@ -976,7 +1393,7 @@ function setMockedResponse(ctx) {
     //there are no available content, default to empty body
     setResponse(ctx, responseStatus, responseHeaders, "");
     responseHeaders.push(["mock-warning", "no response content found for '" + operationId+"', status: '" + responseStatus + "'"]);
-    return;
+    return callback();
   }
 
   if (contentInfo.warning) {
@@ -988,23 +1405,52 @@ function setMockedResponse(ctx) {
 
   // choose or generate example
   var chosenPath = path  + "." + verb + ".responses." + responseStatus + ".content." + contentInfo.mediaType;
-  var exampleInfo = getResponseExample(spec, chosenPath, contentInfo, {
+
+  var options = {
     mockStatus: mockStatus,
     accept: accept,
     mockExample: mockExample,
-    mockFuzz: mockFuzz});
+    mockFuzz: mockFuzz,
+    vertex: {
+      enabled: vertexEnabled,
+      region: vertexRegion,
+      model: vertexModel,
+      token: vertexToken,
+      project: vertexProjectId
+    },
+    gemini: {
+      enabled: geminiEnabled,
+      model: geminiModel,
+      api_key: geminiApiKey
+    }
+  };
 
-  if (exampleInfo.warning) {
-    responseHeaders.push(["mock-warning", exampleInfo.warning])
-  }
+  var exampleCallback = function(err, exampleInfo) {
+    if (err) {
+      return callback(err)
+    }
 
-  if (!isString(exampleInfo.example)) {
-    responseContent = getPrettyJSON(exampleInfo.example);
-  } else {
-    responseContent = exampleInfo.example;
-  }
+    try {
+      if (exampleInfo.warning) {
+        responseHeaders.push(["mock-warning", exampleInfo.warning]);
+      }
 
-  setResponse(ctx, responseStatus, responseHeaders, responseContent);
+      var responseContent;
+      if (!isString(exampleInfo.example)) {
+        responseContent = getPrettyJSON(exampleInfo.example);
+      } else {
+        responseContent = exampleInfo.example;
+      }
+
+      setResponse(ctx, responseStatus, responseHeaders, responseContent);
+      return callback()
+    } catch (e) {
+      return callback(e);
+    }
+  };
+
+
+  getResponseExampleAsync(ctx, spec, chosenPath, contentInfo, options, exampleCallback);
 }
 
 function isString(obj) {
@@ -1121,16 +1567,20 @@ function getResponse(operation, mockStatus, mockFuzz) {
   var responsesByStatus = operation["responses"];
   var supportedStatuses = Object.keys(responsesByStatus);
 
+  log("Choosing response status from: " + JSON.stringify(supportedStatuses) + "...")
+
   if (supportedStatuses.length === 0) {
     return null;
   }
 
   if (mockStatus) {
+    log("User asked for Mock-Status:" + mockStatus + " ...");
     //user requested specific status code using Mock-Status: true
     responseStatus = getBestResponseStatus(mockStatus, supportedStatuses);
     if (!responseStatus) {
+      log("User requested Mock-Status:" + mockStatus + " is not available ...");
       //user requested specific status, but it's not available
-      throw new HTTPError(400, "requested status '" + mockStatus + "' not found, valid ones are: " + supportedStatuses.join(","), [])
+      throw new HTTPError(400, "requested status '" + mockStatus + "' not found, valid ones are: " + supportedStatuses.join(","), []);
     }
 
     if (responseStatus === "default") {
@@ -1142,19 +1592,35 @@ function getResponse(operation, mockStatus, mockFuzz) {
       response: operation["responses"][responseStatus.toString()]
     }
   } else if (mockFuzz) {
+    log("User requested fuzzed status, getting a random one ...");
     //user requested random status code using Mock-Fuzz: true
     return getRandomResponse(operation);
   } else {
-    //neither Mock-Fuzz or Mock-Status is used
-    if (supportedStatuses.indexOf(DEFAULT_STATUS.toString()) >= 0) {
+    //neither Mock-Fuzz nor Mock-Status is used
+
+    var status2XX = get2XXStatusCode(supportedStatuses);
+    if (status2XX) {
+      log("Choosing HTTP " + status2XX + " as that's available in the responses ...")
       return {
-        status: DEFAULT_STATUS.toString(),
-        response: operation["responses"][DEFAULT_STATUS.toString()]
+        status: status2XX,
+        response: operation["responses"][status2XX]
       }
     }
 
+    log("Neither mock-fuzz, or mock-status used, will select a random status ...");
     return getRandomResponse(operation);
   }
+}
+
+function get2XXStatusCode(supportedStatuses) {
+  var successCodes = ["200", "201", "202", "203", "204", "205", "206"]; //order of priority
+  for (var i = 0; i < successCodes.length; i++) {
+    if (supportedStatuses.indexOf(successCodes[i]) >= 0) {
+      return successCodes[i]
+    }
+  }
+
+  return null
 }
 
 function getRandomResponse(operation) {
@@ -1162,7 +1628,7 @@ function getRandomResponse(operation) {
   var responsesByStatus = operation["responses"];
   var supportedStatuses = Object.keys(responsesByStatus);
 
-  if (supportedStatuses.length === 0 && supportedStatuses[0] === "default") {
+  if (supportedStatuses.length === 1 && supportedStatuses[0] === "default") {
     //there is only one status available, and it's the default one
     return {
       status: DEFAULT_STATUS.toString(),
@@ -1186,18 +1652,31 @@ function getRandomResponse(operation) {
   }
 }
 
+/**
+ * This is a tricky one, the idea is that you have to pick a status code to use with the "default" response.
+ * But, the caveat is that the status code should not already be listed in the responses.
+ *
+ * That is, choose any status code that is not already listed.
+ *
+ * @param operation
+ * @returns {{status: number, response}|{status: string, response}}
+ */
 function getRandomDefaultResponse(operation) {
+  log("Choosing a random default response status ...");
+
   var responsesByStatus = operation["responses"];
   var supportedStatuses = Object.keys(responsesByStatus);
 
-  if (supportedStatuses.indexOf(DEFAULT_STATUS.toString()) < 0 ) {
-    //if HTTP 200 can be used, then use
+  var status2XX = get2XXStatusCode(supportedStatuses);
+  if (!status2XX) {
     return {
-      status: DEFAULT_STATUS.toString(),
+      status: 200,
       response: operation["responses"]["default"]
     }
   }
 
+
+  log("HTTP 200 is not available, pick one of 400, 404, 401, 403, 500 ...");
   //otherwise, take a random pick
   var statusOptions = [400, 404, 401, 403, 500];
   var randomPick;
@@ -1224,103 +1703,116 @@ function getRandomDefaultResponse(operation) {
   }
 }
 
-function getResponseExample(spec, contentPath, contentInfo, options) {
-  if (!contentInfo.content) {
-    return {
-      example: "",
-      warning: "no content found for " + contentPath
-    }
-  }
-
-  var mediaType = contentInfo.mediaType;
-  var schema = contentInfo.content.schema;
-  var example = contentInfo.content.example;
-  var examples = contentInfo.content.examples
-
-  if (options.mockFuzz) {
-    if (!schema) {
-      if (options.mockStatus && options.accept) {
-        throw new HTTPError(400,
-          "cannot fuzz response, no schema found for " + contentPath +
-          ", try different values for the 'mock-status' and 'accept' headers", []);
-      }
-
-      if (options.mockStatus && !options.accept) {
-        throw new HTTPError(400,
-          "cannot fuzz response, no schema found for " + contentPath +
-          ", try different value for the 'accept' header", []);
-      }
-
-      if (!options.mockStatus && !options.accept) {
-        throw new HTTPError(400,
-          "cannot fuzz response, no schema found for " + contentPath +
-          ", try setting the 'mock-status' and 'accept' header", []);
-      }
+function getResponseExampleAsync(ctx, spec, contentPath, contentInfo, options, callback) {
+  try {
+    if (!contentInfo.content) {
+      return callback(null, { // TAIL CALL
+        example: "",
+        warning: "no content found for " + contentPath
+      });
     }
 
-    //fuzz the response
-    return fuzzExampleFromSchema(mediaType, spec, schema);
-  } else if (example) {
-    return {
-      example: example
-    }
-  } else if(examples && Object.keys(examples).length > 0) {
-    //map of examples, this was introduced in the OAS3 specification
+    var mediaType = contentInfo.mediaType;
+    var schema = contentInfo.content.schema;
+    var example = contentInfo.content.example;
+    var examples = contentInfo.content.examples
 
-    var exampleName;
-    var exampleObject;
-    var warning;
+    if (options.mockFuzz) {
 
-    var exampleNames = Object.keys(examples);
-
-    if (options.mockExample) {
-      if (exampleNames.indexOf(options.mockExample) >= 0) {
-        //user requested example is available use that
-        exampleName = options.mockExample;
-        exampleObject = examples[exampleName];
-      } else {
-        //user requested example is not available
+      if (!schema) {
         if (options.mockStatus && options.accept) {
-          throw new HTTPError(400,  "requested example '" + options.mockExample + "' not found, valid ones are: " + exampleNames.join(","), []);
+          throw new HTTPError(400,
+            "cannot fuzz response, no schema found for " + contentPath +
+            ", try different values for the 'mock-status' and 'accept' headers", []);
         }
 
-        //user requested example not found, pick a random one
+        if (options.mockStatus && !options.accept) {
+          throw new HTTPError(400,
+            "cannot fuzz response, no schema found for " + contentPath +
+            ", try different value for the 'accept' header", []);
+        }
+
+        if (!options.mockStatus && !options.accept) {
+          throw new HTTPError(400,
+            "cannot fuzz response, no schema found for " + contentPath +
+            ", try setting the 'mock-status' and 'accept' header", []);
+        }
+      }
+
+      //fuzz the response
+      log("fuzzing example from schema, due to explicit mock-fuzz:true ...")
+
+      return fuzzExampleFromSchemaAsync(ctx, mediaType, spec, schema, options.vertex, options.gemini, callback); // ASYNC/SYNC TAIL CALL
+    } else if (example) {
+      log("using direct example from example field in content object ...")
+
+      return callback(null, { // TAIL CALL
+        example: example
+      });
+    } else if(examples && Object.keys(examples).length > 0) {
+      log("using direct example form examples list in content object ...")
+
+      //map of examples, this was introduced in the OAS3 specification
+
+      var exampleName;
+      var exampleObject;
+      var warning;
+
+      var exampleNames = Object.keys(examples);
+
+      if (options.mockExample) {
+        if (exampleNames.indexOf(options.mockExample) >= 0) {
+          //user requested example is available use that
+          exampleName = options.mockExample;
+          exampleObject = examples[exampleName];
+        } else {
+          //user requested example is not available
+          if (options.mockStatus && options.accept) {
+            throw new HTTPError(400,  "requested example '" + options.mockExample + "' not found, valid ones are: " + exampleNames.join(","), []);
+          }
+
+          //user requested example not found, pick a random one
+          exampleName = exampleNames[getRandomInt(0, exampleNames.length - 1)];
+          exampleObject = examples[exampleName];
+          warning = "requested example '" + options.mockExample + "' not not found, random one chosen"; //FIXME: add available ones
+        }
+      } else {
+        //user did not request any specific example, pick a random example
         exampleName = exampleNames[getRandomInt(0, exampleNames.length - 1)];
         exampleObject = examples[exampleName];
-        warning = "requested example '" + options.mockExample + "' not not found, random one chosen"; //FIXME: add available ones
       }
-    } else {
-      //user did not request any specific example, pick a random example
-      exampleName = exampleNames[getRandomInt(0, exampleNames.length - 1)];
-      exampleObject = examples[exampleName];
-    }
 
-    if (isRef(exampleObject)) {
-      exampleObject = resolveRef(exampleObject, spec);
-      if (!exampleObject) {
-        throw new HTTPError(500, "could not resolve $ref '" + exampleObject["$ref"] + "' for '" + exampleName + "' example", []);
+      if (isRef(exampleObject)) {
+        exampleObject = resolveRef(exampleObject, spec);
+        if (!exampleObject) {
+          throw new HTTPError(500, "could not resolve $ref '" + exampleObject["$ref"] + "' for '" + exampleName + "' example", []);
+        }
       }
+
+      return callback(null, {
+        example: exampleObject.value || "",
+        warning: warning
+      });
+    } else if (schema && schema.example) {
+      log("using direct example form schema object ...")
+      return callback(null, { // TAIL CALL
+        example: schema.example,
+      });
+    } else if (schema) {
+      log("fuzzing example from schema (as fallback) ...")
+      return fuzzExampleFromSchemaAsync(ctx, mediaType, spec, schema, options.vertex, options.gemini, callback); // ASYNC/SYNC TAIL CALL
     }
 
-    return {
-      example: exampleObject.value || "",
-      warning: warning
-    }
-  } else if (schema && schema.example) {
-    return {
-      example: schema.example,
-    }
-  } else if (schema) {
-    return fuzzExampleFromSchema(mediaType, spec, schema);
-  }
-
-  return {
-    example: "",
-    warning: "no example or schema found for " + contentPath
+    return callback(null, { // TAIL CALL
+      example: "",
+      warning: "no example or schema found for " + contentPath
+    });
+  } catch (e) {
+    return callback(e, null); // Pass synchronous error to callback
   }
 }
 
-function  fuzzExampleFromSchema(mediaType, spec, schema) {
+function fuzzExampleFromSchema(mediaType, spec, schema) {
   var example = "";
   if (mediaType.indexOf("json") >= 0) {
     example = getRandomJSONSample(schema, spec).sample;
@@ -1333,7 +1825,7 @@ function  fuzzExampleFromSchema(mediaType, spec, schema) {
 
   return {
     example: example
-  }
+  };
 }
 
 function HTTPError(status, message, headers) {
@@ -1553,12 +2045,18 @@ function getBestMediaType(requestedMedia, supportedMedias) {
 
 
 function main(ctx) {
+  var callback = function(err) {
+    if (err) {
+      log("error.message: " + err.message);
+      log("error.stack:\n" + err.stack);
+      setErrorResponse(ctx, 500, err);
+    }
+  }
+
   try {
-    setMockedResponse(ctx);
-  } catch(e) {
-    log("error.message: " + e.message);
-    log("error.stack:\n" + e.stack);
-    setErrorResponse(ctx,500, e);
+    setMockedResponse(ctx, callback);
+  } catch(err) {
+    return callback(err)
   }
 }
 

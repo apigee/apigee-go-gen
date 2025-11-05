@@ -214,12 +214,71 @@
                   "items": {
                     "$ref": "#/components/schemas/Pet"
                   }
-                }
+                },
+                "example": [
+                  {
+                    "id": 18,
+                    "category": {
+                      "id": 1,
+                      "name": "Dogs"
+                    },
+                    "name": "Sissi 2",
+                    "photoUrls": [
+                      ""
+                    ],
+                    "tags": [
+                      {
+                        "id": 0,
+                        "name": "Schnauzer"
+                      },
+                      {
+                        "id": 0,
+                        "name": "mini"
+                      }
+                    ],
+                    "status": "available"
+                  },
+                  {
+                    "id": 10,
+                    "category": {
+                      "id": 1,
+                      "name": "Dogs"
+                    },
+                    "name": "doggie",
+                    "photoUrls": [
+                      "string"
+                    ],
+                    "tags": [
+                      {
+                        "id": 0,
+                        "name": "string"
+                      }
+                    ],
+                    "status": "available"
+                  },
+                  {
+                    "id": 1,
+                    "name": "Pet1",
+                    "photoUrls": [
+                      "test1",
+                      "test2"
+                    ],
+                    "tags": [ ],
+                    "status": "available"
+                  }
+                ]
               }
             }
           },
           "400": {
-            "description": "Invalid status value"
+            "description": "Invalid status value",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -512,6 +571,15 @@
             "description": "successful operation",
             "content": {
               "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "integer",
+                    "format": "int32"
+                  }
+                }
+              },
+              "application/xml": {
                 "schema": {
                   "type": "object",
                   "additionalProperties": {

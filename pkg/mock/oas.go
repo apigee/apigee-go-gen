@@ -1,4 +1,4 @@
-//  Copyright 2024 Google LLC
+//  Copyright 2025 Google LLC
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import (
 	"path/filepath"
 )
 
-func GenerateMockProxyBundle(input string, output string, debug bool) error {
+func GenerateMockProxyBundle(input string, output string, cFlags *render.CommonFlags, debug bool) error {
 	var templateDir string
 	var err error
 
@@ -38,7 +38,6 @@ func GenerateMockProxyBundle(input string, output string, debug bool) error {
 		return v1.NewAPIProxyModel(input)
 	}
 
-	cFlags := render.NewCommonFlags()
 	cFlags.OutputFile = flags.NewString(output)
 	cFlags.TemplateFile = flags.NewString(filepath.Join(templateDir, "apiproxy.yaml"))
 	cFlags.IncludeList = flags.NewIncludeList([]string{filepath.Join(templateDir, "*.tmpl")})

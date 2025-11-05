@@ -1,6 +1,6 @@
 # Mock OpenAPI Description
 <!--
-  Copyright 2024 Google LLC
+  Copyright 2025 Google LLC
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -129,6 +129,63 @@ Here's how it determines what to send back for any particular operation's respon
 4. **Generates from schema:**  As a last resort, the proxy will generate a random example based on the response schema. This works for JSON, YAML, and XML.
 
 You can use the `Mock-Fuzz: true` header to force the proxy to always generate a random example from the schema, even if other static examples are available.
+
+### :sparkles: AI-Powered Mock Responses
+
+For more realistic and contextually rich response bodies, you can enable integration with **Google's Gemini model**. This can be done via a Google Cloud Vertex AI endpoint or the public Gemini API endpoint.
+
+When enabled, and if a static example is not available, the mock proxy will call the Gemini model with your response schema (for JSON/XML) and ask it to generate a plausible mock payload based on semantic understanding of the schema's properties and descriptions.
+
+
+#### Option 1: Enabling via Vertex AI API Endpoint
+
+
+| Flag                                | Description                                                                         | Required |
+|:------------------------------------|:------------------------------------------------------------------------------------|:---------| 
+| `--set vertex.enabled=true`         | Activates Vertex AI generation for the mock proxy.                                  | Yes      |
+| `--set vertex.project_id=<project>` | The ID of the Google Cloud project hosting the Vertex AI endpoint.                  | Yes      |
+| `--set vertex.region=<region>`      | The GCP region where the Vertex AI endpoint is located. (defaults to `us-central1`) | No       | 
+| `--set vertex.model=<model>`        | The Gemini model to use for generation (defaults to `gemini-2.5-flash`).            | No       | 
+
+**Example (Vertex AI):**
+
+```shell
+apigee-go-gen mock oas \
+    --input ./examples/specs/oas3/petstore.yaml \
+    --output ./out/mock-apiproxies/petstore.zip \
+    --set vertex.enabled=true \
+    --set vertex.project_id=my-gcp-project
+```
+
+> **Note:** The service account used to deploy the API proxy must have the necessary permissions (e.g., *Vertex AI User* role) to call the Vertex AI API endpoint.
+
+#### Option 2: Enabling via Public Gemini API Endpoint
+
+
+| Flag                         | Description                                               | Required |
+|:-----------------------------|:----------------------------------------------------------|:---------|
+| `--set gemini.enabled=true`  | Activates public Gemini API generation.                   | Yes      |
+| `--set gemini.api_key=<key>` | Your public Gemini API key.                               | Yes      |
+| `--set gemini.model=<model>` | The Gemini model to use (defaults to `gemini-2.5-flash`). | No       |
+
+**Example (Gemini API):**
+
+```shell
+apigee-go-gen mock oas \
+    --input ./examples/specs/oas3/petstore.yaml \
+    --output ./out/mock-apiproxies/petstore.zip \
+    --set gemini.enabled=true \
+    --set gemini.api_key=AIza...
+```
+
+#### Supported Media Types for AI Generation
+
+The Gemini model is explicitly used for:
+
+* **JSON** (`application/json`)
+* **XML** (`application/xml` or related types)
+
+If the response media type is anything else (e.g., `text/plain`), the proxy falls back to its built-in legacy schema fuzzer.
 
 
 ### :white_check_mark: Repeatable API Responses
