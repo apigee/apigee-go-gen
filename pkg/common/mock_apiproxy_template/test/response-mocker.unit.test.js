@@ -39,7 +39,8 @@ describe("response-mocker-unit", (done) => {
   test("get /pet/findByStatus (mock-status: null, accept: null) | pre-defined example/json", (done) => {
 
     let ctx = new MockContext({
-      "request.verb": "GET",
+      "original_request.verb": "GET",
+      "original_request.path": "/petstore/pet/findByStatus",
       "proxy.pathsuffix": "/pet/findByStatus",
       "request.header.accept.values.string": "application/json",
       "spec_json": petStoreSpec
@@ -58,7 +59,8 @@ describe("response-mocker-unit", (done) => {
   test("get /pet/findByStatus (seeded, mock-status: 400, accept: application/json) | random example", (done) => {
     let seed = 741831438;
     let ctx = new MockContext({
-      "request.verb": "GET",
+      "original_request.verb": "GET",
+      "original_request.path": "/petstore/pet/findByStatus",
       "proxy.pathsuffix": "/pet/findByStatus",
       "request.header.mock-seed": seed,
       "request.header.mock-status": 400,
@@ -85,7 +87,8 @@ describe("response-mocker-unit", (done) => {
   test("get /pet/findByStatus (mock-status: 400, accept: application/json) | random example/json", (done) => {
 
     let ctx = new MockContext({
-      "request.verb": "GET",
+      "original_request.verb": "GET",
+      "original_request.path": "/petstore/pet/findByStatus",
       "proxy.pathsuffix": "/pet/findByStatus",
       "request.header.mock-status": "400",
       "request.header.accept.values.string": "application/json",
@@ -107,7 +110,8 @@ describe("response-mocker-unit", (done) => {
 
   test("get /pet/findByTags (mock-status: null, accept: null) | random example/json", (done) => {
     let ctx = new MockContext({
-      "request.verb": "GET",
+      "original_request.verb": "GET",
+      "original_request.path": "/petstore//pet/findByTags",
       "proxy.pathsuffix": "/pet/findByTags",
       "spec_json": petStoreSpec
     });
@@ -127,7 +131,8 @@ describe("response-mocker-unit", (done) => {
   test("get /pet/findByTags (mock-status: null, accept: application/xml) | random example/xml ", (done) => {
 
     let ctx = new MockContext({
-      "request.verb": "GET",
+      "original_request.verb": "GET",
+      "original_request.path": "/petstore/pet/findByTags",
       "proxy.pathsuffix": "/pet/findByTags",
       "request.header.accept.values.string": "application/xml",
       "spec_json": petStoreSpec
@@ -147,7 +152,8 @@ describe("response-mocker-unit", (done) => {
   test("get /pet/findByTags (seeded, mock-status: null, accept: null) | random example/json", (done) => {
     let seed = 4108554714;
     let ctx = new MockContext({
-      "request.verb": "GET",
+      "original_request.verb": "GET",
+      "original_request.path": "/petstore/pet/findByTags",
       "proxy.pathsuffix": "/pet/findByTags",
       "request.header.mock-seed": seed,
       "spec_json": petStoreSpec,
@@ -190,7 +196,8 @@ describe("response-mocker-unit", (done) => {
   test("get /pet/findByTags (seeded, mock-status: 200, accept: */*) | random example/xml", (done) => {
     let seed = 4108554714;
     let ctx = new MockContext({
-      "request.verb": "GET",
+      "original_request.verb": "GET",
+      "original_request.path": "/petstore/pet/findByTags",
       "proxy.pathsuffix": "/pet/findByTags",
       "request.header.accept.values.string": "*/*",
       "request.header.mock-seed": seed,
@@ -234,7 +241,8 @@ describe("response-mocker-unit", (done) => {
   test("get /pet/1 (seeded, mock-status: 200, accept: */*) | random example/xml", (done) => {
     let seed = 2706157134;
     let ctx = new MockContext({
-      "request.verb": "GET",
+      "original_request.verb": "GET",
+      "original_request.path": "/petstore/pet/1",
       "proxy.pathsuffix": "/pet/1",
       "request.header.accept.values.string": "*/*",
       "request.header.mock-seed": seed,
@@ -262,7 +270,8 @@ describe("response-mocker-unit", (done) => {
   test("get /store/inventory (seeded, mock-status: 200, accept: */*) | random example/xml", (done) => {
     let seed = 1880333565;
     let ctx = new MockContext({
-      "request.verb": "GET",
+      "original_request.verb": "GET",
+      "original_request.path": "/petstore/store/inventory",
       "proxy.pathsuffix": "/store/inventory",
       "request.header.accept.values.string": "application/xml",
       "request.header.mock-seed": seed,
@@ -290,7 +299,8 @@ describe("response-mocker-unit", (done) => {
   test("get /store/inventory (seeded, mock-status: 200, accept: */*) | random example/json", (done) => {
     let seed = 1880333565;
     let ctx = new MockContext({
-      "request.verb": "GET",
+      "original_request.verb": "GET",
+      "original_request.path": "/petstore/store/inventory",
       "proxy.pathsuffix": "/store/inventory",
       "request.header.accept.values.string": "application/json",
       "request.header.mock-seed": seed,
@@ -316,7 +326,8 @@ describe("response-mocker-unit", (done) => {
   test("post /user (seeded, mock-status: 200, accept: application/json) | random example/json", (done) => {
     let seed = 2432976933;
     let ctx = new MockContext({
-      "request.verb": "POST",
+      "original_request.verb": "POST",
+      "original_request.path": "/petstore/user",
       "proxy.pathsuffix": "/user",
       "request.header.accept.values.string": "application/json",
       "request.header.mock-seed": seed,
@@ -342,7 +353,8 @@ describe("response-mocker-unit", (done) => {
   test("post /user/createWithList (seeded, mock-status: null, accept: null) | random example/json", (done) => {
     let seed = 2432976933;
     let ctx = new MockContext({
-      "request.verb": "POST",
+      "original_request.verb": "POST",
+      "original_request.path": "/petstore/user/createWithList",
       "proxy.pathsuffix": "/user/createWithList",
       "request.header.mock-seed": seed,
       "spec_json": petStoreSpec,
@@ -366,7 +378,8 @@ describe("response-mocker-unit", (done) => {
     let seed = 2432976933;
 
     let ctx = new MockContext({
-      "request.verb": "POST",
+      "original_request.verb": "POST",
+      "original_request.path": "/petstore/user/createWithList",
       "proxy.pathsuffix": "/user/createWithList",
       "request.header.mock-status": "default",
       "request.header.mock-seed": seed,
@@ -388,7 +401,8 @@ describe("response-mocker-unit", (done) => {
 
   test("get /user/logout (seeded, mock-status: null, accept: null) | default", (done) => {
     let ctx = new MockContext({
-      "request.verb": "GET",
+      "original_request.verb": "GET",
+      "original_request.path": "/petstore/user/logout",
       "proxy.pathsuffix": "/user/logout",
       "spec_json": petStoreSpec,
     })
