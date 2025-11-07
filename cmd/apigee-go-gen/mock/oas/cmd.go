@@ -1,4 +1,4 @@
-//  Copyright 2024 Google LLC
+//  Copyright 2025 Google LLC
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -19,19 +19,23 @@ import (
 	"github.com/apigee/apigee-go-gen/pkg/common/resources"
 	"github.com/apigee/apigee-go-gen/pkg/flags"
 	"github.com/apigee/apigee-go-gen/pkg/mock"
+	"github.com/apigee/apigee-go-gen/pkg/render"
 	"github.com/spf13/cobra"
 )
+
+var cFlags = render.NewCommonFlags()
 
 var input = flags.NewString("")
 var output = flags.NewString("")
 var debug = flags.NewBool(false)
+var setValue = flags.NewSetAny(cFlags.Values)
 
 var Cmd = &cobra.Command{
 	Use:   "oas",
 	Short: "Generate a mock API proxy from an OpenAPI 3.X Description",
 	Long:  Usage(),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return mock.GenerateMockProxyBundle(string(input), string(output), bool(debug))
+		return mock.GenerateMockProxyBundle(string(input), string(output), cFlags, bool(debug))
 	},
 }
 
@@ -40,6 +44,7 @@ func init() {
 	Cmd.Flags().VarP(&input, "input", "i", `path to OpenAPI Description (e.g. "./path/to/openapi.yaml")`)
 	Cmd.Flags().VarP(&output, "output", "o", `output directory or zip file (e.g. "./path/to/apiproxy.zip")`)
 	Cmd.Flags().VarP(&debug, "debug", "", `prints rendered template before creating API proxy bundle"`)
+	Cmd.Flags().Var(&setValue, "set", `sets a key=value (bool,float,string), e.g. "vertex.enabled=true"`)
 
 	_ = Cmd.MarkFlagRequired("input")
 	_ = Cmd.MarkFlagRequired("output")

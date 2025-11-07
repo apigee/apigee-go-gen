@@ -1,4 +1,4 @@
-#  Copyright 2024 Google LLC
+#  Copyright 2025 Google LLC
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -23,10 +23,44 @@ Policies:
       .async: false
       .continueOnError: false
       .enabled: true
-      .timeLimit: 5000
+      .timeLimit: 30000
       .name: JS-MockResponse
       DisplayName: JS-MockResponse
       ResourceURL: jsc://response-mocker.cjs
+  - AssignMessage:
+      .continueOnError: false
+      .enabled: true
+      .name: AM-SaveReq
+      DisplayName: AM-SaveReq
+      Properties: { }
+      Copy:
+        .source: request
+        Headers: { }
+        QueryParams: { }
+        FormParams: { }
+        Payload: true
+        Verb: true
+        Path: true
+      IgnoreUnresolvedVariables: true
+      AssignTo:
+        .createNew: true
+        .transport: http
+        .type: request
+        -Data: original_request
+  #{{- if $.Values.vertex.enabled }}
+  - AssignMessage:
+      .name: AM-Generate-Vertex-Token
+      DisplayName: AM-Generate-Vertex-Token
+      AssignTo:
+        .createNew: true
+        .type: request
+        -Data: vertexTokenRequest
+      Set:
+        Authentication:
+          GoogleAccessToken:
+            Scopes:
+              Scope: https://www.googleapis.com/auth/cloud-platform
+  #{{- end }}
   - OASValidation:
       .continueOnError: false
       .enabled: true
@@ -35,10 +69,35 @@ Policies:
       Source: request
       OASResource: oas://openapi.json
   - AssignMessage:
-      .name: AM-LoadSpec
-      AssignVariable:
-        Name: spec_json
-        ResourceURL: oas://openapi.json
+      .name: AM-Config
+      -Data:
+        - AssignVariable:
+            Name: spec_json
+            ResourceURL: oas://openapi.json
+      #{{- if $.Values.vertex.enabled }}
+        - AssignVariable:
+            Name: vertex_enabled
+            Value: true
+        - AssignVariable:
+            Name: vertex_region
+            Value: {{ $.Values.vertex.region | default "us-central1" }}
+        - AssignVariable:
+            Name: vertex_model
+            Value: {{ $.Values.vertex.model | default "gemini-2.5-flash" }}
+        - AssignVariable:
+            Name: vertex_project_id
+            Value: {{ $.Values.vertex.project_id | default "" }}
+      #{{- else if $.Values.gemini.enabled }}
+        - AssignVariable:
+            Name: gemini_enabled
+            Value: true
+        - AssignVariable:
+            Name: gemini_model
+            Value: {{ $.Values.gemini.model | default "gemini-2.5-flash" }}
+        - AssignVariable:
+            Name: gemini_api_key
+            Value: {{ $.Values.gemini.api_key }}
+      #{{- end }}
   - AssignMessage:
       .continueOnError: false
       .enabled: true
@@ -80,11 +139,17 @@ ProxyEndpoints:
           - Step:
               Name: CORS-Allow
           - Step:
+              Name: AM-SaveReq
+          - Step:
               Condition: request.header.mock-validate-request != "false"
               Name: OAS-Validate
           - Step:
-              Name: AM-LoadSpec
+              Name: AM-Config
         Response:
+          #{{- if $.Values.vertex.enabled }}
+          - Step:
+              Name: AM-Generate-Vertex-Token
+          #{{- end }}
           - Step:
               Name: JS-MockResponse
       Flows: []

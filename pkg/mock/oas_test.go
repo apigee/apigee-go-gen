@@ -1,4 +1,4 @@
-//  Copyright 2024 Google LLC
+//  Copyright 2025 Google LLC
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
 package mock
 
 import (
+	"github.com/apigee/apigee-go-gen/pkg/render"
 	"github.com/apigee/apigee-go-gen/pkg/utils"
 	"github.com/stretchr/testify/require"
 	"path/filepath"
@@ -40,7 +41,7 @@ func TestGenerateMockProxyBundle(t *testing.T) {
 			outputPath := filepath.Join(mocksDir, tt.mock, "out-apiproxy.zip")
 			expectedOutputPath := filepath.Join(mocksDir, tt.mock, "exp-apiproxy.zip")
 
-			err := GenerateMockProxyBundle(inputPath, outputPath, false)
+			err := GenerateMockProxyBundle(inputPath, outputPath, render.NewCommonFlags(), false)
 			require.NoError(t, err)
 
 			utils.RequireBundleZipEquals(t, outputPath, expectedOutputPath)
