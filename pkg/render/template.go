@@ -1,4 +1,4 @@
-// Copyright 2024 Google LLC
+// Copyright 2025 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,7 +14,28 @@
 
 package render
 
+import (
+	"github.com/apigee/apigee-go-gen/pkg/flags"
+	"github.com/apigee/apigee-go-gen/pkg/git"
+	"github.com/apigee/apigee-go-gen/pkg/utils"
+)
+
 func RenderGenericTemplate(cFlags *CommonFlags, dryRun bool) error {
+	var err error
+	if git.IsGitURI(string(cFlags.TemplateFile)) {
+		var templateFileFromGit string
+		var templateDirFromGit string
+		if templateFileFromGit, templateDirFromGit, err = git.FetchFile(string(cFlags.TemplateFile)); err != nil {
+			return err
+		}
+		defer utils.MustRemoveAll(templateDirFromGit)
+		cFlags.TemplateFile = flags.String(templateFileFromGit)
+	}
+
+	return RenderGenericTemplateLocal(cFlags, dryRun)
+}
+
+func RenderGenericTemplateLocal(cFlags *CommonFlags, dryRun bool) error {
 	type TemplateContext struct {
 		Values map[string]any
 	}

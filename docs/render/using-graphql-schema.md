@@ -1,6 +1,6 @@
 # Using GraphQL Schema
 <!--
-  Copyright 2024 Google LLC
+  Copyright 2025 Google LLC
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -44,7 +44,6 @@ apigee-go-gen render apiproxy \
      --set-string "api_name=resorts-api" \
      --set-string "base_path=/resorts/graphql" \
      --set-string "target_url=https://example.com/graphql" \
-     --include ./examples/templates/graphql/*.tmpl \
      --output ./out/apiproxies/resorts.zip
 ``` 
 
@@ -56,6 +55,5 @@ apigee-go-gen render apiproxy \
      --set-string "api_name=resorts-api" \
      --set-string "base_path=/resorts/graphql" \
      --set-string "target_url=https://example.com/graphql" \
-     --include ./examples/templates/graphql/*.tmpl \
      --output ./out/apiproxies/resorts.zip
 ``` 

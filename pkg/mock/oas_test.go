@@ -44,7 +44,7 @@ func TestGenerateMockProxyBundle(t *testing.T) {
 			err := GenerateMockProxyBundle(inputPath, outputPath, render.NewCommonFlags(), false)
 			require.NoError(t, err)
 
-			utils.RequireBundleZipEquals(t, outputPath, expectedOutputPath)
+			utils.RequireBundleZipEquals(t, expectedOutputPath, outputPath)
 		})
 	}
 }

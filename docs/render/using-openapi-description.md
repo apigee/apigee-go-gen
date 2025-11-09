@@ -1,6 +1,6 @@
 # Using OpenAPI Description
 <!--
-  Copyright 2024 Google LLC
+  Copyright 2025 Google LLC
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -43,7 +43,6 @@ Here is how you would use the [render apiproxy](./commands/render-apiproxy.md) c
 apigee-go-gen render apiproxy \
     --template ./examples/templates/oas3/apiproxy.yaml \
     --set-oas spec=./examples/specs/oas3/petstore.yaml \
-    --include ./examples/templates/oas3/*.tmpl \
     --output ./out/apiproxies/petstore.zip
 ```
 
@@ -52,7 +51,6 @@ apigee-go-gen render apiproxy \
 apigee-go-gen render apiproxy \
     --template ./examples/templates/oas3/apiproxy.yaml \
     --set-oas spec=./examples/specs/oas3/petstore.yaml \
-    --include ./examples/templates/oas3/*.tmpl \
     --output ./out/apiproxies/petstore
 ```
 
@@ -64,9 +62,9 @@ Add the `--dry-run xml` or `--dry-run yaml` flag.
 
 Note that dry-run is only useful when the rendered template produces valid YAML. 
 
-If your template has issues, and it does not produce valid YAML, you can use the `--debug true` flag.
-
-This will print out the rendered template before even attempting to parse it as YAML.
+!!! Note 
+    If your template has issues, and it does not produce valid YAML, you can use the `--debug true` flag.
+    This will print out the rendered template before even attempting to parse it as YAML.
 
 
 === "XML output"
@@ -74,6 +72,5 @@ This will print out the rendered template before even attempting to parse it as 
 apigee-go-gen render apiproxy \
     --template ./examples/templates/oas3/apiproxy.yaml \
     --set-oas spec=./examples/specs/oas3/petstore.yaml \
-    --include ./examples/templates/oas3/*.tmpl \
     --dry-run xml
 ```

@@ -1,4 +1,4 @@
-//  Copyright 2024 Google LLC
+//  Copyright 2025 Google LLC
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import (
 	"testing"
 )
 
-func TestRenderGeneric(t *testing.T) {
+func TestRenderGenericTemplateLocal(t *testing.T) {
 
 	tests := []struct {
 		dir          string
@@ -108,7 +108,7 @@ func TestRenderGeneric(t *testing.T) {
 				require.NoError(t, err)
 			}
 
-			err = RenderGenericTemplate(cFlags, false)
+			err = RenderGenericTemplateLocal(cFlags, false)
 
 			if tt.wantErr != nil {
 				require.EqualError(t, err, tt.wantErr.Error())

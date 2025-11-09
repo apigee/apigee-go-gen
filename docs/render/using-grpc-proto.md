@@ -1,6 +1,6 @@
 # Using gRPC Proto
 <!--
-  Copyright 2024 Google LLC
+  Copyright 2025 Google LLC
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -46,7 +46,6 @@ apigee-go-gen render apiproxy \
     --template ./examples/templates/grpc/apiproxy.yaml \
     --set-grpc proto=./examples/protos/greeter.proto \
     --set-string "target_server=example-target-server" \
-    --include ./examples/templates/grpc/*.tmpl \
     --output ./out/apiproxies/greeter.zip
 ```
 
@@ -56,6 +55,5 @@ apigee-go-gen render apiproxy \
     --template ./examples/templates/grpc/apiproxy.yaml \
     --set-grpc proto=./examples/protos/greeter.proto \
     --set-string "target_server=example-target-server" \
-    --include ./examples/templates/grpc/*.tmpl \
     --output ./out/apiproxies/greeter
 ```

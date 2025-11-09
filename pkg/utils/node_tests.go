@@ -1,4 +1,4 @@
-//  Copyright 2024 Google LLC
+//  Copyright 2025 Google LLC
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -47,13 +47,13 @@ func RunNPMTTest(t *testing.T, targetDir string) {
 	t.Logf("Running 'npm install' in directory: %s", targetDir)
 	cmd = exec.Command("npm", "install", "deploy")
 	cmd.Dir = targetDir
-	Run(cmd, t)
+	RunT(cmd, t)
 	t.Logf("npm install successful.")
 
 	t.Logf("Running 'npm test' in directory: %s", targetDir)
 	cmd = exec.Command("npm", "test")
 	cmd.Dir = targetDir
-	Run(cmd, t)
+	RunT(cmd, t)
 	t.Logf("All npm processes completed successfully.")
 
 }
@@ -65,7 +65,7 @@ func HandleTestPanic(t *testing.T) {
 	}
 }
 
-func Run(cmd *exec.Cmd, t *testing.T) {
+func RunT(cmd *exec.Cmd, t *testing.T) {
 	r, _ := cmd.StdoutPipe()
 	cmd.Stderr = cmd.Stdout
 	done := make(chan struct{})

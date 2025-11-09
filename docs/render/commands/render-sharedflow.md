@@ -28,7 +28,7 @@ The `render sharedflow` command takes the following parameters:
 
 
 ```text
-  -t, --template string          path to main template"
+  -t, --template string          path to main template
   -i, --include string           path to helper templates (globs allowed)
   -o, --output string            output directory or file
       --debug boolean            prints rendered template before transforming into shared flow"

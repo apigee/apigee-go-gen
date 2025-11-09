@@ -1,4 +1,4 @@
-// Copyright 2024 Google LLC
+// Copyright 2025 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,9 +18,67 @@ import (
 	"fmt"
 	"github.com/go-errors/errors"
 	"io"
+	"io/fs"
 	"os"
 	"path/filepath"
 )
+
+func CopyDir(dest string, src string) error {
+	fSys := os.DirFS(src)
+	return fs.WalkDir(fSys, ".", func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+
+		fpath, err := filepath.Localize(path)
+		if err != nil {
+			return errors.New(err)
+		}
+		newPath := filepath.Join(dest, fpath)
+		if d.IsDir() {
+			return os.MkdirAll(newPath, os.ModePerm)
+		}
+
+		if !d.Type().IsRegular() {
+			if d.Type()&os.ModeSymlink == os.ModeSymlink {
+				srcLink := filepath.Join(src, path)
+				var oldName string
+				if oldName, err = os.Readlink(srcLink); err != nil {
+					return errors.New(err)
+				}
+				if err = os.Symlink(oldName, newPath); err != nil {
+					return errors.New(err)
+				}
+				return nil
+			}
+			//skip other unknown file types
+			return nil
+		}
+
+		r, err := fSys.Open(path)
+		if err != nil {
+			return errors.New(err)
+		}
+		defer r.Close()
+		_, err = r.Stat()
+		if err != nil {
+			return errors.New(err)
+		}
+		w, err := os.OpenFile(newPath, os.O_CREATE|os.O_WRONLY, os.ModePerm)
+		if err != nil {
+			return errors.New(err)
+		}
+
+		if _, err := io.Copy(w, r); err != nil {
+			_ = w.Close()
+			return &os.PathError{Op: "Copy", Path: newPath, Err: err}
+		}
+		if err = w.Close(); err != nil {
+			return errors.New(err)
+		}
+		return nil
+	})
+}
 
 func CopyFile(dest string, src string) error {
 	srcFile, err := os.Open(src)

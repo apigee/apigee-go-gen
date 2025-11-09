@@ -27,7 +27,7 @@ Under the hood, this command uses the Go [text/template](https://pkg.go.dev/text
 The `render template` command takes the following  parameters:
 
 ```text
--t, --template string      path to main template"
+-t, --template string      path to main template
 -i, --include string       path to helper templates (globs allowed)
 -o, --output string        output directory or file
 -d, --dry-run boolean      prints rendered template to stdout"

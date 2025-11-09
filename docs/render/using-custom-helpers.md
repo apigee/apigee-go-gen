@@ -1,6 +1,6 @@
 # Using Custom Helpers
 <!--
-  Copyright 2024 Google LLC
+  Copyright 2025 Google LLC
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -18,10 +18,11 @@
 Sometimes it's useful to create your own custom helper functions that you can use during the
 template rendering process.
 
-Use the `--include` flag to specify one or more files containing helper functions.
+You can define helper functions within the main template file itself, or in separate helper files.
 
-!!!Note
-    You can pass the `--include` flag multiple times, or even use [glob patterns](https://pkg.go.dev/github.com/bmatcuk/doublestar#readme-patterns) to include multiple files.
+By default, the tool will look for a file named `_helpers.tpl` in the same directory as the template, and include it.
+
+Alternatively, you can use the `--include` flag to specify one or more files containing helper functions.
 
 
 ## Example
@@ -33,9 +34,9 @@ Below is a sample helper function. Let's see how to use it.
 {{- end -}}
 ```
 
-1. First, place this block inside a helper file (e.g. `helper.tmpl`)
+1. First, place this block inside a helper file (e.g. `my_helpers.tpl`)
 
-2. Then, pass  `--include ./helper.tmpl` to the `render`) command.
+2. Then, pass  `--include ./my_helpers.tpl` to the `render`) command.
 
 Finally, in order to invoke the custom helper function, use the  `{{ include ... }}` built-in function from your main template.
 

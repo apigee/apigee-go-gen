@@ -1,4 +1,4 @@
-// Copyright 2024 Google LLC
+// Copyright 2025 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -38,6 +38,13 @@ func MustReadFileBytes(path string) []byte {
 	}
 
 	return data
+}
+
+func MustRemoveAll(path string) {
+	err := os.RemoveAll(path)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func AddEntryToOASYAML(oas *yaml.Node, key string, value any, defaultVal *yaml.Node) (*yaml.Node, error) {
@@ -163,9 +170,12 @@ func RequireBundleZipEquals(t *testing.T, expectedBundleZip string, actualBundle
 		} else {
 			expectedContents, err := io.ReadAll(expectedFileReader)
 			require.NoError(t, err)
-
 			expectedContents = RemoveYAMLComments(expectedContents)
+
 			actualContents, err := io.ReadAll(actualFileReader)
+			require.NoError(t, err)
+			actualContents = RemoveYAMLComments(expectedContents)
+
 			require.Equal(t, string(expectedContents), string(actualContents), fmt.Sprintf("%s contents do not match", expectedFile.Name))
 		}
 	}

@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"github.com/apigee/apigee-go-gen/pkg/apigee/v1"
 	"github.com/apigee/apigee-go-gen/pkg/flags"
+	"github.com/apigee/apigee-go-gen/pkg/git"
 	"github.com/apigee/apigee-go-gen/pkg/utils"
 	"github.com/go-errors/errors"
 	"os"
@@ -30,23 +31,43 @@ func GenerateBundle(createModelFunc func(string) (v1.Model, error), cFlags *Comm
 
 	bundleOutputFile := cFlags.OutputFile
 
-	//create a temporary location for rendering into
-	tmpDir, err := os.MkdirTemp("", "render-*")
-	if err != nil {
+	if git.IsGitURI(string(cFlags.TemplateFile)) {
+		var templateFileFromGit string
+		var templateDirFromGit string
+		if templateFileFromGit, templateDirFromGit, err = git.FetchFile(string(cFlags.TemplateFile)); err != nil {
+			return err
+		}
+		defer utils.MustRemoveAll(templateDirFromGit)
+		cFlags.TemplateFile = flags.String(templateFileFromGit)
+		fileRelative, _ := filepath.Rel(templateDirFromGit, templateFileFromGit)
+		cFlags.TemplateFileAlias = flags.String(fileRelative)
+	}
+
+	templateDir := filepath.Dir(string(cFlags.TemplateFile))
+
+	var tmpDir string
+	//copy the template directory into temporary location for rendering into
+	if tmpDir, err = os.MkdirTemp("", "render-*"); err != nil {
+		return errors.New(err)
+	}
+	defer utils.MustRemoveAll(tmpDir)
+
+	if err = utils.CopyDir(tmpDir, templateDir); err != nil {
+		return errors.New(err)
+	}
+
+	var tempRenderedFile *os.File
+	if tempRenderedFile, err = os.CreateTemp(tmpDir, fmt.Sprintf("rendered-*-template.yaml")); err != nil {
 		return errors.New(err)
 	}
 
 	// render the template to a temporary location
-	cFlags.OutputFile = flags.String(filepath.Join(tmpDir, "model.yaml"))
-	err = RenderGenericTemplate(cFlags, false)
-	if err != nil {
+	cFlags.OutputFile = flags.String(tempRenderedFile.Name())
+	if err = RenderGenericTemplateLocal(cFlags, false); err != nil {
 		return err
 	}
 
-	templateFile := string(cFlags.TemplateFile)
-
-	//resolve YAML Refs immediately after rendering to avoid having copy files in $ref
-	rendered, err := os.ReadFile(string(cFlags.OutputFile))
+	rendered, err := os.ReadFile(tempRenderedFile.Name())
 	if err != nil {
 		return errors.New(err)
 	}
@@ -56,7 +77,7 @@ func GenerateBundle(createModelFunc func(string) (v1.Model, error), cFlags *Comm
 		return nil
 	}
 
-	rendered, err = ResolveYAML(rendered, templateFile)
+	rendered, err = ResolveYAML(rendered, tempRenderedFile.Name())
 	if err != nil {
 		return utils.MultiError{
 			Errors: []error{
@@ -64,13 +85,13 @@ func GenerateBundle(createModelFunc func(string) (v1.Model, error), cFlags *Comm
 				errors.New("rendered template appears to not be valid YAML. Use --debug=true flag to inspect rendered output")}}
 	}
 
-	err = os.WriteFile(string(cFlags.OutputFile), rendered, os.ModePerm)
+	err = os.WriteFile(tempRenderedFile.Name(), rendered, os.ModePerm)
 	if err != nil {
 		return errors.New(err)
 	}
 
 	// create apiproxy from rendered template
-	model, err := createModelFunc(string(cFlags.OutputFile))
+	model, err := createModelFunc(tempRenderedFile.Name())
 	if err != nil {
 		return err
 	}

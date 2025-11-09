@@ -592,40 +592,32 @@ TargetEndpoints:
             .name: success.codes
             -Data: 1xx,2xx,3xx,4xx,5xx
 Resources:
-  #{{ os_copyfile "./parse-mcp.cjs" "./resources/jsc/parse-mcp.cjs" }}
   - Resource:
       Type: jsc
-      Path: ./parse-mcp.cjs
-  #{{ os_copyfile "./filter-header-tools.cjs" "./resources/jsc/filter-header-tools.cjs" }}
+      Path: ./resources/jsc/parse-mcp.cjs
   - Resource:
       Type: jsc
-      Path: ./filter-header-tools.cjs
+      Path: ./resources/jsc/filter-header-tools.cjs
   #{{- if $.Values.check_app_authorization }}
-  #{{ os_copyfile "./authorize-mcp-req.cjs" "./resources/jsc/authorize-mcp-req.cjs" }}
   - Resource:
       Type: jsc
-      Path: ./authorize-mcp-req.cjs
-  #{{ os_copyfile "./filter-authorized-tools.cjs" "./resources/jsc/filter-authorized-tools.cjs" }}
+      Path: ./resources/jsc/authorize-mcp-req.cjs
   - Resource:
       Type: jsc
-      Path: ./filter-authorized-tools.cjs
+      Path: ../resources/jsc/filter-authorized-tools.cjs"
   #{{- end }}
-  #{{ os_copyfile "./process-mcp-req.cjs" "./resources/jsc/process-mcp-req.cjs" }}
   - Resource:
       Type: jsc
-      Path: ./process-mcp-req.cjs
-  #{{ os_copyfile "./process-rest-res.cjs" "./resources/jsc/process-rest-res.cjs" }}
+      Path: ./resources/jsc/process-mcp-req.cjs
   - Resource:
       Type: jsc
-      Path: ./process-rest-res.cjs
-  #{{ os_copyfile "./mcp.cjs" "./resources/jsc/mcp.cjs" }}
+      Path: ./resources/jsc/process-rest-res.cjs
   - Resource:
       Type: jsc
-      Path: ./mcp.cjs
-  #{{ os_copyfile "./validate-tools.cjs" "./resources/jsc/validate-tools.cjs" }}
+      Path: ./resources/jsc/mcp.cjs
   - Resource:
       Type: jsc
-      Path: ./validate-tools.cjs
+      Path: ./resources/jsc/validate-tools.cjs
   #{{ include "create_mcp_json_file" (dict "file" "mcp-tools.cjs" "mcp" $mcp "oas" $.Values.spec) }}
   - Resource:
       Type: jsc

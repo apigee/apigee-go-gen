@@ -45,7 +45,7 @@ func RenderGeneric(context any, cFlags *CommonFlags, dryRun bool) error {
 	}
 
 	//create the template
-	tmpl, err := CreateTemplate(string(cFlags.TemplateFile), cFlags.IncludeList, string(cFlags.OutputFile), dryRun)
+	tmpl, err := CreateTemplate(string(cFlags.TemplateFile), string(cFlags.TemplateFileAlias), cFlags.IncludeList, string(cFlags.OutputFile), dryRun)
 	if err != nil {
 		return err
 	}
@@ -91,10 +91,29 @@ func RenderTemplate(tmpl *template.Template, context any) ([]byte, error) {
 	return replaced, nil
 }
 
-func CreateTemplate(templateFile string, includeList []string, outputFile string, dryRun bool) (*template.Template, error) {
+func CreateTemplate(templateFile string, templateFileAlias string, includeList []string, outputFile string, dryRun bool) (*template.Template, error) {
+	var err error
+	var includeMatches []string
+
+	if _, err = os.Stat(templateFile); err != nil {
+		return nil, errors.New(err)
+	}
+
+	// add helper files if present
+	templateDir := filepath.Dir(templateFile)
+
+	helpersFileNames := []string{"_helpers.tpl", "_helpers.tmpl"}
+	for _, helperFileName := range helpersFileNames {
+		helperFilePath := filepath.Join(templateDir, helperFileName)
+		if _, err = os.Stat(helperFilePath); err == nil {
+			includeList = append(includeList, helperFilePath)
+		}
+	}
+
+	//add the main template itself
 	includeList = append(includeList, templateFile)
-	includeMatches, err := ExpandInclude(includeList)
-	if err != nil {
+
+	if includeMatches, err = ExpandInclude(includeList); err != nil {
 		return nil, err
 	}
 
@@ -289,7 +308,11 @@ func CreateTemplate(templateFile string, includeList []string, outputFile string
 		return nil, errors.New(err)
 	}
 
-	tmpl, err := template.New(templateFile).
+	if templateFileAlias == "" {
+		templateFileAlias = templateFile
+	}
+
+	tmpl, err := template.New(templateFileAlias).
 		Funcs(helperFuncs).
 		Funcs(sprig.FuncMap()).
 		Parse(string(templateText))
