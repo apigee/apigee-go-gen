@@ -47,6 +47,9 @@ func TestNewAPIProxyModel(t *testing.T) {
 		{
 			"lb-server-unhealthy",
 		},
+		{
+			"lb-weighted",
+		},
 	}
 	for _, tt := range tests {
 		ttDir := filepath.Join("testdata", "yaml-first", tt.name)

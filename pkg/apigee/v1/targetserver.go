@@ -19,6 +19,7 @@ import "fmt"
 type Server struct {
 	Name       string `xml:"name,attr"`
 	IsFallback bool   `xml:"IsFallback,omitempty"`
+	Weight     int    `xml:"Weight,omitempty"`
 
 	UnknownNode AnyList `xml:",any"`
 }
