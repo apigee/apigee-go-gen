@@ -17,6 +17,7 @@ package v1
 import "fmt"
 
 type Authentication struct {
+	HeaderName        string             `xml:"HeaderName,omitempty"`
 	GoogleIDToken     *GoogleIDToken     `xml:"GoogleIDToken"`
 	GoogleAccessToken *GoogleAccessToken `xml:"GoogleAccessToken"`
 
