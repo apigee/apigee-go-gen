@@ -16,23 +16,29 @@ package v1
 
 import "fmt"
 
-type RouteRule struct {
-	Name                string `xml:"name,attr"`
-	Condition           string `xml:"Condition,omitempty"`
-	TargetEndpoint      string `xml:"TargetEndpoint,omitempty"`
-	IntegrationEndpoint string `xml:"IntegrationEndpoint,omitempty"`
+type IntegrationEndpointsList []*IntegrationEndpoint
+
+type IntegrationEndpoints struct {
+	List IntegrationEndpointsList `xml:"IntegrationEndpoint,omitempty"`
 
 	UnknownNode AnyList `xml:",any"`
 }
 
-func ValidateRouteRule(v *RouteRule, path string) []error {
+func ValidateIntegrationEndpoints(v *IntegrationEndpoints, path string) []error {
 	if v == nil {
 		return nil
 	}
 
-	subPath := fmt.Sprintf("%s.RouteRule(name: %s)", path, v.Name)
+	subPath := fmt.Sprintf("%s.IntegrationEndpoints", path)
 	if len(v.UnknownNode) > 0 {
 		return []error{NewUnknownNodeError(subPath, v.UnknownNode[0])}
+	}
+
+	for index, vv := range v.List {
+		errs := ValidateIntegrationEndpoint(vv, fmt.Sprintf("%s.%v", subPath, index))
+		if len(errs) > 0 {
+			return errs
+		}
 	}
 
 	return nil

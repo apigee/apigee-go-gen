@@ -32,11 +32,12 @@ func NewAPIProxyModel(input string) (*APIProxyModel, error) {
 }
 
 type APIProxyModel struct {
-	APIProxy        APIProxy        `xml:"APIProxy"`
-	Policies        Policies        `xml:"Policies"`
-	ProxyEndpoints  ProxyEndpoints  `xml:"ProxyEndpoints"`
-	TargetEndpoints TargetEndpoints `xml:"TargetEndpoints"`
-	Resources       Resources       `xml:"Resources"`
+	APIProxy             APIProxy             `xml:"APIProxy"`
+	Policies             Policies             `xml:"Policies"`
+	ProxyEndpoints       ProxyEndpoints       `xml:"ProxyEndpoints"`
+	TargetEndpoints      TargetEndpoints      `xml:"TargetEndpoints"`
+	IntegrationEndpoints IntegrationEndpoints `xml:"IntegrationEndpoints,omitempty"`
+	Resources            Resources            `xml:"Resources"`
 
 	UnknownNode AnyList `xml:",any"`
 
@@ -75,6 +76,8 @@ func (a *APIProxyModel) Validate() error {
 	subErrors = append(subErrors, ValidateAPIProxy(&a.APIProxy, path)...)
 	subErrors = append(subErrors, ValidateProxyEndpoints(&a.ProxyEndpoints, path)...)
 	subErrors = append(subErrors, ValidateTargetEndpoints(&a.TargetEndpoints, path)...)
+	subErrors = append(subErrors, ValidateIntegrationEndpoints(&a.IntegrationEndpoints, path)...)
+
 	subErrors = append(subErrors, ValidateResources(&a.Resources, path)...)
 
 	if len(subErrors) > 0 {
@@ -103,6 +106,10 @@ func (a *APIProxyModel) BundleFiles() []BundleFile {
 	}
 
 	for _, item := range a.TargetEndpoints.List {
+		bundleFiles = append(bundleFiles, BundleFile(item))
+	}
+
+	for _, item := range a.IntegrationEndpoints.List {
 		bundleFiles = append(bundleFiles, BundleFile(item))
 	}
 

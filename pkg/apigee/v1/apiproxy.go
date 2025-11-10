@@ -37,6 +37,7 @@ type APIProxy struct {
 	Resources            *Deprecated `xml:"Resources"`
 	ProxyEndpoints       *Deprecated `xml:"ProxyEndpoints"`
 	TargetEndpoints      *Deprecated `xml:"TargetEndpoints"`
+	IntegrationEndpoints *Deprecated `xml:"IntegrationEndpoints"`
 
 	UnknownNode AnyList `xml:",any"`
 }

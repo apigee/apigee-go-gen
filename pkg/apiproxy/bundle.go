@@ -1,4 +1,4 @@
-// Copyright 2024 Google LLC
+// Copyright 2025 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -65,6 +65,7 @@ func BundleDir2YAMLFile(inputDir string, outputFile string, dryRun bool) error {
 	policyFiles := []string{}
 	proxyEndpointsFiles := []string{}
 	targetEndpointsFiles := []string{}
+	integrationEndpointsFiles := []string{}
 	resourcesFiles := []string{}
 	manifestFiles := []string{}
 
@@ -82,6 +83,7 @@ func BundleDir2YAMLFile(inputDir string, outputFile string, dryRun bool) error {
 	policyFiles, _ = fs.Glob(fSys, "policies/*.xml")
 	proxyEndpointsFiles, _ = fs.Glob(fSys, "proxies/*.xml")
 	targetEndpointsFiles, _ = fs.Glob(fSys, "targets/*.xml")
+	integrationEndpointsFiles, _ = fs.Glob(fSys, "integration-endpoints/*.xml")
 	resourcesFiles, _ = fs.Glob(fSys, "resources/*/*")
 
 	allFiles := []string{}
@@ -93,6 +95,7 @@ func BundleDir2YAMLFile(inputDir string, outputFile string, dryRun bool) error {
 	allFiles = append(allFiles, policyFiles...)
 	allFiles = append(allFiles, proxyEndpointsFiles...)
 	allFiles = append(allFiles, targetEndpointsFiles...)
+	allFiles = append(allFiles, integrationEndpointsFiles...)
 
 	createMapEntry := func(parent *yaml.Node, key string, value *yaml.Node) *yaml.Node {
 		parent.Content = append(parent.Content, &yaml.Node{Kind: yaml.ScalarNode, Value: key}, value)
@@ -149,6 +152,14 @@ func BundleDir2YAMLFile(inputDir string, outputFile string, dryRun bool) error {
 	err = addSequence(mainNode, "TargetEndpoints", targetEndpointsFiles)
 	if err != nil {
 		return err
+	}
+
+	//only add integration endpoints if there is at least one
+	if len(integrationEndpointsFiles) > 0 {
+		err = addSequence(mainNode, "IntegrationEndpoints", integrationEndpointsFiles)
+		if err != nil {
+			return err
+		}
 	}
 
 	//copy resource files

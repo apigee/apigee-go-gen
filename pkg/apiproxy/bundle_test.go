@@ -35,6 +35,9 @@ func TestProxyBundle2YAMLFile(t *testing.T) {
 		{
 			"oauth-validate-key-secret",
 		},
+		{
+			"integration-target",
+		},
 	}
 
 	bundlesDir := filepath.Join("testdata", "bundles")
@@ -45,19 +48,26 @@ func TestProxyBundle2YAMLFile(t *testing.T) {
 
 			defer stdout.Restore()
 
-			proxyBundle := filepath.Join(bundlesDir, tt.dir, "apiproxy.zip")
-			apiProxyYAMLFile := filepath.Join(bundlesDir, tt.dir, "apiproxy.yaml")
-			apiProxyYAML := utils.MustReadFileBytes(apiProxyYAMLFile)
+			inputAPIProxyBundle := filepath.Join(bundlesDir, tt.dir, "apiproxy.zip")
+			expectedYAMLFile := filepath.Join(bundlesDir, tt.dir, "apiproxy.yaml")
+			outputYAMLFile := filepath.Join(bundlesDir, tt.dir, "out-apiproxy.yaml")
 
-			err = Bundle2YAMLFile(proxyBundle, "", true)
+			err = os.RemoveAll(outputYAMLFile)
+			require.NoError(t, err)
+
+			err = Bundle2YAMLFile(inputAPIProxyBundle, "", true)
 			require.NoError(t, err)
 
 			data, err := stdout.Read()
 			require.NoError(t, err)
 
-			actualYAML := string(data)
-			expectedYAML := string(apiProxyYAML)
-			assert.YAMLEq(t, expectedYAML, actualYAML)
+			err = utils.WriteOutputText(outputYAMLFile, data)
+			assert.NoError(t, err)
+
+			expectedYAMLBytes := utils.MustReadFileBytes(expectedYAMLFile)
+			outputYAMLBytes := utils.MustReadFileBytes(outputYAMLFile)
+
+			assert.YAMLEq(t, string(expectedYAMLBytes), string(outputYAMLBytes))
 		})
 	}
 }
@@ -72,27 +82,30 @@ func TestAPIProxyModel2BundleZip(t *testing.T) {
 		{
 			"oauth-validate-key-secret",
 		},
+		{
+			"integration-target",
+		},
 	}
 
 	bundlesDir := filepath.Join("testdata", "bundles")
 
 	for _, tt := range tests {
 		t.Run(tt.dir, func(t *testing.T) {
+			var err error
+			inputAPIProxyYAMLFile := filepath.Join(bundlesDir, tt.dir, "apiproxy.yaml")
+			expectedAPIProxyBundleFile := filepath.Join(bundlesDir, tt.dir, "apiproxy.zip")
+			outputAPIProxyBundleFile := filepath.Join(bundlesDir, tt.dir, "out-apiproxy.zip")
 
-			tmpDir, err := os.MkdirTemp("", tt.dir+"-*")
+			err = os.RemoveAll(outputAPIProxyBundleFile)
 			require.NoError(t, err)
 
-			apiProxyModelYAMLPath := filepath.Join(bundlesDir, tt.dir, "apiproxy.yaml")
-			expectedBundleZipPath := filepath.Join(bundlesDir, tt.dir, "apiproxy.zip")
-			outputBundleZipPath := filepath.Join(tmpDir, "apiproxy.zip")
-
-			model, err := v1.NewAPIProxyModel(apiProxyModelYAMLPath)
+			model, err := v1.NewAPIProxyModel(inputAPIProxyYAMLFile)
 			require.NoError(t, err)
 
-			err = render.CreateBundle(model, outputBundleZipPath, false, "")
+			err = render.CreateBundle(model, outputAPIProxyBundleFile, false, "")
 			require.NoError(t, err)
 
-			utils.RequireBundleZipEquals(t, expectedBundleZipPath, outputBundleZipPath)
+			utils.RequireBundleZipEquals(t, expectedAPIProxyBundleFile, outputAPIProxyBundleFile)
 		})
 	}
 }
