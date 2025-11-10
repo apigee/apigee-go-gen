@@ -34,7 +34,7 @@ func Unzip(destDir string, srcZip string) error {
 		path := filepath.Join(destDir, zipFile.Name)
 
 		if zipFile.FileInfo().IsDir() {
-			err := os.MkdirAll(path, zipFile.Mode())
+			err := os.MkdirAll(path, os.ModePerm)
 			if err != nil {
 				return errors.New(err)
 			}
