@@ -26,6 +26,7 @@ type ProxyEndpoint struct {
 	FaultRules          *FaultRules          `xml:"FaultRules"`
 	DefaultFaultRule    *DefaultFaultRule    `xml:"DefaultFaultRule,omitempty"`
 	PreFlow             *PreFlow             `xml:"PreFlow,omitempty"`
+	EventFlow           *EventFlow           `xml:"EventFlow,omitempty"`
 	Flows               *Flows               `xml:"Flows,omitempty"`
 	PostFlow            *PostFlow            `xml:"PostFlow,omitempty"`
 	PostClientFlow      *PostClientFlow      `xml:"PostClientFlow,omitempty"`
@@ -64,6 +65,7 @@ func ValidateProxyEndpoint(v *ProxyEndpoint, path string) []error {
 	var subErrors []error
 	subErrors = append(subErrors, ValidateHTTPProxyConnection(v.HTTPProxyConnection, subPath)...)
 	subErrors = append(subErrors, ValidatePreFlow(v.PreFlow, subPath)...)
+	subErrors = append(subErrors, ValidateEventFlow(v.EventFlow, subPath)...)
 	subErrors = append(subErrors, ValidateFlows(v.Flows, subPath)...)
 	subErrors = append(subErrors, ValidatePostFlow(v.PostFlow, subPath)...)
 	subErrors = append(subErrors, ValidateRouteRules(v.RouteRules, subPath)...)

@@ -26,6 +26,7 @@ type TargetEndpoint struct {
 	FaultRules            *FaultRules            `xml:"FaultRules,omitempty"`
 	DefaultFaultRule      *DefaultFaultRule      `xml:"DefaultFaultRule,omitempty"`
 	PreFlow               PreFlow                `xml:"PreFlow"`
+	EventFlow             *EventFlow             `xml:"EventFlow,omitempty"`
 	Flows                 Flows                  `xml:"Flows"`
 	PostFlow              PostFlow               `xml:"PostFlow"`
 	HTTPTargetConnection  *HTTPTargetConnection  `xml:"HTTPTargetConnection,omitempty"`
@@ -63,6 +64,7 @@ func ValidateTargetEndpoint(v *TargetEndpoint, path string) []error {
 	var subErrors []error
 	subErrors = append(subErrors, ValidateHTTPTargetConnection(v.HTTPTargetConnection, subPath)...)
 	subErrors = append(subErrors, ValidatePreFlow(&v.PreFlow, subPath)...)
+	subErrors = append(subErrors, ValidateEventFlow(v.EventFlow, subPath)...)
 	subErrors = append(subErrors, ValidateFlows(&v.Flows, subPath)...)
 	subErrors = append(subErrors, ValidatePostFlow(&v.PostFlow, subPath)...)
 	subErrors = append(subErrors, ValidateFaultRules(v.FaultRules, subPath)...)

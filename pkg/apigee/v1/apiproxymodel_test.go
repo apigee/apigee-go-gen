@@ -53,6 +53,9 @@ func TestNewAPIProxyModel(t *testing.T) {
 		{
 			"google-id-token-auth",
 		},
+		{
+			"event-flow",
+		},
 	}
 	for _, tt := range tests {
 		ttDir := filepath.Join("testdata", "yaml-first", tt.name)
