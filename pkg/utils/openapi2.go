@@ -1,4 +1,4 @@
-//  Copyright 2024 Google LLC
+//  Copyright 2025 Google LLC
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -44,7 +44,6 @@ func OAS2YAMLtoOAS3YAML(oasNode *yaml.Node) (*yaml.Node, error) {
 	}
 
 	//finally, convert it to the OAS3 data model
-	openapi3.CircularReferenceCounter = 5
 	openapi3.DisableSchemaDefaultsValidation()
 	openapi3.DisablePatternValidation()
 	openapi3.DisableExamplesValidation()

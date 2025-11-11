@@ -73,7 +73,7 @@ func RunT(cmd *exec.Cmd, t *testing.T) {
 	go func() {
 		for scanner.Scan() {
 			line := scanner.Text()
-			t.Logf(line)
+			t.Log(line)
 		}
 		done <- struct{}{}
 	}()

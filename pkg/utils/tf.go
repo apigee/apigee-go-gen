@@ -71,7 +71,7 @@ func TFFileToJSONFile(input string, output string) error {
 		}
 	} else {
 		// Default to printing JSON to stdout if extension isn't recognized
-		fmt.Printf(string(jsonBytes))
+		fmt.Print(string(jsonBytes))
 		return nil
 	}
 
