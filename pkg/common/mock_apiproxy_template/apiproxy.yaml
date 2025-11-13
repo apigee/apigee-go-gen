@@ -137,9 +137,9 @@ ProxyEndpoints:
         .name: PreFlow
         Request:
           - Step:
-              Name: CORS-Allow
-          - Step:
               Name: AM-SaveReq
+          - Step:
+              Name: CORS-Allow
           - Step:
               Condition: request.header.mock-validate-request != "false"
               Name: OAS-Validate
