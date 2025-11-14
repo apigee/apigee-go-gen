@@ -292,11 +292,10 @@ func ResolveYAMLReference(refPath string, openAPIRoot *yaml.Node) (*yaml.Node, e
 		return nil, errors.Errorf("invalid local reference format: %s", err.Error())
 	}
 
-	// 2. Convert JSON Pointer to JSONPath: trim '#' and replace '/' with '.'
-	// E.g., "#/components/schemas/User" -> "$.components.schemas.User"
-	jsonPath := strings.TrimPrefix(refPath, "#")
-	jsonPath = strings.ReplaceAll(jsonPath, "/", ".")
-	jsonPath = "$" + jsonPath // Prepend $ for root search
+	jsonPath, err := JSONPointerToJSONPath(refPath)
+	if err != nil {
+		return nil, errors.Errorf("failed to convert JSON Pointer '%s' to JSONPath: %s", refPath, err.Error())
+	}
 
 	path, err := yamlpath.NewPath(jsonPath)
 	if err != nil {
@@ -344,4 +343,39 @@ func DeepCloneYAML(n *yaml.Node) *yaml.Node {
 		}
 	}
 	return clone
+}
+
+// JSONPointerToJSONPath converts a JSON Pointer (like "#/a/b") to a JSONPath expression (like "$['a']['b']").
+// This correctly handles segments containing special characters like dots (e.g., "$['a.b']").
+// It also correctly unescapes JSON Pointer's ~0 and ~1 sequences.
+func JSONPointerToJSONPath(refPath string) (string, error) {
+	if !strings.HasPrefix(refPath, "#") {
+		return "", errors.New("reference path must be a local JSON Pointer starting with '#'")
+	}
+
+	// 1. Remove '#' prefix (e.g., "/components/schemas/User.v1")
+	jsonPointer := strings.TrimPrefix(refPath, "#")
+
+	// 2. Split into segments. JSON Pointer segments are separated by '/'
+	// The first segment will be empty due to the leading '/'.
+	segments := strings.Split(jsonPointer, "/")
+
+	// Start with the root symbol $
+	jsonPathParts := []string{"$"}
+
+	// Iterate over segments starting from index 1 (index 0 is empty string)
+	for i := 1; i < len(segments); i++ {
+		segment := segments[i]
+
+		// Unescape JSON Pointer special characters: ~1 -> / and ~0 -> ~
+		// Order matters: must replace ~1 first.
+		unescapedSegment := strings.ReplaceAll(segment, "~1", "/")
+		unescapedSegment = strings.ReplaceAll(unescapedSegment, "~0", "~")
+
+		// Use single quotes for the JSONPath bracket notation. This is safe for keys containing dots.
+		// NOTE: This assumes schema names do not contain single quotes (').
+		jsonPathParts = append(jsonPathParts, "['"+unescapedSegment+"']")
+	}
+
+	return strings.Join(jsonPathParts, ""), nil
 }
