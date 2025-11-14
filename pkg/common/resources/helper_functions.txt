@@ -124,6 +124,19 @@
           }
         }
 
+	json_to_yaml(string) string
+	    Converts the input JSON string to YAML. e.g.
+
+          {{ $YAML_TEXT := `{"hello":"world"}` | json_to_yaml }}
+          {{ print $YAML_TEXT }}
+
+	yaml_to_json(string) string
+	    Converts the input YAML string to JSON
+
+          {{ $YAML_TEXT := `{"hello":"world"}` | json_to_yaml }}
+          {{ print (yaml_to_json $YAML_TEXT) }}
+
+
     Sprig
       Template functions from Sprig library
       e.g. {{ "Hello World" | upper }}

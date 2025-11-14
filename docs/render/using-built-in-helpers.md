@@ -1,6 +1,6 @@
 # Using Built-in Helpers
 <!--
-  Copyright 2024 Google LLC
+  Copyright 2025 Google LLC
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -220,8 +220,33 @@ The file path is relative to the main template file directory.
 }
 ```
 
-       
 
+### **json_to_yaml**
+```go
+func json_to_yaml(json string) string
+```
+
+Converts the input JSON string to YAML.
+
+e.g.
+```gotemplate
+{{ $YAML_TEXT := `{"hello":"world"}` | json_to_yaml }}
+{{ print $YAML_TEXT }}
+```
+
+
+### **yaml_to_json**
+```go
+func yaml_to_json(yaml string) string
+```
+
+Converts the input YAML string to JSON.
+
+e.g.
+```gotemplate
+{{ $YAML_TEXT := `{"hello":"world"}` | json_to_yaml }}
+{{ print (yaml_to_json $YAML_TEXT) }}
+```
 
 ## Libraries
 ### **Sprig**
