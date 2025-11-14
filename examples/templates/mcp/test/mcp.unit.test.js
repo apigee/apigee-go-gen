@@ -17,6 +17,7 @@
 const {
   JsonRPCError,
   _get,
+  _escapeDot,
   combinePaths,
   convertJsonToXml,
   createFullUrl,
@@ -197,6 +198,48 @@ describe('Object Path Getter (_get)', () => {
     expect(_get(null, 'id', 0)).toBe(0);
     expect(_get(123, 'id', 0)).toBe(0);
   });
+
+  // --- _get() Tests with dots escaped ---
+
+  // Test data with keys containing dots
+  const escapedData = {
+    'user.info': 500, // Top-level key contains a dot
+    data: {
+      'api.key': 12345, // Nested key contains a dot
+      settings: {
+        'complex.field.id': 'C-101' // Deeply nested key contains dots
+      }
+    }
+  };
+
+  const mixedData = {
+    'segment.one': {
+      two: 2
+    }
+  };
+
+  test('should retrieve a top-level property whose key contains a dot using escape notation', () => {
+    expect(_get(escapedData, 'user\\.info', 0)).toBe(500);
+  });
+
+  test('should retrieve a deeply nested property whose key contains a single escaped dot', () => {
+    expect(_get(escapedData, 'data.api\\.key', 'N/A')).toBe(12345);
+  });
+
+  test('should retrieve a deeply nested property with multiple escaped dots', () => {
+    expect(_get(escapedData, 'data.settings.complex\\.field\\.id', 'N/A')).toBe('C-101');
+  });
+
+  test('should return defaultValue if an intentional key dot is NOT escaped and path breaks', () => {
+    // Path: 'data.api.key' (The function looks for data['api'], which doesn't exist)
+    expect(_get(escapedData, 'data.api.key', 'N/A')).toBe('N/A');
+  });
+
+  test('should handle mixed path segments (some escaped, some not)', () => {
+    // Path: 'segment\.one.two'
+    expect(_get(mixedData, 'segment\\.one.two', 0)).toBe(2);
+  });
+
 });
 
 describe('isBinaryMimeType', () => {
@@ -221,6 +264,26 @@ describe('isBinaryMimeType', () => {
     expect(isBinaryMimeType(undefined)).toBe(false);
     expect(isBinaryMimeType(123)).toBe(false);
     expect(isBinaryMimeType({})).toBe(false);
+  });
+});
+
+// --- _escapeDot() tests  ---
+
+describe('Dot Escaping Utilities (_escapeDot)', () => {
+  test('should escape a dot within a simple key', () => {
+    expect(_escapeDot('my.key')).toBe('my\\.key');
+  });
+
+  test('should handle multiple dots in a single key', () => {
+    expect(_escapeDot('user.profile.data')).toBe('user\\.profile\\.data');
+  });
+
+  test('should return the original string if no dots are present', () => {
+    expect(_escapeDot('userId')).toBe('userId');
+  });
+
+  test('should handle empty string input', () => {
+    expect(_escapeDot('')).toBe('');
   });
 });
 

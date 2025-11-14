@@ -66,23 +66,49 @@ function getPrettyJSON(value) {
 
 
 /**
+ * Escapes dots within a string key so they are treated as part of the key name
+ * instead of a path separator in the _get function.
+ *
+ * Example: "user.id" -> "user\.id"
+ *
+ * @param {string} key The object key that might contain dots.
+ * @returns {string} The escaped key string.
+ */
+function _escapeDot(key) {
+  // Use a global regex to replace all dots with an escaped dot
+  // The dot '.' needs to be escaped in the regex pattern itself: '\.'
+  return key.replace(/\./g, '\\.');
+}
+
+
+/**
  * Safely retrieves a nested property value from an object using a dot-separated key string.
+ * Supports escaping dots within key names using a backslash (\.).
  *
  * @param {object} obj The object to query.
  * @param {string} keyString The dot-separated path to the nested property (e.g., "a.b.c").
+ * Use \. to escape a dot within a key (e.g., "a.key\.with\.dot.c").
  * @param {*} defaultValue The value to return if the path is not found or the object is null/undefined.
  * @returns {*} The value at the specified path, or the defaultValue.
  */
 function _get(obj, keyString, defaultValue) {
-  if (typeof obj !== 'object' || obj === null) {
+  if (typeof obj !== 'object' || obj === null || !keyString) {
     return defaultValue;
   }
 
-  var keys = keyString.split('.');
+  // 1. Temporarily replace the escaped dot sequence (\.) with a placeholder token (e.g., __DOT_PLACEHOLDER__)
+  var PLACEHOLDER = '__DOT_PLACEHOLDER__';
+  var processedKeyString = keyString.replace(/\\\./g, PLACEHOLDER);
+
+  // 2. Split on the *unescaped* dot.
+  var keys = processedKeyString.split('.');
 
   var current = obj;
   for (var i = 0; i < keys.length; i++) {
-    var key = keys[i];
+    // 3. Unescape the key by replacing the placeholder token back to a dot.
+    var key = keys[i].replace(new RegExp(PLACEHOLDER, 'g'), '.');
+
+    // Standard retrieval logic
     if (typeof current !== 'object' || current === null || typeof current[key] === 'undefined') {
       return defaultValue;
     }
@@ -740,7 +766,7 @@ function processMCPRequest(ctx) {
       ctx.setVariable("request.header.Content-Type", targetContentType);
     }
 
-    var requestBody = _get(rpc, "params.arguments." + bodyParam, null);
+    var requestBody = _get(rpc, "params.arguments." + _escapeDot(bodyParam), null);
     if (requestBody) {
       if (isString(requestBody)) {
         ctx.setVariable("message.content", requestBody)
@@ -760,7 +786,7 @@ function processMCPRequest(ctx) {
   //Set Headers
   for (var i = 0; i < headerParams.length; i++) {
     var headerName = headerParams[i]; // e.g., "xRequestId" or "authSecret"
-    var headerValue = _get(rpc, "params.arguments." + headerName, null);
+    var headerValue = _get(rpc, "params.arguments." + _escapeDot(headerName), null);
     if (headerValue) {
       ctx.setVariable("request.header." + headerName, headerValue)
     }
@@ -1171,6 +1197,7 @@ if (!isApigee) {
     "getPrettyJSON": getPrettyJSON,
     "parseJsonString": parseJsonString,
     "_get": _get,
+    "_escapeDot": _escapeDot,
     "combinePaths": combinePaths,
     "JsonRPCError": JsonRPCError,
     "getToolInfo": getToolInfo,
