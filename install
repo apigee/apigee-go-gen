@@ -1,0 +1,292 @@
+#!/usr/bin/env bash
+#  Copyright 2024 Google LLC
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+
+# This install script was adapted from the KCL installation script (https://kcl-lang.io/script/install-cli.sh)
+
+GITHUB_ORG=apigee
+GITHUB_REPO=apigee-go-gen
+BINARY_FILENAME=apigee-go-gen
+
+# --- helper functions for logs ---
+info() {
+  local action="$1"
+  local details="$2"
+  command printf '\033[1;32m%s\033[0m %s\n' "$action" "$details" 1>&2
+}
+
+warn() {
+  command printf '\033[1;33mWarn\033[0m: %s\n' "$1" 1>&2
+}
+
+error() {
+  command printf '\033[1;31mError\033[0m: %s\n' "$1" 1>&2
+}
+
+request() {
+  command printf '\033[1m%s\033[0m\n' "$1" 1>&2
+}
+
+eprintf() {
+  command printf '%s\n' "$1" 1>&2
+}
+
+bold() {
+  command printf '\033[1m%s\033[0m' "$1"
+}
+
+
+gatherSystemInfo() {
+  ARCH=$(uname -m)
+  case $ARCH in
+    aarch64) ARCH="arm64";;
+    x86_64) ARCH="x86_64";;
+  esac
+
+  OS=$(uname -s)
+}
+
+checkSystemIsSupported() {
+  local supported=(Darwin-x86_64 Darwin-arm64 Linux-x86_64 Linux-arm64)
+  local current_os_arch="${OS}-${ARCH}"
+
+  for osarch in "${supported[@]}"; do
+    if [ "$osarch" == "${current_os_arch}" ]; then
+      info "System:" "${OS}_${ARCH}"
+      return
+    fi
+  done
+
+  error "No prebuilt binary exists for ${current_os_arch}"
+  exit 1
+}
+
+
+checkDownloadTool() {
+  if ! type "curl" &> /dev/null; then
+    error "curl is required ..."
+    exit 1
+  fi
+}
+
+
+checkCurrentVersion() {
+  if type "${BINARY_FILENAME}" &> /dev/null ; then
+    current_version=$($BINARY_FILENAME version)
+    info "Current version: " "${current_version} "
+  fi
+}
+
+
+sortSemver() {
+  local lines=""
+  while read version; do
+    if [[ -z "${lines}" ]] ; then
+      lines=$(printf '%s' "${version}")
+    else
+      lines=$(printf '%s\n%s' "${lines}" "${version}")
+    fi
+  done
+  echo "$lines" | sed -r 's:^v::' | sed -r 's:-:~:' | sort -r -V | sed -r 's:^:v:' | sed -r 's:~:-:'
+}
+
+pickLatestRelease() {
+  local first=""
+  while read version; do
+    if [[ -z "${first}" ]] ; then
+      first="${version}"
+    fi
+    if [[ "${version}" != *"-"* ]] ; then
+      echo "${version}"
+      return
+    fi
+  done
+  echo "${first}"
+}
+
+getReleasedTags() {
+  local releaseUrl="${1}"
+  curl -s "${releaseUrl}" | grep "tag_name" | sed -r 's;^[^:]+:[^"]*"([^"]+)".*;\1;'
+}
+
+getLatestRelease() {
+  local releaseUrl="https://api.github.com/repos/${GITHUB_ORG}/${GITHUB_REPO}/releases"
+  local latest_release=""
+
+  latest_release=$(getReleasedTags $releaseUrl | sortSemver | pickLatestRelease)
+  ret_val=$latest_release
+}
+
+createTmpDir() {
+   ret_val=$(mktemp -dt ${BINARY_FILENAME}-XXXXXXX)
+}
+
+
+buildTarballUrl() {
+  tag="${1}"
+  tmpTarBall="${BINARY_FILENAME}_${OS}_${ARCH}.tar.gz"
+  basePath="https://github.com/${GITHUB_ORG}/${GITHUB_REPO}/releases/download"
+  fullTarballUrl="${basePath}/${tag}/${tmpTarBall}"
+  echo "${fullTarballUrl}"
+}
+
+downloadReleaseTarball() {
+  local tag="${1}"
+
+  createTmpDir
+  tmpDir="${ret_val}"
+
+  fullTarballUrl=$(buildTarballUrl "${tag}")
+  tmpTarBall="${tmpDir}/release.tar.gz"
+
+  info "URL:" "${fullTarballUrl} "
+  curl -s -SL "${fullTarballUrl}" -o "${tmpTarBall}"
+
+  if [ ! -f "${tmpTarBall}" ]; then
+    error "Failed to download $fullTarballUrl ..."
+    exit 1
+  fi
+
+  ret_val="${tmpTarBall}"
+}
+
+isReleaseAvailable() {
+  tag="${1}"
+
+  fullTarballUrl=$(buildTarballUrl "${tag}")
+
+  httpStatus=$(curl -s -SLI -o /dev/null -w "%{http_code}" "$fullTarballUrl")
+  if [ "$httpStatus" == "200" ]; then
+      return 0
+  fi
+
+  return 1
+}
+
+
+checkOrCreateInstallDir() {
+  local installDir="${1}"
+  info "Install dir:" "${installDir}"
+
+  if [  -d "${installDir}" ] ; then
+    ret_val="${installDir}"
+    return
+  fi
+
+  warn "Installation dir ${installDir} does not exist, creating it"
+  if ! mkdir -p "${installDir}" ; then
+    error "Could not create directory ${installDir}"
+    exit 1
+  fi
+
+  ret_val="${installDir}"
+}
+
+installBinaryFromTarball() {
+  local installDir="${1}"
+  local tmpTarBall="${2}"
+
+  tmpDir=$(dirname "${tmpTarBall}")
+  tar xf "${tmpTarBall}" --strip-components=1 -C "${tmpDir}"
+
+  if [ ! -f "${tmpDir}/${BINARY_FILENAME}" ]; then
+    error "Failed to unpack ${BINARY_FILENAME} executable."
+    exit 1
+  fi
+
+  if [[ ! -w "${installDir}" ]] && [[ $EUID -ne 0 ]] ; then
+    warn "Moving ${BINARY_FILENAME} binary into ${installDir} requires password"
+    AS_ROOT="sudo"
+  fi
+
+  $AS_ROOT mv -f "${tmpDir}/${BINARY_FILENAME}" "${installDir}"
+
+  installedFile="${installDir}/${BINARY_FILENAME}"
+
+  if [ -f "${installedFile}" ]; then
+    new_version=$($installedFile version)
+    info "Installed version:" "${new_version}"
+  else
+    error "Failed to copy ${BINARY_FILENAME} into ${installDir}"
+    exit 1
+  fi
+}
+
+getLatestTagOrVerifyInputTag() {
+  local tag="${1}"
+  if [ -z "${tag}" ] || [ "${tag}" == "latest" ]; then
+    getLatestRelease
+    tag="${ret_val}"
+  fi
+
+  info "Release:" "${tag}"
+
+  if ! isReleaseAvailable "${tag}" ; then
+    error "Release ${tag} is not available"
+    exit 1
+  fi
+
+  ret_val="${tag}"
+}
+
+
+fail_trap() {
+  result=$?
+  if [ "$result" != "0" ]; then
+    error "Failed to install ${BINARY_FILENAME} ..."
+    info "For support, go to https://github.com/${GITHUB_ORG}/${GITHUB_REPO}"
+  fi
+  exit $result
+}
+
+cleanupTarball() {
+  local tmpTarBall="${1}"
+  rm -f "${tmpTarBall}"
+}
+
+installCompleted() {
+  local installDir="${1}"
+  echo  "Installation complete! $(bold "${BINARY_FILENAME}") is now in ${installDir}"
+  echo  "Add it to your \$PATH by running: $(bold "export PATH=\"${installDir}:\$PATH\"")"
+  echo  "To get started with $(bold "${BINARY_FILENAME}"), please visit https://github.com/${GITHUB_ORG}/${GITHUB_REPO}"
+}
+
+# -----------------------------------------------------------------------------
+# main
+# -----------------------------------------------------------------------------
+trap "fail_trap" EXIT
+
+
+RELEASE_TAG="${1:-latest}"
+INSTALL_DIR="${2:-/usr/local/bin}"
+
+gatherSystemInfo
+checkDownloadTool
+
+checkOrCreateInstallDir "${INSTALL_DIR}"
+installDir="${ret_val}"
+
+getLatestTagOrVerifyInputTag "${RELEASE_TAG}"
+tag="${ret_val}"
+
+checkSystemIsSupported "${tag}"
+checkCurrentVersion
+
+downloadReleaseTarball "${tag}"
+tarball="${ret_val}"
+
+installBinaryFromTarball "${installDir}" "${tarball}"
+cleanupTarball "${tarball}"
+
+installCompleted "${installDir}"
