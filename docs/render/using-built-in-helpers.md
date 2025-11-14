@@ -248,6 +248,35 @@ e.g.
 {{ print (yaml_to_json $YAML_TEXT) }}
 ```
 
+
+### **remove_oas_extensions**
+```go
+func remove_oas_extensions(src string)
+```
+
+Removes the OpenAPI Description extensions from the file specified by src
+
+e.g.
+```gotemplate
+{{ os_writefile "./openapi.yaml" $.Values.spec_string }}
+{{ remove_oas_extensions "./openapi.yaml" }}
+```
+
+
+### **remove_oas_schema_extensions**
+```go
+func remove_oas_schema_extensions(src string)
+```
+
+Removes "x-" vendor extensions form schemas in an OpenAPI description file specified by src
+
+e.g.
+```gotemplate
+{{ os_writefile "./openapi.yaml" $.Values.spec_string }}
+{{ remove_oas_schema_extensions "./openapi.yaml" }}
+```
+
+
 ## Libraries
 ### **Sprig**
 

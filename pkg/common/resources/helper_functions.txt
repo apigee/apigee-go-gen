@@ -72,14 +72,22 @@
         You can also use it to dump values to stdout in order to see the contents.
         e.g. {{ fmt_printf "url: %%v\n" $url }}
 
-    remove_oas_extensions(src string) string
-        Removes the OpenAPI Description extensions from the file specified by src
-        The file must already exist in the output directory
+    remove_oas_extensions(src string)
+        Removes the OpenAPI Description vendor extensions from the file specified by src
+        The file must already exist in the template working directory
 
         This is useful if to make the OAS Description files small within the generated bundles
         e.g.
           {{ os_writefile "./openapi.yaml" $.Values.spec_string }}
           {{ remove_oas_extensions "./openapi.yaml" }}
+
+     remove_oas_schema_extensions(src string)
+         Removes "x-" vendor extensions form schemas in an OpenAPI description file specified by src
+         The file must already exist in the template working directory
+
+         e.g.
+           {{ os_writefile "./openapi.yaml" $.Values.spec_string }}
+           {{ remove_oas_schema_extensions "./openapi.yaml" }}
 
     oas3_to_mcp(file string) map[string]any
         Extracts MCP metadata from an OpenAPI 3.x description

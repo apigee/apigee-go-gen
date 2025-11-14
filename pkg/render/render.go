@@ -296,6 +296,7 @@ func CreateTemplate(templateFile string, templateFileAlias string, includeList [
 	helperFuncs["os_getenvs"] = osGetEnvs
 	helperFuncs["os_copyfile"] = getOSCopyFileFunc(templateFile, outputFile, dryRun)
 	helperFuncs["remove_oas_extensions"] = getRemoveOASExtensions(templateFile, outputFile, dryRun)
+	helperFuncs["remove_oas_schema_extensions"] = getRemoveOASSchemaExtensions(templateFile, outputFile, dryRun)
 	helperFuncs["blank"] = blankFunc
 	helperFuncs["deref"] = derefFunc
 	helperFuncs["slug_make"] = slugMakeFunc
