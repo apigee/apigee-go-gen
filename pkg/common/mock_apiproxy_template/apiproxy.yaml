@@ -160,6 +160,8 @@ ProxyEndpoints:
 TargetEndpoints: []
 Resources:
   #{{ os_writefile "./openapi.json" ($.Values.spec | toPrettyJson) }}
+  #{{ remove_oas_extensions "./openapi.json" }}
+  #{{ remove_oas_schema_extensions "./openapi.json" }}
   - Resource:
       Type: oas
       Path: ./openapi.json
