@@ -710,6 +710,38 @@ function getToolInfo(ctx, toolName) {
 }
 
 /**
+ * Sanitizes the Accept-Encoding header by removing 'br' (Brotli) as it is not supported by Apigee.
+ * Returns the sanitized header string, or null if the header should be removed.
+ *
+ * @param {string} acceptEncoding The original Accept-Encoding header value.
+ * @returns {string|null} The sanitized header value or null.
+ */
+function sanitizeAcceptEncoding(acceptEncoding) {
+  if (!acceptEncoding || !isString(acceptEncoding)) {
+    return null;
+  }
+
+  var encodings = acceptEncoding.split(',');
+  var sanitizedEncodings = [];
+  for (var i = 0; i < encodings.length; i++) {
+    var e = encodings[i].trim();
+    if (e !== 'br') {
+      sanitizedEncodings.push(e);
+    }
+  }
+
+  if (sanitizedEncodings.length === 0) {
+    return null;
+  }
+
+  if (sanitizedEncodings.length === encodings.length) {
+    return acceptEncoding;
+  }
+
+  return sanitizedEncodings.join(', ');
+}
+
+/**
  * Processes an incoming JSON-RPC `tools/call` request and translates it into
  * the corresponding Apigee flow variables (`message.verb`, `target.url`, `request.header.Accept`,
  * `message.content`, etc.) to invoke the target REST service.
@@ -754,6 +786,18 @@ function processMCPRequest(ctx) {
   //Set the Accept request Header
   if (targetAccept) {
     ctx.setVariable("request.header.Accept", targetAccept)
+  }
+
+  // Sanitize Accept-Encoding header to remove 'br' (Brotli) as it is not supported by Apigee
+  var acceptEncoding = ctx.getVariable("request.header.Accept-Encoding.values.string");
+  var sanitizedEncoding = sanitizeAcceptEncoding(acceptEncoding);
+
+  if (sanitizedEncoding === null) {
+    if (acceptEncoding) {
+      ctx.removeVariable("request.header.Accept-Encoding");
+    }
+  } else if (sanitizedEncoding !== acceptEncoding) {
+    ctx.setVariable("request.header.Accept-Encoding", sanitizedEncoding);
   }
 
   //Set the Body
@@ -1207,6 +1251,7 @@ if (!isApigee) {
     "filterHeaderTools": filterHeaderTools,
     "authorizeMCPReq": authorizeMCPReq,
     "isBinaryMimeType": isBinaryMimeType,
+    "sanitizeAcceptEncoding": sanitizeAcceptEncoding,
     "JSON_RPC_PARSE_ERROR": JSON_RPC_PARSE_ERROR,
     "JSON_RPC_INVALID_REQUEST": JSON_RPC_INVALID_REQUEST,
     "JSON_RPC_METHOD_NOT_FOUND": JSON_RPC_METHOD_NOT_FOUND,

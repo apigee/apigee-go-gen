@@ -29,6 +29,7 @@ const {
   isPlainObject,
   isString,
   isBinaryMimeType,
+  sanitizeAcceptEncoding,
   jsonToFormURLEncoded,
   parseJsonRpc,
   parseMCPReq,
@@ -264,6 +265,30 @@ describe('isBinaryMimeType', () => {
     expect(isBinaryMimeType(undefined)).toBe(false);
     expect(isBinaryMimeType(123)).toBe(false);
     expect(isBinaryMimeType({})).toBe(false);
+  });
+});
+
+describe('sanitizeAcceptEncoding', () => {
+  test('should return null for null/undefined/non-string input', () => {
+    expect(sanitizeAcceptEncoding(null)).toBeNull();
+    expect(sanitizeAcceptEncoding(undefined)).toBeNull();
+    expect(sanitizeAcceptEncoding(123)).toBeNull();
+  });
+
+  test('should remove "br" from list', () => {
+    expect(sanitizeAcceptEncoding('gzip, br, deflate')).toBe('gzip, deflate');
+  });
+
+  test('should return null if "br" is the only encoding', () => {
+    expect(sanitizeAcceptEncoding('br')).toBeNull();
+  });
+
+  test('should return original string if "br" is not present', () => {
+    expect(sanitizeAcceptEncoding('gzip, deflate')).toBe('gzip, deflate');
+  });
+
+  test('should handle "br" with whitespace', () => {
+    expect(sanitizeAcceptEncoding(' gzip , br , deflate ')).toBe('gzip, deflate');
   });
 });
 
@@ -782,6 +807,107 @@ describe('MCP Request/Response Processing', () => {
 
     // Check body content
     expect(JSON.parse(ctx.getVariable("message.content"))).toEqual({ name: "Jane" });
+  });
+
+  describe('Accept-Encoding Header Sanitization', () => {
+    test('should remove "br" from Accept-Encoding header', () => {
+      const ctx = mockContext();
+      const rpcRequest = {
+        jsonrpc: "2.0",
+        method: "tools/call",
+        params: { name: "fetch_data", arguments: { resourceId: "R1" } },
+        id: 1
+      };
+      ctx.setVariable("request.content", JSON.stringify(rpcRequest));
+      ctx.setVariable("request.header.Accept-Encoding.values.string", "gzip, br, deflate");
+
+      processMCPRequest(ctx);
+
+      expect(ctx.getVariable("request.header.Accept-Encoding")).toBe("gzip, deflate");
+    });
+
+    test('should remove Accept-Encoding header if it only contains "br"', () => {
+      const ctx = mockContext();
+      const rpcRequest = {
+        jsonrpc: "2.0",
+        method: "tools/call",
+        params: { name: "fetch_data", arguments: { resourceId: "R1" } },
+        id: 2
+      };
+      ctx.setVariable("request.content", JSON.stringify(rpcRequest));
+      ctx.setVariable("request.header.Accept-Encoding.values.string", "br");
+
+      processMCPRequest(ctx);
+
+      expect(ctx.getVariable("request.header.Accept-Encoding")).toBeUndefined();
+    });
+
+    test('should keep Accept-Encoding header if "br" is not present', () => {
+      const ctx = mockContext();
+      const rpcRequest = {
+        jsonrpc: "2.0",
+        method: "tools/call",
+        params: { name: "fetch_data", arguments: { resourceId: "R1" } },
+        id: 3
+      };
+      ctx.setVariable("request.content", JSON.stringify(rpcRequest));
+      ctx.setVariable("request.header.Accept-Encoding", "gzip");
+      ctx.setVariable("request.header.Accept-Encoding.values.string", "gzip, deflate");
+
+      processMCPRequest(ctx);
+
+      expect(ctx.getVariable("request.header.Accept-Encoding")).toBe("gzip");
+    });
+
+    test('should handle "br" mixed with other encodings correctly', () => {
+      const ctx = mockContext();
+      const rpcRequest = {
+        jsonrpc: "2.0",
+        method: "tools/call",
+        params: { name: "fetch_data", arguments: { resourceId: "R1" } },
+        id: 4
+      };
+      ctx.setVariable("request.content", JSON.stringify(rpcRequest));
+      ctx.setVariable("request.header.Accept-Encoding.values.string", "br, gzip");
+
+      processMCPRequest(ctx);
+
+      expect(ctx.getVariable("request.header.Accept-Encoding")).toBe("gzip");
+    });
+
+    test('should do nothing if Accept-Encoding header is missing', () => {
+      const ctx = mockContext();
+      const rpcRequest = {
+        jsonrpc: "2.0",
+        method: "tools/call",
+        params: { name: "fetch_data", arguments: { resourceId: "R1" } },
+        id: 5
+      };
+      ctx.setVariable("request.content", JSON.stringify(rpcRequest));
+
+      processMCPRequest(ctx);
+
+      expect(ctx.getVariable("request.header.Accept-Encoding.values.string")).toBeUndefined();
+    });
+
+    test('should use .values.string if available to get full header list', () => {
+      const ctx = mockContext();
+      const rpcRequest = {
+        jsonrpc: "2.0",
+        method: "tools/call",
+        params: { name: "fetch_data", arguments: { resourceId: "R1" } },
+        id: 6
+      };
+      ctx.setVariable("request.content", JSON.stringify(rpcRequest));
+      // Simulate Apigee behavior where simple get returns only first value
+      ctx.setVariable("request.header.Accept-Encoding", "gzip");
+      // But .values.string returns the full list
+      ctx.setVariable("request.header.Accept-Encoding.values.string", "gzip, br, deflate");
+
+      processMCPRequest(ctx);
+
+      expect(ctx.getVariable("request.header.Accept-Encoding")).toBe("gzip, deflate");
+    });
   });
 
   test('processRESTRes should wrap successful REST response (plain object) directly', () => {
