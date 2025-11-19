@@ -604,7 +604,7 @@ Resources:
       Path: ./resources/jsc/authorize-mcp-req.cjs
   - Resource:
       Type: jsc
-      Path: ../resources/jsc/filter-authorized-tools.cjs"
+      Path: ./resources/jsc/filter-authorized-tools.cjs"
   #{{- end }}
   - Resource:
       Type: jsc
