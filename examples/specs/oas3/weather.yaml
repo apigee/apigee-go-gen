@@ -2409,7 +2409,6 @@ components:
               "$ref": "#/components/schemas/GeoJsonBoundingBox"
       description: A GeoJSON geometry object. Please refer to IETF RFC 7946 for information
         on the GeoJSON format.
-      nullable: true
     GeoJsonFeature:
       required:
         - type
@@ -2881,7 +2880,6 @@ components:
           description: |
             Peak wind gust for the period.
             This property as an string value is deprecated. Future versions will express this value as a quantitative value object. To make use of the future standard format now, set the "forecast_wind_speed_qv" feature flag on the request.
-          nullable: true
         windDirection:
           enum:
             - "N"
@@ -2987,7 +2985,6 @@ components:
           description: |
             Peak wind gust for the period.
             This property as an string value is deprecated. Future versions will express this value as a quantitative value object. To make use of the future standard format now, set the "forecast_wind_speed_qv" feature flag on the request.
-          nullable: true
         windDirection:
           enum:
             - "N"
