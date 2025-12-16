@@ -27,6 +27,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"regexp"
+	"runtime"
 	"slices"
 	"strings"
 	"text/template"
@@ -335,6 +336,9 @@ func ExpandInclude(includeTpl flags.IncludeList) ([]string, error) {
 	// expand the included templates
 	allMatches := []string{}
 	for _, includePattern := range includeTpl {
+		if runtime.GOOS == "windows" {
+			includePattern = filepath.ToSlash(includePattern)
+		}
 		basePath, pattern := doublestar.SplitPattern(includePattern)
 		fSys := os.DirFS(basePath)
 		matches, err := doublestar.Glob(fSys, pattern)
