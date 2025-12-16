@@ -20,6 +20,7 @@ import (
 	"github.com/apigee/apigee-go-gen/pkg/common/mock_apiproxy_template"
 	"github.com/apigee/apigee-go-gen/pkg/flags"
 	"github.com/apigee/apigee-go-gen/pkg/render"
+	"github.com/apigee/apigee-go-gen/pkg/utils"
 	"github.com/go-errors/errors"
 	"os"
 	"path/filepath"
@@ -32,7 +33,7 @@ func GenerateMockProxyBundle(input string, output string, cFlags *render.CommonF
 	if templateDir, err = getMockProxyTemplateDir(); err != nil {
 		return errors.New(err)
 	}
-	defer func() { _ = os.RemoveAll(templateDir) }()
+	defer utils.LenientRemoveAll(templateDir)
 
 	createModelFunc := func(input string) (v1.Model, error) {
 		return v1.NewAPIProxyModel(input)
@@ -40,7 +41,6 @@ func GenerateMockProxyBundle(input string, output string, cFlags *render.CommonF
 
 	cFlags.OutputFile = flags.NewString(output)
 	cFlags.TemplateFile = flags.NewString(filepath.Join(templateDir, "apiproxy.yaml"))
-	cFlags.IncludeList = flags.NewIncludeList([]string{filepath.Join(templateDir, "*.tmpl")})
 
 	var oas = flags.NewSetOAS(cFlags.Values)
 	if err = oas.Set(fmt.Sprintf("spec=%s", input)); err != nil {

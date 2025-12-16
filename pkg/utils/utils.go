@@ -47,6 +47,10 @@ func MustRemoveAll(path string) {
 	}
 }
 
+func LenientRemoveAll(path string) {
+	_ = os.RemoveAll(path)
+}
+
 func AddEntryToOASYAML(oas *yaml.Node, key string, value any, defaultVal *yaml.Node) (*yaml.Node, error) {
 	oas.Content = append(oas.Content, &yaml.Node{Kind: yaml.ScalarNode, Value: key})
 

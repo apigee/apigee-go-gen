@@ -37,7 +37,7 @@ func GenerateBundle(createModelFunc func(string) (v1.Model, error), cFlags *Comm
 		if templateFileFromGit, templateDirFromGit, err = git.FetchFile(string(cFlags.TemplateFile)); err != nil {
 			return err
 		}
-		defer utils.MustRemoveAll(templateDirFromGit)
+		defer utils.LenientRemoveAll(templateDirFromGit)
 		cFlags.TemplateFile = flags.String(templateFileFromGit)
 		fileRelative, _ := filepath.Rel(templateDirFromGit, templateFileFromGit)
 		cFlags.TemplateFileAlias = flags.String(fileRelative)
@@ -50,7 +50,7 @@ func GenerateBundle(createModelFunc func(string) (v1.Model, error), cFlags *Comm
 	if tmpDir, err = os.MkdirTemp("", "render-*"); err != nil {
 		return errors.New(err)
 	}
-	defer utils.MustRemoveAll(tmpDir)
+	defer utils.LenientRemoveAll(tmpDir)
 
 	if err = utils.CopyDir(tmpDir, templateDir); err != nil {
 		return errors.New(err)
@@ -60,6 +60,8 @@ func GenerateBundle(createModelFunc func(string) (v1.Model, error), cFlags *Comm
 	if tempRenderedFile, err = os.CreateTemp(tmpDir, fmt.Sprintf("rendered-*-template.yaml")); err != nil {
 		return errors.New(err)
 	}
+
+	defer utils.MustClose(tempRenderedFile)
 
 	// render the template to a temporary location
 	cFlags.OutputFile = flags.String(tempRenderedFile.Name())

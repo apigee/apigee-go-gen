@@ -28,7 +28,7 @@ func RenderGenericTemplate(cFlags *CommonFlags, dryRun bool) error {
 		if templateFileFromGit, templateDirFromGit, err = git.FetchFile(string(cFlags.TemplateFile)); err != nil {
 			return err
 		}
-		defer utils.MustRemoveAll(templateDirFromGit)
+		defer utils.LenientRemoveAll(templateDirFromGit)
 		cFlags.TemplateFile = flags.String(templateFileFromGit)
 	}
 
