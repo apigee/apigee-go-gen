@@ -29,8 +29,8 @@ require (
 	github.com/hashicorp/hcl/v2 v2.24.0
 	github.com/pb33f/libopenapi v0.16.5
 	github.com/spf13/cobra v1.8.0
-	github.com/stretchr/testify v1.10.0
-	github.com/vektah/gqlparser/v2 v2.5.14
+	github.com/stretchr/testify v1.11.1
+	github.com/vektah/gqlparser/v2 v2.5.31
 	github.com/vmware-labs/yaml-jsonpath v0.3.2
 	github.com/zclconf/go-cty v1.16.4
 	gopkg.in/yaml.v3 v3.0.1
@@ -40,7 +40,7 @@ require (
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/semver/v3 v3.2.0 // indirect
 	github.com/agext/levenshtein v1.2.3 // indirect
-	github.com/agnivade/levenshtein v1.1.1 // indirect
+	github.com/agnivade/levenshtein v1.2.1 // indirect
 	github.com/apparentlymart/go-textseg/v15 v15.0.0 // indirect
 	github.com/bahlo/generic-list-go v0.2.0 // indirect
 	github.com/buger/jsonparser v1.1.1 // indirect
