@@ -36,3 +36,5 @@ TargetEndpoints:
             Audience:
               -Data: sample_audience
               .useTargetUrl: true
+            IncludeEmail:
+              -Data: "true"
