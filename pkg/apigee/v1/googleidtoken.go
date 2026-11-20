@@ -17,7 +17,8 @@ package v1
 import "fmt"
 
 type GoogleIDToken struct {
-	Audience *Audience `xml:"Audience"`
+	Audience     *Audience     `xml:"Audience"`
+	IncludeEmail *IncludeEmail `xml:"IncludeEmail"`
 
 	UnknownNode AnyList `xml:",any"`
 }
@@ -34,6 +35,7 @@ func ValidateGoogleIDToken(v *GoogleIDToken, path string) []error {
 
 	var subErrors []error
 	subErrors = append(subErrors, ValidateAudience(v.Audience, subPath)...)
+	subErrors = append(subErrors, ValidateIncludeEmail(v.IncludeEmail, subPath)...)
 
 	return subErrors
 }
