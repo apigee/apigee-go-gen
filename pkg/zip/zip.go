@@ -31,6 +31,10 @@ func Unzip(destDir string, srcZip string) error {
 	defer MustClose(r)
 
 	unzipFile := func(zipFile *zip.File) error {
+		//reject entries that would be extracted outside of destDir (zip-slip)
+		if !filepath.IsLocal(zipFile.Name) {
+			return errors.Errorf("zip entry %q is not a local path", zipFile.Name)
+		}
 		path := filepath.Join(destDir, zipFile.Name)
 
 		if zipFile.FileInfo().IsDir() {

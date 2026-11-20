@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"github.com/Masterminds/sprig/v3"
 	"github.com/apigee/apigee-go-gen/pkg/flags"
+	"github.com/apigee/apigee-go-gen/pkg/utils"
 	"github.com/bmatcuk/doublestar/v4"
 	"github.com/go-errors/errors"
 	"github.com/gosimple/slug"
@@ -196,16 +197,16 @@ func CreateTemplate(templateFile string, templateFileAlias string, includeList [
 			panic("os_writefile path must not use ..")
 		}
 
-		filePath := filepath.Join(filepath.Dir(outputFile), fileName)
 		data := args[1].(string)
 		var err error
 		if !dryRun {
-			err = os.WriteFile(filePath, []byte(data), os.ModePerm)
+			//confined to the output directory, so symlinks cannot redirect the write elsewhere
+			err = utils.WriteFileInDir(filepath.Dir(outputFile), fileName, []byte(data), false)
 			if err != nil {
 				panic(err)
 			}
 		} else {
-			//fmt.Printf(`os_writefile(%s, []byte{%v})\n`, filePath, len(data))
+			//fmt.Printf(`os_writefile(%s, []byte{%v})\n`, filepath.Join(filepath.Dir(outputFile), fileName), len(data))
 		}
 		return fileName
 	}

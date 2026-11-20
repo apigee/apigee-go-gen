@@ -52,17 +52,7 @@ func getOSCopyFileFunc(templateFile string, outputFile string, dryRun bool) Help
 			panic("os_copyfile src must not use ..")
 		}
 
-		dstDir := filepath.Dir(filepath.Join(filepath.Dir(outputFile), dst))
-
-		if !dryRun {
-			err := os.MkdirAll(dstDir, os.ModePerm)
-			if err != nil {
-				panic(err)
-			}
-		}
-
 		srcPath := filepath.Join(filepath.Dir(templateFile), src)
-		dstPath := filepath.Join(filepath.Dir(outputFile), dst)
 
 		if !dryRun {
 			srcFileContent, err := os.ReadFile(srcPath)
@@ -70,12 +60,13 @@ func getOSCopyFileFunc(templateFile string, outputFile string, dryRun bool) Help
 				panic(err)
 			}
 
-			err = os.WriteFile(dstPath, srcFileContent, os.ModePerm)
+			//confined to the output directory, so symlinks cannot redirect the write elsewhere
+			err = utils.WriteFileInDir(filepath.Dir(outputFile), dst, srcFileContent, true)
 			if err != nil {
 				panic(err)
 			}
 		} else {
-			//fmt.Printf(`os_copyfile("%s", "%s")\n`, dstPath, srcPath)
+			//fmt.Printf(`os_copyfile("%s", "%s")\n`, filepath.Join(filepath.Dir(outputFile), dst), srcPath)
 		}
 
 		return dst
